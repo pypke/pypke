@@ -212,42 +212,47 @@ async def uptime(ctx):
     days, hours = divmod(hours, 24)
     await ctx.send(f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`")
 
-@client.command()
+@client.slash_command()
 async def boosters(ctx):
     role = ctx.guild.premium_subscriber_role
     members = role.members
-    embed = discord.Embed(title="__Server Boosters__", description=f"No. Of Booster: {len(members)}\nThanks To The Boosters Below For Boosting This Server. :hugging:", color=0xff69b4)
+    embed = discord.Embed(
+            title="__Server Boosters__",
+            description=f"No. Of Booster: {len(members)}\nThanks To The Boosters Below For Boosting This Server. :hugging:",
+            color=0xff69b4,
+            timestamp=ctx.message.created_at
+        )
     i = 1
     for member in members:
-        embed.add_field(name="\uFEFF", value=f"**{i}.** {member} - {member.mention}")
+        embed.add_field(name=f"**{i}.** {member.mention}", value="\uFEFF")
         i = i + 1
         if i > 20:
             break
         
     embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
-    embed.set_thumbnail(url=ctx.guild.icon_url)
+    embed.set_thumbnail(url=ctx.guild.icon)
     await ctx.send(embed=embed)
 
-@client.slash_command(guild_ids=[770016980379762770])
+@client.slash_command()
 async def ping(ctx):
     await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`")
 
-@client.slash_command(guild_ids=[770016980379762770])
+@client.slash_command()
 @commands.is_owner()
 async def status(
     ctx,
-    act_type: Option(str, "Choose The Type", choices=["Listening", "Watching", "Playing"]),
+    activity_type: Option(str, "Choose The Type Of Activity", choices=["Listening", "Watching", "Playing"]),
     text: Option(str, "Text", required=True)
 ):
-    if act_type == "Listening":
+    if activity_type == "Listening":
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name=f"{text}", type=discord.ActivityType.listening))
         await ctx.send("Status Changed Successfully!! Now Listening")
 
-    elif act_type == "Watching":
+    elif activity_type == "Watching":
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name=f"{text}", type=discord.ActivityType.watching))
         await ctx.send("Status Changed Successfully!! Now Watching")
 
-    elif act_type == "Playing":
+    elif activity_type == "Playing":
         await client.change_presence(status=discord.Status.idle, activity=discord.Game(name=f"{text}"))
         await ctx.send("Status Changed Successfully!! Now Playing")
 
