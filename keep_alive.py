@@ -1,7 +1,7 @@
 from flask import Flask
 from threading import Thread
 
-app = Flask('Pypke Flask')
+app = Flask('Pypke Bot')
 
 @app.route('/')
 def home():
@@ -13,3 +13,5 @@ def run():
 def keep_alive():
     t = Thread(target=run)
     t.start()
+
+print("Flask Server Online")

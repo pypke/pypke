@@ -15,6 +15,8 @@ class Errors(commands.Cog):
             await ctx.send("Please enter the required argument!", delete_after=5)
         elif isinstance(error, commands.NotOwner):
             await ctx.send("You Don't Own This Bot!!")
+        elif isinstance(error, RuntimeWarning):
+            pass
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.channel.purge(limit=1)
             await ctx.send(f"Oops Looks Like Something Went Wrong!! Details:-`{error}`", delete_after=5)

@@ -15,7 +15,7 @@ class Fun(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='joke')
+    @commands.command(name="joke", description="This Command Sends A Random Joke")
     @commands.guild_only()
     async def joke(self, ctx):
         subreddit = reddit.subreddit("jokes")
@@ -35,7 +35,7 @@ class Fun(commands.Cog):
 
         await ctx.send(embed=em)
 
-    @commands.command()
+    @commands.command(name="meme", description="This command sends a random meme from the subreddit `r/memes`")
     async def meme(self, ctx):
         subreddit = reddit.subreddit("memes")
         all_subs = []
@@ -53,13 +53,13 @@ class Fun(commands.Cog):
         comments = random_sub.num_comments
         post = random_sub.permalink
 
-        em = discord.Embed(title = name, color=discord.Color.random(), url=f"https://reddit.com/{post}")
+        em = discord.Embed(title = name, color=random.choice(self.client.color_list), url=f"https://reddit.com/{post}")
         em.set_image(url = url)
-        em.set_footer(text=f"👍🏻{vote} | 💬{comments}")
+        em.set_footer(text=f"👍🏻 {vote} | 💬 {comments}")
 
         await ctx.send(embed=em)
 
-    @commands.command(aliases=['cats'])
+    @commands.command(name="cat", description="This Sends A Random Cat Picture", aliases=['cats'])
     async def cat(self, ctx):
         subreddit = reddit.subreddit("catpictures")
         all_subs = []
@@ -73,13 +73,13 @@ class Fun(commands.Cog):
 
         url = random_sub.url
 
-        em = discord.Embed(title = ":heart_eyes_cat:Meow", color=discord.Color.random())
+        em = discord.Embed(title = ":heart_eyes_cat:Meow", color=random.choice(self.client.color_list))
 
         em.set_image(url = url)
 
         await ctx.send(embed = em)
 
-    @commands.command(aliases=['dogs'])
+    @commands.command(name="dog", description="This Sends A Random Dog Picture", aliases=['dogs'])
     async def dog(self, ctx, url=None):
         subreddit = reddit.subreddit("dogpictures")
         all_subs = []
@@ -93,12 +93,12 @@ class Fun(commands.Cog):
 
         url = random_sub.url
         
-        em = discord.Embed(title = ":dog:Woof", color=discord.Color.random())
+        em = discord.Embed(title = ":dog:Woof", color=random.choice(self.client.color_list))
         em.set_image(url = url)
 
         await ctx.send(embed=em)
 
-    @commands.command(aliases=['dmeme','deme'])
+    @commands.command(name="dankmeme", description="This commands sends a random meme from subreddit `r/dankmemes`.", aliases=['dmeme','deme'])
     async def dankmeme(self, ctx):
         subreddit = reddit.subreddit("dankmemes")
         all_subs = []
@@ -116,13 +116,13 @@ class Fun(commands.Cog):
         comments = random_sub.num_comments
         post = random_sub.permalink
 
-        em = discord.Embed(title = name, color=discord.Color.random(), url=f"https://reddit.com/{post}")
+        em = discord.Embed(title = name, color=random.choice(self.client.color_list), url=f"https://reddit.com/{post}")
         em.set_image(url = url)
         em.set_footer(text=f"👍🏻{vote} | 💬{comments}")
 
         await ctx.send(embed=em)
 
-    @commands.command(aliases=['8ball'])
+    @commands.command(name="8ball", description="This command answers a question like a 8Ball", usage="<question>")
     async def _8ball(self, ctx, *, question=None):
         responses = ["It is certain",
                      "It is decidedly so",
@@ -154,7 +154,7 @@ class Fun(commands.Cog):
         embed.set_footer(text=f"Asked By {ctx.author.name}", icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(name="pat", description="This command pats a user on back.", usage="<user>")
     @commands.guild_only()
     async def pat(self, ctx, member:discord.Member=None):
             if member==None:
@@ -171,7 +171,7 @@ class Fun(commands.Cog):
             embed.set_image(url=random_pat)
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(name="kill", description="This command kills a user for you! Oops.", usage="<user>")
     @commands.guild_only()
     async def kill(self, ctx, member:discord.Member=None):
         if member==None:
@@ -193,7 +193,7 @@ class Fun(commands.Cog):
     async def egg(self, ctx):
         await ctx.send("This Is An Easter Egg!!", delete_after=2)
 
-    @commands.command()
+    @commands.command(name="hack", description="This command can hack a user!! THIS IS NOT A JOKE.", usage="<user>")
     @commands.guild_only()
     async def hack(self, ctx, member:discord.Member=None):
         if member==None:

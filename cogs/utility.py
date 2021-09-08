@@ -25,14 +25,6 @@ class Utility(commands.Cog):
         )
         await ctx.send(embed=embed, delete_after=2)
 
-    @commands.command(aliases=['credit'])
-    @commands.guild_only()
-    async def invite(self, ctx):
-        embed = discord.Embed(title="This Is A Private Bot!", description="**This Bot Is Made By <@624572769484668938>**", color=discord.Color.blue())
-        embed.set_footer(text="🤖Bot by Mr.Natural#3549")
-
-        await ctx.send(embed=embed)
-    
     @commands.command(aliases=['mail'])
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)

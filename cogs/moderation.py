@@ -1,10 +1,67 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
+import re
+from dateutil.relativedelta import relativedelta
+from copy import deepcopy
+from datetime import datetime
+import asyncio
 
+# Time Variables
+time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
+time_dict = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+
+class TimeConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        args = argument.lower()
+        matches = re.findall(time_regex, args)
+        time = 0
+        for key, value in matches:
+            try:
+                time += time_dict[value] * float(key)
+            except KeyError:
+                raise commands.BadArgument(
+                    f"{value} is an invalid time key! s|m|h|d are valid arguments"
+                )
+            except ValueError:
+                raise commands.BadArgument(f"{key} is not a number!")
+        return round(time)
 
 class Moderation(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.mute_task = self.check_current_mutes.start()
+
+    def cog_unload(self):
+        self.mute_task.cancel()
+
+    @tasks.loop(minutes=5)
+    async def check_current_mutes(self):
+        currentTime = datetime.now()
+        mutes = deepcopy(self.client.muted_users)
+        for key, value in mutes.items():
+            if value['muteDuration'] is None:
+                continue
+
+            unmuteTime = value['mutedAt'] + relativedelta(seconds=value['muteDuration'])
+
+            if currentTime >= unmuteTime:
+                guild = self.client.get_guild(value['guildId'])
+                member = guild.get_member(value['_id'])
+
+                role = discord.utils.get(guild.roles, name="Muted")
+                if role in member.roles:
+                    await member.remove_roles(role)
+                    print(f"Unmuted: {member.display_name}")
+
+                await self.client.mutes.delete(member.id)
+                try:
+                    self.client.muted_users.pop(member.id)
+                except KeyError:
+                    pass
+    
+    @check_current_mutes.before_loop
+    async def before_check_current_mutes(self):
+        await self.client.wait_until_ready()
 
     @commands.command()
     @commands.guild_only()
@@ -42,23 +99,92 @@ class Moderation(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
-    async def mute(self, ctx, member: discord.Member):
-        muted_role = ctx.guild.get_role(822852164174348308)
-        if muted_role in member.roles:
-            await ctx.send(f"{member} is already muted!!")
+    @commands.has_permissions(manage_roles=True)
+    async def mute(self, ctx, member: discord.Member, *, time: TimeConverter=None):
+        role = discord.utils.get(ctx.guild.roles, name="Muted")
+        if not role:
+            await ctx.send("No muted role was found! Please create one called `Muted`")
             return
-        await member.add_roles(muted_role)
-        await ctx.send(member.mention + " Has Been Muted!")
+
+        try:
+            if self.client.muted_users[member.id]:
+                await ctx.send("This user is already muted")
+                return
+        except KeyError:
+            pass
+
+        data = {
+            '_id': member.id,
+            'mutedAt': datetime.now(),
+            'muteDuration': time or None,
+            'mutedBy': ctx.author.id,
+            'guildId': ctx.guild.id,
+        }
+        await self.client.mutes.upsert(data)
+        self.client.muted_users[member.id] = data
+
+        await member.add_roles(role)
+
+        if time and time > 2592000:
+            ctx.send("Time cannot be greater than 1 Month/30 Days")
+        else:
+            pass
+
+        if not time:
+            await ctx.send(f"{member.display_name} Was Muted")
+        else:
+            minutes, seconds = divmod(time, 60)
+            hours, minutes = divmod(minutes, 60)
+            days, hours = divmod(hours, 24)
+            if int(days):
+                await ctx.send(
+                    f"{member.display_name} was muted for {days} days, {hours} hours, {minutes} minutes and {seconds} seconds"
+                )
+            elif int(hours):
+                await ctx.send(
+                    f"{member.display_name} was muted for {hours} hours, {minutes} minutes and {seconds} seconds"
+                )
+            elif int(minutes):
+                await ctx.send(
+                    f"{member.display_name} was muted for {minutes} minutes and {seconds} seconds"
+                )
+            elif int(seconds):
+                await ctx.send(f"{member.display_name} was muted for {seconds} seconds")
+
+        if time and time < 300:
+            await asyncio.sleep(time)
+
+            if role in member.roles:
+                await member.remove_roles(role)
+                await ctx.send(f"{member.display_name} Was Unmuted ")
+
+            await self.client.mutes.delete(member.id)
+            try:
+                self.client.muted_users.pop(member.id)
+            except KeyError:
+                pass
 
     @commands.command()
     @commands.guild_only()
-    @commands.has_permissions(kick_members=True)
+    @commands.has_permissions(manage_roles=True)
     async def unmute(self, ctx, member: discord.Member):
-        muted_role = ctx.guild.get_role(822852164174348308)
+        role = discord.utils.get(ctx.guild.roles, name="Muted")
+        if not role:
+            await ctx.send("No muted role was found! Please create one called `Muted`")
+            return
 
-        await member.remove_roles(muted_role)
-        await ctx.send(member.mention + " Has Been Unmuted!")
+        await self.client.mutes.delete(member.id)
+        try:
+            self.client.muted_users.pop(member.id)
+        except KeyError:
+            pass
+
+        if role not in member.roles:
+            await ctx.send("This member is not muted.")
+            return
+
+        await member.remove_roles(role)
+        await ctx.send(f"{member.display_name} Was Unmuted")
 
 def setup(client):
     client.add_cog(Moderation(client))

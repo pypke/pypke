@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import platform
-import utils.json
 
 class Config(commands.Cog):
     def __init__(self, client):
