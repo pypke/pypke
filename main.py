@@ -116,8 +116,7 @@ async def on_ready():
     for mute in currentMutes:
         client.muted_users[mute["_id"]] = mute
 
-    print(client.muted_users)
-
+    print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
     
 
