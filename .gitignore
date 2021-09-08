@@ -1,0 +1,8 @@
+/__pycache__
+*.webm
+/examples
+*.lock
+*toml
+keep_alive.py
+.breakpoints
+*.m4a

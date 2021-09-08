@@ -1,7 +1,6 @@
 # Discord Imports
 import discord
 from discord.ext import commands
-from discord.app import Option
 
 # Other Imports
 import os
@@ -12,7 +11,7 @@ import asyncio
 import motor.motor_asyncio
 
 # Local Imports
-from keep_alive import keep_alive
+from utils.keep_alive import keep_alive
 from utils.mongo import Document
 
 # Path
@@ -26,22 +25,24 @@ owners = [764116023489986601, 624572769484668938]
 async def get_prefix(client, message):
     # If dm's
     if not message.guild:
-        return commands.when_mentioned_or("#")(client, message)
+        return commands.when_mentioned_or(client.prefix)(client, message)
 
     try:
         data = await client.config.find(message.guild.id)
 
         # Make sure we have a useable prefix
         if not data or "prefix" not in data:
-            return commands.when_mentioned_or("#")(client, message)
+            return commands.when_mentioned_or(client.prefix)(client, message)
         return commands.when_mentioned_or(data["prefix"])(client, message)
     except:
-        return commands.when_mentioned_or("#")(client, message)
+        return commands.when_mentioned_or(client.prefix)(client, message)
 
 
 # Status Cycle
 async def status_task():
     while not client.is_closed():
+        await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="@Pypke", type=discord.ActivityType.listening))
+        await asyncio.sleep(30)
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="NedHuman | #help", type=discord.ActivityType.listening))
         await asyncio.sleep(30)
         await client.change_presence(status=discord.Status.idle, activity=discord.Game(name="With NedHuman"))
@@ -54,14 +55,40 @@ async def status_task():
 client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
 client.remove_command("help")
 client.launch_time = datetime.utcnow()
+client.cwd = cwd
 client.version = "1.7.3"
+client.muted_users = {}
+client.prefix = "#"
+guild_ids=["883378824753066015", "883378824753066015"]
+client.colors = {
+    "white": 0xFFFFFF,
+    "aqua": 0x1ABC9C,
+    "green": 0x2ECC71,
+    "blue": 0x3498DB,
+    "purple": 0x9B59B6,
+    "pink": 0xE91E63,
+    "gold": 0xF1C40F,
+    "orange": 0xE67E22,
+    "red": 0xE74C3C,
+    "navy": 0x34495E
+}
+client.color_list = [c for c in client.colors.values()]
 
 #Filter Words
 profanity.load_censor_words_from_file(cwd + "/bot_config/filtered_words.txt")
 
 #Mongo DB Stuff
 client.connection_url = "mongodb+srv://MrNatural:aman5368@pypke-cluster.ekgfx.mongodb.net/database?retryWrites=true&w=majority"
+   
+# Invite Viewpanel
+# class Button(discord.ui.View):
 
+#     @(self, button: discord.ui.Button, interaction: discord.Interaction):
+#         button.
+#         button.style = discord.ButtonStyle.success
+#         button.label = str("Invite Me")
+        
+#         await interaction.response.edit_message(view=self)
 
 @client.event
 async def on_ready():
@@ -69,8 +96,7 @@ async def on_ready():
     # Client Connection
     asyncio.sleep(10)
     os.system("clear")
-    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}")
-    print(f"Path: {cwd}")
+    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
     print("---------")
     for file in os.listdir(cwd + "/cogs"):
         if file.endswith(".py") and not file.startswith("_"):
@@ -82,47 +108,28 @@ async def on_ready():
     client.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(client.connection_url))
     client.db = client.mongo["pypke"]
     client.config = Document(client.db, "config")
-    print("Initialized Database\n--------")
-
-    # Extra Stuff
+    client.mutes = Document(client.db, "mutes")
     client.blacklisted_users = Document(client.db, "blacklist")
+
+    # Muted Users
+    currentMutes = await client.mutes.get_all()
+    for mute in currentMutes:
+        client.muted_users[mute["_id"]] = mute
+
+    print(client.muted_users)
+
+    print("\u001b[34mInitialized Database\u001b[0m\n--------")
+    
 
 @client.event
 async def on_member_join(member):
-    if member.guild.id == 798760033281507337:
-        embed = discord.Embed(title=f"Welcome To {member.guild.name}! {member}", description=f":tada: {member.guild.name}\n\nThanks For Joining & Here is our Link If You Want To Invite Your Friends:", color=discord.Color.orange())
-        embed.add_field(name="Links", value="[Discord Server](https://discord.gg/BaMAZB2Hrb)\n[YouTube](https://youtube.com/c/NedHuman)\n\nBe Sure To Check Out <#822852164539514932> To Gain Access To Rest Of The Server!")
-        embed.set_thumbnail(url='{}'.format(member.avatar_url))
-        embed.set_footer(text="Enjoy Your Stay! 🤗", icon_url="{}".format(member.avatar_url))
-        await member.send(embed=embed)
-    else:
-        pass
-
-    if member.guild.id == 770016980379762770:
-        join_channel = client.get_channel(772734602166796308)
-        embed2 = discord.Embed(title=f"Welcome To {member.guild.name}!", description=f"**{member.name}**\n\nWelcome {member.mention} To {member.guild.name}!", color=discord.Color.orange())
-        embed2.set_thumbnail(url='{}'.format(member.avatar_url))
-        embed2.set_footer(text="Enjoy Your Stay! 🤗", icon_url="{}".format(member.guild.icon_url))
-        embed2.set_image(url="https://cdn.discordapp.com/attachments/815886601364176966/831515105963409488/standard_4.gif")
-        embed2.set_author(name=f"{member.name}", icon_url='{}'.format(member.avatar_url))
-        await join_channel.send(embed=embed2)
-    elif member.guild.id == 798760033281507337:
-        join_channel = client.get_channel(822852164313415739)
-        embed2 = discord.Embed(title=f"Welcome To {member.guild.name}!", description=f"**{member.name}**\n\nWelcome {member.mention} To {member.guild.name}!", color=discord.Color.orange())
-        embed2.set_thumbnail(url='{}'.format(member.avatar_url))
-        embed2.set_footer(text="Enjoy Your Stay! 🤗", icon_url="{}".format(member.guild.icon_url))
-        embed2.set_image(url="https://cdn.discordapp.com/attachments/822852164313415734/823061048587845673/standard_1.gif")
-        embed2.set_author(name=f"{member.name}", icon_url='{}'.format(member.avatar_url))
-        await join_channel.send(embed=embed2)
-
+    # More Updates Needed
+    pass
+    
 @client.event
 async def on_member_remove(member):
-    if member.guild.id == 770016980379762770:
-        leave_channel=client.get_channel(773913564435316756)
-        await leave_channel.send(f"{member.name}, Has Left Us...")
-    elif member.guild.id == 798760033281507337:
-        leave_channel=client.get_channel(822852164539514930)
-        await leave_channel.send(f"{member.name}, Has Left Us...")
+    # More Updates Needed
+    pass
 
 @client.event
 async def on_message(message):
@@ -133,8 +140,7 @@ async def on_message(message):
             await message.channel.send("Hey There, Watch Your Language!!")
     """
 
-    if message.content.startswith(f"<@!{client.user.id}>") and len(message.content) == len(f"<@!{client.user.id}>"
-    ):
+    if client.user.mentioned_in(message):
         data = await client.config.get_by_id(message.guild.id)
         if not data or "prefix" not in data:
             prefix = "#"
@@ -144,7 +150,6 @@ async def on_message(message):
         embed = discord.Embed(title="Bot Mentioned",
                               description=f"Prefix of the bot is `{prefix}`\nDo `{prefix}help` to view help on each command.",
                               colour=discord.Color.blurple())
-        embed.set_thumbnail(url="{}".format(message.guild.icon_url))
 
         await message.channel.send(embed=embed, delete_after=5)
 
@@ -190,7 +195,7 @@ async def on_message(message):
     if data:
         prefix = get_prefix
         if message.content.startswith(f"{prefix}"):
-            await message.channel.send("Hey, Lmao You Are Banned From Using This Bot")
+            await message.channel.send("Hey, Lmao You Are Banned From Using This Bot", delete_after=3)
             return
         else:
             return
@@ -204,7 +209,16 @@ async def name(ctx, *, name):
     pog = ctx.guild.get_role(828525798113804288)
     await pog.edit(reason="Edited Name", name=name)
 
-@client.slash_command(description="Checks How Long The Bot Has Been Running")
+
+@client.command()
+async def invite(ctx):
+    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!\n[__**Invite Me**__](https://discord.com/api/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot)", color=discord.Color.blurple(), timestamp=datetime.now())
+    embed.set_footer(text="Bot by Mr.Natural#3549")
+
+    await ctx.send(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed)
+    
+
+@client.command(description="Checks How Long The Bot Has Been Running")
 async def uptime(ctx):
     delta_uptime = datetime.utcnow() - client.launch_time
     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
@@ -212,19 +226,15 @@ async def uptime(ctx):
     days, hours = divmod(hours, 24)
     await ctx.send(f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`")
 
-@client.slash_command()
+@client.command()
+@commands.is_owner()
 async def boosters(ctx):
     role = ctx.guild.premium_subscriber_role
     members = role.members
-    embed = discord.Embed(
-            title="__Server Boosters__",
-            description=f"No. Of Booster: {len(members)}\nThanks To The Boosters Below For Boosting This Server. :hugging:",
-            color=0xff69b4,
-            timestamp=ctx.message.created_at
-        )
+    embed = discord.Embed(title="__Server Boosters__", description=f"No. Of Booster: {len(members)}\nThanks To The Boosters Below For Boosting This Server. :hugging:", color=0xff69b4, timestamp=datetime.now())
     i = 1
     for member in members:
-        embed.add_field(name=f"**{i}.** {member.mention}", value="\uFEFF")
+        embed.add_field(name=f"**{i}.** {member}", value="\uFEFF")
         i = i + 1
         if i > 20:
             break
@@ -233,28 +243,31 @@ async def boosters(ctx):
     embed.set_thumbnail(url=ctx.guild.icon)
     await ctx.send(embed=embed)
 
-@client.slash_command()
+""" For Slash Command In Future
+@client.command(description="Check The Ping Of The Bot")
 async def ping(ctx):
     await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`")
-
+"""
+"""
 @client.slash_command()
 @commands.is_owner()
 async def status(
     ctx,
-    activity_type: Option(str, "Choose The Type Of Activity", choices=["Listening", "Watching", "Playing"]),
+    act_type: Option(str, "Choose The Type", choices=["Listening", "Watching", "Playing"]),
     text: Option(str, "Text", required=True)
 ):
-    if activity_type == "Listening":
+    if act_type == "Listening":
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name=f"{text}", type=discord.ActivityType.listening))
         await ctx.send("Status Changed Successfully!! Now Listening")
 
-    elif activity_type == "Watching":
+    elif act_type == "Watching":
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name=f"{text}", type=discord.ActivityType.watching))
         await ctx.send("Status Changed Successfully!! Now Watching")
 
-    elif activity_type == "Playing":
+    elif act_type == "Playing":
         await client.change_presence(status=discord.Status.idle, activity=discord.Game(name=f"{text}"))
         await ctx.send("Status Changed Successfully!! Now Playing")
+"""
 
 keep_alive()
 client.run(os.getenv('token'))
