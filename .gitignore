@@ -2,7 +2,8 @@
 *.webm
 /examples
 *.lock
-*toml
+*.toml
 keep_alive.py
 .breakpoints
 *.m4a
+*.replit
