@@ -1,6 +1,7 @@
 import asyncio
 import discord
 import youtube_dl
+import math
 
 from discord.ext import commands
 
@@ -27,7 +28,7 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
+    def __init__(self, source, *, data, volume=1):
         super().__init__(source, volume)
 
         self.data = data
@@ -53,6 +54,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.states = []
 
     @commands.command(aliases=['connect'])
     @commands.guild_only()
@@ -64,19 +66,6 @@ class Music(commands.Cog):
 
         await channel.connect()
         await ctx.send("Connected")
-
-    """
-    @commands.command()
-    async def play(self, ctx, *, query):
-        #Plays a file from the local filesystem
-
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(query))
-        ctx.voice_client.play(
-            source, after=lambda e: print(f"Player error: {e}") if e else None
-        )
-
-        await ctx.send(f"Now playing: {query}")
-    """
 
     @commands.command()
     @commands.guild_only()
@@ -104,16 +93,38 @@ class Music(commands.Cog):
 
         await ctx.send(f"Now playing: `{player.title}`")
 
+    @commands.command(aliases=["resume", "p"])
+    @commands.guild_only()
+    async def pause(self, ctx):
+        """Pauses any currently playing audio."""
+        bot = ctx.guild.voice_client
+        self._pause_audio(bot)
+
+    def _pause_audio(self, bot):
+        if bot.is_paused():
+            bot.resume()
+        else:
+            bot.pause()
+
     @commands.command()
     @commands.guild_only()
     async def volume(self, ctx, volume: int):
-        """Changes the player's volume"""
+        """Change the volume of currently playing audio (values 0-250)."""
+        state = self.get_state(ctx.guild)
 
-        if ctx.voice_client is None:
-            return await ctx.send("You are not connected to a voice channel.")
+        if volume < 0:
+            volume = 0
 
-        ctx.voice_client.source.volume = volume / 100
-        await ctx.send(f"Changed Volume to **{volume}%**")
+        max_vol = 250
+        if max_vol > -1:            
+            if volume > max_vol:
+                volume = max_vol
+
+        client = ctx.guild.voice_client
+
+        state.volume = float(volume) / 100.0
+        client.source.volume = state.volume
+        await ctx.send(f"Volume Set To **{volume}%**")
 
     @commands.command(aliases=['disconnect'])
     @commands.guild_only()
@@ -123,8 +134,28 @@ class Music(commands.Cog):
         await ctx.voice_client.disconnect()
         await ctx.send("Disconnected")
 
+    @commands.command(aliases=['fs'])
+    @commands.guild_only()
+    async def skip(self, ctx):
+        """Skips the currently playing song, or votes to skip it."""
+        state = self.get_state(ctx.guild)
+        client = ctx.guild.voice_client
+        if ctx.channel.permissions_for(
+                ctx.author).administrator or state.is_requester(ctx.author):
+            # immediately skip if requester or admin
+            client.stop()
+        else:
+            channel = client.channel
+            self._vote_skip(channel, ctx.author)
+            # announce vote
+            users_in_channel = len([member for member in channel.members if not member.bot])
+            required_votes = math.ceil(0.5 * users_in_channel)
+            await ctx.send(f"{ctx.author.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)")
+
     @play.before_invoke
     @stream.before_invoke
+    @volume.before_invoke
+    @pause.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
@@ -135,5 +166,35 @@ class Music(commands.Cog):
         elif ctx.voice_client.is_playing():
             ctx.voice_client.stop()
 
+    def _vote_skip(self, channel, member):
+        """Register a vote for `member` to skip the song playing."""
+        channel.send(f"{member.name} votes to skip")
+        state = self.get_state(channel.guild)
+        state.skip_votes.add(member)
+        users_in_channel = len([member for member in channel.members if not member.bot])
+        if (float(len(state.skip_votes)) / users_in_channel) >= 0.5:
+            channel.send(f"Enough votes, skipping...")
+            channel.guild.voice_client.stop()
+
+    def get_state(self, guild):
+        """Gets the state for `guild`, creating it if it does not exist."""
+        if guild.id in self.states:
+            return self.states[guild.id]
+        else:
+            self.states[guild.id] = GuildState()
+            return self.states[guild.id]
+
+class GuildState:
+    """Helper class managing per-guild state."""
+
+    def __init__(self):
+        self.volume = 1.0
+        self.playlist = []
+        self.skip_votes = set()
+        self.now_playing = None
+
+    def is_requester(self, user):
+        return self.now_playing.requested_by == user
+            
 def setup(bot):
     bot.add_cog(Music(bot))

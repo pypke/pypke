@@ -188,10 +188,10 @@ async def on_message(message):
             await message.delete()
             await message.channel.send(f'Hey {message.author.mention} :rage: You cannot send gifs!', delete_after=3)
 
-    data = await client.blacklisted_users.find(message.author.id)
+    users = await client.blacklisted_users.find(message.author.id)
 
     # This Checks Whether The Message Author Is Blacklisted Or Not
-    if data:
+    if users:
         prefix = get_prefix
         if message.content.startswith(f"{prefix}"):
             await message.channel.send("Hey, Lmao You Are Banned From Using This Bot", delete_after=3)
