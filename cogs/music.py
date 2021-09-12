@@ -1,8 +1,10 @@
-import asyncio
-import discord
-import youtube_dl
 import math
+import json
+import asyncio
+import youtube_dl
+from youtube_search import YoutubeSearch
 
+import discord
 from discord.ext import commands
 
 # Suppress noise about console usage from errors
@@ -11,6 +13,11 @@ youtube_dl.utils.bug_reports_message = lambda: ""
 
 ytdl_format_options = {
     "format": "bestaudio/best",
+    "postprocessors": [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
     "outtmpl": "%(extractor)s-%(id)s-%(title)s.%(ext)s",
     "restrictfilenames": True,
     "noplaylist": True,
@@ -22,7 +29,6 @@ ytdl_format_options = {
     "default_search": "auto",
     "source_address": "0.0.0.0",  # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
-
 ffmpeg_options = {"options": "-vn"}
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
@@ -37,7 +43,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.url = data.get("url")
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=False):
+    async def from_url(cls, url, *, loop=None, stream=True):
         loop = loop or asyncio.get_event_loop()
         data = await loop.run_in_executor(
             None, lambda: ytdl.extract_info(url, download=not stream)
@@ -54,8 +60,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.states = []
-
+        self.queue = []
+    
     @commands.command(aliases=['connect'])
     @commands.guild_only()
     async def join(self, ctx, *, channel: discord.VoiceChannel):
@@ -74,11 +80,18 @@ class Music(commands.Cog):
 
         async with ctx.typing():
             player = await YTDLSource.from_url(url, loop=self.bot.loop)
+            yt = YoutubeSearch(url, max_results=1).to_json()
+            try:
+                yt_id = str(json.loads(yt)['videos'][0]['id'])
+                yt_url = 'https://www.youtube.com/watch?v='+ yt_id
+            except:
+                pass
+                
             ctx.voice_client.play(
                 player, after=lambda e: print(f"Player error: {e}") if e else None
             )
 
-        await ctx.send(f"Now playing: `{player.title}`")
+        await ctx.send(f"Now playing: `{player.title}`\n{yt_url or None}")
 
     @commands.command()
     @commands.guild_only()
@@ -108,23 +121,19 @@ class Music(commands.Cog):
 
     @commands.command()
     @commands.guild_only()
-    async def volume(self, ctx, volume: int):
+    async def volume(self, ctx, volume: int = None):
         """Change the volume of currently playing audio (values 0-250)."""
-        state = self.get_state(ctx.guild)
 
-        if volume < 0:
-            volume = 0
+        if ctx.voice_client is None:
+            return await ctx.send("Not connected to a voice channel.")
 
-        max_vol = 250
-        if max_vol > -1:            
-            if volume > max_vol:
-                volume = max_vol
+        if 0 <= volume <= 250:
+            volume = volume / 100
+            ctx.voice_client.source.volume = volume
+        else:
+            await ctx.send('Please enter a volume between 0-250')
 
-        client = ctx.guild.voice_client
-
-        state.volume = float(volume) / 100.0
-        client.source.volume = state.volume
-        await ctx.send(f"Volume Set To **{volume}%**")
+        await ctx.send(f"Changed volume to **{volume}**%")
 
     @commands.command(aliases=['disconnect'])
     @commands.guild_only()

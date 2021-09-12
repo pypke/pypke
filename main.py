@@ -9,10 +9,14 @@ from datetime import datetime
 from better_profanity import profanity
 import asyncio
 import motor.motor_asyncio
+from urllib.parse import quote_plus
+import random
+import epoch
 
 # Local Imports
 from utils.keep_alive import keep_alive
 from utils.mongo import Document
+from cogs.moderation import TimeConverter
 
 # Path
 cwd = Path(__file__).parents[0]
@@ -211,7 +215,7 @@ async def name(ctx, *, name):
 
 @client.command()
 async def invite(ctx):
-    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!\n[__**Invite Me**__](https://discord.com/api/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot)", color=discord.Color.blurple(), timestamp=datetime.now())
+    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!\n__**[Invite Me](https://discord.com/api/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot)**__", color=discord.Color.blurple(), timestamp=datetime.now())
     embed.set_footer(text="Bot by Mr.Natural#3549")
 
     await ctx.send(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed)
@@ -230,18 +234,46 @@ async def uptime(ctx):
 async def boosters(ctx):
     role = ctx.guild.premium_subscriber_role
     members = role.members
-    embed = discord.Embed(title="__Server Boosters__", description=f"No. Of Booster: {len(members)}\nThanks To The Boosters Below For Boosting This Server. :hugging:", color=0xff69b4, timestamp=datetime.now())
-    i = 1
-    for member in members:
-        embed.add_field(name=f"**{i}.** {member}", value="\uFEFF")
-        i = i + 1
-        if i > 20:
-            break
-        
-    embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
-    embed.set_thumbnail(url=ctx.guild.icon)
+    if not members:
+        return await ctx.send("Sad, No one is boosting this server.")
+    embed = discord.Embed(
+            title=f"No. Of Booster: {len(members)}",
+            description=(
+                "\n".join(
+                    f"**{i+1}.** {member.display_name}"
+                    for i, member in enumerate(members)
+                )
+            ),
+            colour=random.choice(client.color_list),
+            timestamp=datetime.now()
+        )
+    embed.add_field(name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
+    embed.set_author(name="Server Boosters")
+    embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+    embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
 
+@client.command()
+async def google(ctx, *, query: str):
+    query = quote_plus(query)
+    url = f"https://www.google.com/search?q={query}"
+    google = discord.Embed(title="Google Search Results", description=f"**Query:** {query}\n**Results:** [Click Here]({url})", color=random.choice(client.color_list), timestamp=datetime.now())
+    google.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+    await ctx.send(embed=google)
+
+@client.command()
+async def etime(ctx, *, value: TimeConverter=None):
+    if value == None:
+        epoch_time = round(epoch.now())
+    else:
+        epoch_time = epoch.now()
+        epoch_time = round(epoch_time + value)
+
+    embed = discord.Embed(title="Epoch Time", description="\uFEFF", color=random.choice(client.color_list), timestamp=datetime.now())
+    embed.add_field(name="Epoch Timestamp Example", value=f"<t:{epoch_time}:f>\n", inline=False)
+    embed.add_field(name="Epoch Timestamp Copy", value=f"`<t:{epoch_time}:f>`\n", inline=False)
+    await ctx.send(embed=embed)
+    
 """ For Slash Command In Future
 @client.command(description="Check The Ping Of The Bot")
 async def ping(ctx):
