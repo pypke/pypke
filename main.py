@@ -242,7 +242,7 @@ async def invite(inter):
     await inter.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
     
 
-@sclient.slash_command(description="Checks how long the bot has been running")
+@sclient.slash_command(description="Checks for how long the bot is up")
 async def uptime(inter):
     delta_uptime = datetime.utcnow() - client.launch_time
     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
