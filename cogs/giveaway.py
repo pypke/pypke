@@ -1,25 +1,7 @@
 import discord
 from discord.ext import commands
-import asyncio
-import datetime
-import random
-
-def convert(time):
-        pos = ["s","m","h","d"]
-
-        time_dict = {"s" : 1, "m" : 60, "h" : 3600 , "d" : 3600*24}
-
-        unit = time[-1]
-
-        if unit not in pos:
-            return -1
-        try:
-            val = int(time[:-1])
-        except:
-            return -2
-
-
-        return val * time_dict[unit]
+import asyncio, datetime, random, epoch
+from utils.time import TimeConverter
 
 class Giveaway(commands.Cog):
     def __init__(self, client):
@@ -28,20 +10,17 @@ class Giveaway(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator = True)
-    async def gstart(self, ctx, mins : int, * , prize: str):
-        embed = discord.Embed(title = "Giveaway!", description = f"**Prize**:- `{prize}`\nReact To <:diamond:809829519338242048> To Enter The **Giveaway**!", color = discord.Color.blue())
+    async def gstart(self, ctx, time : TimeConverter, * , prize: str):
+        embed = discord.Embed(title = "Giveaway!", description = f"**Prize**:- `{prize}`\nReact With 🎉 To Enter The **Giveaway**!", color = random.choice(self.client.color_list))
 
-        end = datetime.datetime.utcnow() + datetime.timedelta(seconds = mins*60) 
-
-        embed.add_field(name="Ends In:", value = f"**{mins} Minutes** From Now!")
+        epoch_time = round(epoch.now()) + time
+        embed.add_field(name="Ends At:", value = f"<t:{epoch_time}:f>", inline=False)
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.set_footer(text=f"Hosted By {ctx.author.name}", icon_url=ctx.author.avatar_url)
-
         my_msg = await ctx.send(embed = embed)
 
-        await my_msg.add_reaction("<:diamond:809829519338242048>")
-
-        await asyncio.sleep(mins*60)
+        await my_msg.add_reaction("🎉")
+        await asyncio.sleep(time)
 
         new_msg = await ctx.channel.fetch_message(my_msg.id)
 
@@ -77,35 +56,31 @@ class Giveaway(commands.Cog):
                 return
             else:
                 answers.append(msg.content)
+                
         try:
             c_id = int(answers[0][2:-1])
         except:
-            await ctx.send(f"You didn't mention a channel properly. **Do it like this {ctx.channel.mention} next time.**")
+            await ctx.send(f"You didn't mention a channel properly. Do it like this {ctx.channel.mention} next time.")
             return
 
         channel = self.client.get_channel(c_id)
 
-        time = convert(answers[1])
-        if time == -1:
-            await ctx.send("You didn't answer the time with a proper unit. Use `(s|m|h|d)` next time!")
-            return
-        elif time == -2:
-            await ctx.send("The time must be a number. Please enter a number next time")
-            return            
-
+        gtime = answers[1]
+        gtime = TimeConverter.convert(self, ctx, gtime)
+        
         prize = answers[2]
+        epoch_time = round(epoch.now()) + gtime
 
-        await ctx.send(f"The Giveaway will be in {channel.mention} and will last {answers[1]}!")
+        await ctx.send(f"The Giveaway will be in {channel.mention} and will last till <t:{epoch_time}:f> !")
 
         embed = discord.Embed(title = "Giveaway!", description = f"**Prize**:- `{prize}`\nReact To 🎉 To Enter The **Giveaway**!", color = discord.Color.blue())
-        embed.add_field(name="Ends In:", value = f"**{answers[1]}** From Now!")
+        embed.add_field(name="Ends At:", value = f"<t:{epoch_time}:f>")
         embed.set_thumbnail(url=ctx.guild.icon_url)
         embed.set_footer(text=f"Hosted By {ctx.author.name}", icon_url=ctx.author.avatar_url)
-
         my_msg = await channel.send(embed = embed)
 
         await my_msg.add_reaction('🎉')
-        await asyncio.sleep(time)
+        await asyncio.sleep(gtime)
 
         new_msg = await channel.fetch_message(my_msg.id)
 

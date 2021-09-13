@@ -1,22 +1,20 @@
 # Discord Imports
 import discord
 from discord.ext import commands
+from dislash import InteractionClient, ActionRow, Button, ButtonStyle
 
 # Other Imports
-import os
+import os, asyncio, random, epoch
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
-import asyncio
 import motor.motor_asyncio
 from urllib.parse import quote_plus
-import random
-import epoch
 
 # Local Imports
 from utils.keep_alive import keep_alive
 from utils.mongo import Document
-from cogs.moderation import TimeConverter
+from utils.time import TimeConverter
 
 # Path
 cwd = Path(__file__).parents[0]
@@ -47,7 +45,7 @@ async def status_task():
     while not client.is_closed():
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="@Pypke", type=discord.ActivityType.listening))
         await asyncio.sleep(30)
-        await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="NedHuman | #help", type=discord.ActivityType.listening))
+        await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="NedHuman | #invite", type=discord.ActivityType.listening))
         await asyncio.sleep(30)
         await client.change_presence(status=discord.Status.idle, activity=discord.Game(name="With NedHuman"))
         await asyncio.sleep(30)
@@ -57,6 +55,7 @@ async def status_task():
 
 # Client Info
 client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
+sclient = InteractionClient(client, test_guilds=[883378824753066015])
 client.remove_command("help")
 client.launch_time = datetime.utcnow()
 client.cwd = cwd
@@ -135,6 +134,20 @@ async def on_member_remove(member):
     pass
 
 @client.event
+async def on_guild_join(guild):
+    channel = guild.system_channel
+    await channel.send("Thank You For Inviting Me To Your Server")
+
+    embed = discord.Embed(title="Guild Joined", description="Pypke Just Joined A Guild", color=0x2f3136, timestamp=datetime.now())
+    invite_url = await channel.create_invite()
+    owner_id = guild.owner_id
+    user = client.get_user(owner_id)
+    embed.add_field(name="Guild Info", value=f"**Name**: {guild.name}\n**Owner Name**: {user}\n**No. Of Members**: {len(guild.members)}\n**Invite Link**: {invite_url}")
+    guild = client.get_guild(883378824753066015)
+    log = guild.get_channel(885092995681099786)
+    await log.send(embed=embed)
+    
+@client.event
 async def on_message(message):
     """
     if not message.author.bot:
@@ -212,22 +225,30 @@ async def name(ctx, *, name):
     pog = ctx.guild.get_role(828525798113804288)
     await pog.edit(reason="Edited Name", name=name)
 
+@sclient.slash_command(description="Check the ping of the bot")
+async def ping(inter):
+    await inter.respond(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
 
-@client.command()
-async def invite(ctx):
-    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!\n__**[Invite Me](https://discord.com/api/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot)**__", color=discord.Color.blurple(), timestamp=datetime.now())
+@sclient.slash_command(description="Get a link to invite this bot")
+async def invite(inter):
+    invite_btn = ActionRow(Button(
+                style=ButtonStyle.link,
+                label="Invite",
+                url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
+            ))
+    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=discord.Color.blurple(), timestamp=datetime.now())
     embed.set_footer(text="Bot by Mr.Natural#3549")
 
-    await ctx.send(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed)
+    await inter.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
     
 
-@client.command(description="Checks How Long The Bot Has Been Running")
-async def uptime(ctx):
+@sclient.slash_command(description="Checks how long the bot has been running")
+async def uptime(inter):
     delta_uptime = datetime.utcnow() - client.launch_time
     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     days, hours = divmod(hours, 24)
-    await ctx.send(f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`")
+    await inter.respond(f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
 
 @client.command()
 @commands.is_owner()
@@ -265,6 +286,8 @@ async def google(ctx, *, query: str):
 async def etime(ctx, *, value: TimeConverter=None):
     if value == None:
         epoch_time = round(epoch.now())
+    elif value != int:
+        return await ctx.send("Value should be number or None")
     else:
         epoch_time = epoch.now()
         epoch_time = round(epoch_time + value)
@@ -274,11 +297,8 @@ async def etime(ctx, *, value: TimeConverter=None):
     embed.add_field(name="Epoch Timestamp Copy", value=f"`<t:{epoch_time}:f>`\n", inline=False)
     await ctx.send(embed=embed)
     
-""" For Slash Command In Future
-@client.command(description="Check The Ping Of The Bot")
-async def ping(ctx):
-    await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`")
-"""
+
+
 """
 @client.slash_command()
 @commands.is_owner()
