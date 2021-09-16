@@ -1,12 +1,20 @@
-# Pypke
-This Is a Basic Discord Bot Written In `discord.py`.
-## Packages
-To Install The Packages You Can Clone This Repository & Run This Command In The Shell.
-```
-python3 -m install poetry
-```
-That Should Do It.
-## Bot Token
-To get the bot token follow these steps:-
-- First you have to make a discord application by going to the [here](https://discord.com/developers/applications). 
-- 
+---
+description: Documentation & Help For Pypke Bot
+---
+
+# Home
+
+## Uptime
+
+{% hint style="success" %}
+Pypke is online **99.9%** of the time. If the bot is ever offline we are making an update or making performance fixes.
+{% endhint %}
+
+## Support Server
+
+{% hint style="info" %}
+Join Pypke's support server [here](https://dsc.gg/mrnatural).
+{% endhint %}
+
+
+
