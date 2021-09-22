@@ -27,16 +27,46 @@ class Moderation(commands.Cog):
 
             if currentTime >= unmuteTime:
                 guild = self.client.get_guild(value['guildId'])
-                member = guild.get_member(value['_id'])
+                offender = guild.get_member(value['_id'])
+                moderator = guild.get_member(value['mutedBy'])
 
                 role = discord.utils.get(guild.roles, name="Muted")
-                if role in member.roles:
-                    await member.remove_roles(role)
-                    print(f"Unmuted: {member.display_name}")
+                if role in offender.roles:
+                    await offender.remove_roles(role)
+                    try:
+                        modlogs = discord.utils.get(guild.channels, name="modlogs")
+                        time = int(value['muteDuration'])
 
-                await self.client.mutes.delete(member.id)
+                        # Converting Time Back To Readble Letters
+                        minutes, seconds = divmod(time, 60)
+                        hours, minutes = divmod(minutes, 60)
+                        days, hours = divmod(hours, 24)
+                        duration = ""
+                        if days != 0:
+                            duration = duration + f"{days} days "
+                        if hours != 0:
+                            duration = duration + f"{hours} hours "
+                        if minutes != 0:
+                            duration = duration + f"{minutes} minutes "
+                        if seconds != 0:
+                            duration = duration + f"{seconds} seconds "
+
+                        embed = discord.Embed(
+                            title="Auto-Unmuted", 
+                            description=f"Offender: {offender.name} | {offender.mention}\nModerator: {moderator.name}\nDuration: {duration}",
+                            color=discord.Color.green(),
+                            timestamp=datetime.now()
+                            )
+                        await modlogs.send(embed=embed) 
+                        
+                        print(f"Unmuted: {offender.display_name}")                   
+                    except:
+                        print(f"Unmuted: {offender.display_name}")
+
+
+                await self.client.mutes.delete(offender.id)
                 try:
-                    self.client.muted_users.pop(member.id)
+                    self.client.muted_users.pop(offender.id)
                 except KeyError:
                     pass
     
@@ -110,30 +140,58 @@ class Moderation(commands.Cog):
             ctx.send("Time cannot be greater than 1 Month/30 Days")
         else:
             pass
-
+        
         if not time:
             await ctx.send(f"{member.display_name} Was Muted")
+            modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
+            embed = discord.Embed(
+                            title="Muted", 
+                            description=f"Offender: {member.name} | {member.mention}\nModerator: {ctx.author.name}",
+                            color=discord.Color.red(),
+                            timestamp=datetime.now()
+                            )
+            await modlogs.send(embed=embed)
         else:
+            # Converting Time Back To Readble Letters
             minutes, seconds = divmod(time, 60)
             hours, minutes = divmod(minutes, 60)
             days, hours = divmod(hours, 24)
-            if int(days):
-                await ctx.send(
-                    f"{member.display_name} was muted for {days} days, {hours} hours, {minutes} minutes and {seconds} seconds"
-                )
-            elif int(hours):
-                await ctx.send(
-                    f"{member.display_name} was muted for {hours} hours, {minutes} minutes and {seconds} seconds"
-                )
-            elif int(minutes):
-                await ctx.send(
-                    f"{member.display_name} was muted for {minutes} minutes and {seconds} seconds"
-                )
-            elif int(seconds):
-                await ctx.send(f"{member.display_name} was muted for {seconds} seconds")
+            duration = ""
+            if days != 0:
+                duration = duration + f"{days} days "
+            if hours != 0:
+                duration = duration + f"{hours} hours "
+            if minutes != 0:
+                duration = duration + f"{minutes} minutes "
+            if seconds != 0:
+                duration = duration + f"{seconds} seconds "
+
+            try:
+                modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
+                embed = discord.Embed(
+                            title="Muted", 
+                            description=f"Offender: {member.name} | {member.mention}\nModerator: {ctx.author.name}\nDuration: {duration}",
+                            color=discord.Color.red(),
+                            timestamp=datetime.now()
+                            )
+                await modlogs.send(embed=embed)
+                await ctx.send(f"{member.name} was muted for {duration}")
+            except:
+                await ctx.send(f"{member.name} was muted for {duration}")
 
         if time and time < 300:
             await asyncio.sleep(time)
+            try:
+                modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
+                embed = discord.Embed(
+                            title="Unmuted", 
+                            description=f"Offender: {member.name} | {member.mention}\nModerator: {ctx.author.name}\nDuration: {duration}",
+                            color=discord.Color.green(),
+                            timestamp=datetime.now()
+                            )
+                await modlogs.send(embed=embed)
+            except:
+                pass
 
             if role in member.roles:
                 await member.remove_roles(role)
@@ -154,18 +212,29 @@ class Moderation(commands.Cog):
             await ctx.send("No muted role was found! Please create one called `Muted`")
             return
 
+        if role not in member.roles:
+            await ctx.send("This member is not muted.")
+            return
+
         await self.client.mutes.delete(member.id)
         try:
             self.client.muted_users.pop(member.id)
         except KeyError:
             pass
 
-        if role not in member.roles:
-            await ctx.send("This member is not muted.")
-            return
-
         await member.remove_roles(role)
-        await ctx.send(f"{member.display_name} Was Unmuted")
-
+        await ctx.send(f"{member.name} Was Unmuted")
+        try:
+            modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
+            embed = discord.Embed(
+                            title="Unmuted", 
+                            description=f"Offender: {member.name} | {member.mention}\nModerator: {ctx.author.name}",
+                            color=discord.Color.green(),
+                            timestamp=datetime.now()
+                            )
+            await modlogs.send(embed=embed)
+        except:
+            pass
+        
 def setup(client):
     client.add_cog(Moderation(client))

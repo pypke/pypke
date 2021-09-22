@@ -18,5 +18,5 @@ class TimeConverter(commands.Converter):
                     f"{value} is an invalid time key! s|m|h|d are valid arguments"
                 )
             except ValueError:
-                raise commands.BadArgument(f"{key} is not a number!")
+                raise commands.BadArgument(f"{key} is not a number!")       
         return round(time)

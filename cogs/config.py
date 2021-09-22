@@ -59,7 +59,6 @@ class Config(commands.Cog):
         await ctx.send(f"Hey, I have unblacklisted {user.name}.")
 
     @commands.command()
-    @commands.is_owner()
     async def stats(self, ctx):
         pythonVersion = platform.python_version()
         dpyVersion = discord.__version__
