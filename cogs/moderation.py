@@ -79,17 +79,23 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
         try:
-            await member.send(
-                f"You Have Been Kicked From {member.guild.name}, Because " + reason)
+            await member.send(f"You Have Been Kicked From {ctx.guild.name}, Reason " + reason)
+            await ctx.send(f"Kicked {member.name} From {ctx.guild.name}")
         except:
-            await ctx.send("The Member Has Their DMs Closed!")
+            await ctx.send(f"Kicked {member.name} From {ctx.guild.name}")
+            
         await member.kick(reason=reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
-        await ctx.send(f"{member} Been Banned From {member.guild.name}, Because " + reason)
+        try:
+            await member.send(f"You Have Been Banned From {ctx.guild.name}, Reason " + reason)
+            await ctx.send(f"Banned {member.name} From {ctx.guild.name}")
+        except:
+            await ctx.send(f"Banned {member.name} From {ctx.guild.name}")
+
         await member.ban(reason=reason)
 
     @commands.command()
@@ -104,8 +110,9 @@ class Moderation(commands.Cog):
 
             if (user.name, user.discriminator) == (member_name, member_discriminator):
                 await ctx.guild.unban(user)
-                await ctx.send(member_name + " has been unbanned!")
+                await ctx.send(member_name + " Has Been Unbanned!")
                 return
+
         await ctx.send(member + " was not found!")
 
     @commands.command()
