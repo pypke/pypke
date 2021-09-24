@@ -235,6 +235,71 @@ class Moderation(commands.Cog):
             await modlogs.send(embed=embed)
         except:
             pass
+    
+    @commands.group(invoke_without_command=True, pass_context=True)
+    @commands.guild_only()
+    @commands.has_permissions(manage_channels=True)
+    async def lock(self, ctx):
+        channel = ctx.channel
+        if ctx.guild.default_role not in channel.overwrites:
+            # This is the same as the elif except it handles agaisnt empty overwrites dicts
+            overwrites = {
+                ctx.guild.default_role: discord.PermissionOverwrite(send_messages=False),
+                self.client.user: discord.PermissionOverwrite(send_messages=True)
+            }
+            await channel.edit(overwrites=overwrites, reason=f"Channel Locked By {ctx.author.name}")
+            await ctx.send(f":lock: Locked!! {channel.mention}")
+        elif (
+            channel.overwrites[ctx.guild.default_role].send_messages == True
+            or channel.overwrites[ctx.guild.default_role].send_messages == None
+        ):
+            overwrites = channel.overwrites[ctx.guild.default_role]
+            overwrites.send_messages = False
+            await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites, reason=f"Channel Locked By {ctx.author.name}")
+            await ctx.send(f":lock: Locked!! {channel.mention}")
+
+        elif channel.overwrites[ctx.guild.default_role].send_messages == False:
+            await ctx.send("This Channel Is Already Locked!")
+    
+    @commands.group(invoke_without_command=True, pass_context=True)
+    @commands.guild_only()
+    @commands.has_permissions(manage_channels=True)
+    async def unlock(self, ctx):
+        channel = ctx.channel
+        if ctx.guild.default_role not in channel.overwrites:
+            await ctx.send("This Channel Is Not Locked!")
+        elif (
+            channel.overwrites[ctx.guild.default_role].send_messages == True
+            or channel.overwrites[ctx.guild.default_role].send_messages == None
+        ):
+            await ctx.send("This Channel Is Not Locked!")
+        else:
+            overwrites = channel.overwrites[ctx.guild.default_role]
+            overwrites.send_messages = None
+            await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites, reason=f"Channel Unlocked By {ctx.author.name}")
+            await ctx.send(f":unlock: Unlocked!! {channel.mention}")
         
+    @lock.command(name="server")
+    @commands.guild_only()
+    @commands.has_permissions(manage_channels=True)
+    async def lserver(self, ctx):
+        role = ctx.guild.default_role
+        permissions = discord.Permissions()
+        permissions.update(send_messages=False, read_messages=True, connect=True, speak=True, read_messages_history=True, use_external_emojis=True)
+        await role.edit(reason=f"Server Lockdown By {ctx.author.name}", permissions=permissions)
+        try: await ctx.send(f":lock: Server Locked!!")
+        except: pass
+
+    @unlock.command(name="server")
+    @commands.guild_only()
+    @commands.has_permissions(manage_channels=True)
+    async def ulserver(self, ctx):
+        role = ctx.guild.default_role
+        permissions = discord.Permissions()
+        permissions.update(send_messages=True, read_messages=True, connect=True, speak=True, read_messages_history=True, use_external_emojis=True, add_reactions=True)
+        await role.edit(reason=f"Server Unlocked By {ctx.author.name}", permissions=permissions)
+        try: await ctx.send(f":unlock: Server Unlocked!!")
+        except: pass
+
 def setup(client):
     client.add_cog(Moderation(client))

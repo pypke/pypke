@@ -31,10 +31,9 @@ class Config(commands.Cog):
     @commands.command()
     @commands.is_owner()
     async def logout(self, ctx):
-        await ctx.add_reaction("👋")
-        await ctx.send(f"{ctx.author.mention}, Hey I Have Successfully Disconnected!! :wave:")
+        await ctx.message.add_reaction("👋")
+        await ctx.send(f"{ctx.author.mention}, Successfully Disconnected!! :wave:")
         await self.client.logout()
-
     
     @commands.command()
     @commands.is_owner()
@@ -78,6 +77,52 @@ class Config(commands.Cog):
         embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)
 
         await ctx.send(embed=embed)
+
+    # Guild Stuff Owner Only
+    @commands.command()
+    @commands.is_owner()
+    async def shguild(self, ctx):
+        desc = ""
+        index = 0
+        guilds = self.client.guilds
+        for guild in guilds:
+            guild_name = guild.name
+            guild_id = guild.id
+            guild_owner_name = guild.owner.name
+            index += 1
+            desc = desc + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nOwner: {guild_owner_name}\n\n"
+            if index > 10:
+                break
+            
+        embed = discord.Embed(
+            title="Bot Guilds",
+            description=desc,
+            color=0x2f3136
+        )
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.is_owner()
+    async def shinvite(self, ctx, guildid: int):
+        try:
+            guild = self.client.get_guild(guildid)
+            invitelink = ""
+            i = 0
+            while invitelink == "":
+                channel = guild.text_channels[i]
+                link = await channel.create_invite(max_age=300, max_uses=1)
+                invitelink = str(link)
+                i += 1
+            await ctx.send(invitelink)
+        except Exception:
+            await ctx.send("Something went wrong")
+
+    @commands.command()
+    @commands.is_owner()
+    async def shleave(self, ctx, guildid: int):
+        guild = self.client.get_guild(guildid)
+        await guild.leave()
+        await ctx.send(f":ok_hand: **Left guild**: {guild.name} ({guild.id})")
 
 def setup(client):
     client.add_cog(Config(client))

@@ -36,6 +36,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=em)
 
     @commands.command(name="meme", description="This command sends a random meme from the subreddit `r/memes`")
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def meme(self, ctx):
         subreddit = reddit.subreddit("memes")
         all_subs = []
@@ -60,6 +61,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=em)
 
     @commands.command(name="cat", description="This Sends A Random Cat Picture", aliases=['cats'])
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def cat(self, ctx):
         subreddit = reddit.subreddit("catpictures")
         all_subs = []
@@ -80,6 +82,7 @@ class Fun(commands.Cog):
         await ctx.send(embed = em)
 
     @commands.command(name="dog", description="This Sends A Random Dog Picture", aliases=['dogs'])
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def dog(self, ctx, url=None):
         subreddit = reddit.subreddit("dogpictures")
         all_subs = []
@@ -99,6 +102,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=em)
 
     @commands.command(name="dankmeme", description="This commands sends a random meme from subreddit `r/dankmemes`.", aliases=['dmeme','deme'])
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def dankmeme(self, ctx):
         subreddit = reddit.subreddit("dankmemes")
         all_subs = []
@@ -123,6 +127,7 @@ class Fun(commands.Cog):
         await ctx.send(embed=em)
 
     @commands.command(name="8ball", description="This command answers a question like a 8Ball", usage="<question>")
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def _8ball(self, ctx, *, question=None):
         responses = ["It is certain",
                      "It is decidedly so",
@@ -156,6 +161,7 @@ class Fun(commands.Cog):
 
     @commands.command(name="pat", description="This command pats a user on back.", usage="<user>")
     @commands.guild_only()
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def pat(self, ctx, member:discord.Member=None):
             if member==None:
                 await ctx.send("There is no one to pat here it's just you and me ;-;")
@@ -173,6 +179,7 @@ class Fun(commands.Cog):
 
     @commands.command(name="kill", description="This command kills a user for you! Oops.", usage="<user>")
     @commands.guild_only()
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def kill(self, ctx, member:discord.Member=None):
         if member==None:
             await ctx.send("Who do you wanna kill man?")
@@ -190,11 +197,13 @@ class Fun(commands.Cog):
         await ctx.send(f"{member} {random_kill}")
 
     @commands.command()
+    @commands.cooldown(1, 18000, commands.BucketType.user)
     async def egg(self, ctx):
         await ctx.send("This Is An Easter Egg!!", delete_after=2)
 
     @commands.command(name="hack", description="This command can hack a user!! THIS IS NOT A JOKE.", usage="<user>")
     @commands.guild_only()
+    @commands.cooldown(1, 9, commands.BucketType.user)
     async def hack(self, ctx, member:discord.Member=None):
         if member==None:
             await ctx.send("Who do you wanna hack?")

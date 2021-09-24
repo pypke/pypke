@@ -4,7 +4,7 @@ from discord.ext import commands
 from dislash import InteractionClient, ActionRow, Button, ButtonStyle
 
 # Other Imports
-import os, asyncio, random, epoch
+import os, asyncio, random, epoch 
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
@@ -14,7 +14,7 @@ from urllib.parse import quote_plus
 # Local Imports
 from utils.keep_alive import keep_alive
 from utils.mongo import Document
-from utils.time import TimeConverter
+from utils.time import TimeConverter 
 
 # Path
 cwd = Path(__file__).parents[0]
@@ -69,7 +69,8 @@ client.colors = {
     "gold": 0xF1C40F,
     "orange": 0xE67E22,
     "red": 0xE74C3C,
-    "navy": 0x34495E
+    "new_blurple": 0x5865F2,
+    "og_blurple": 0x7289da
 }
 client.color_list = [c for c in client.colors.values()]
 
@@ -100,6 +101,7 @@ async def on_ready():
     client.mutes = Document(client.db, "mutes")
     client.blacklisted_users = Document(client.db, "blacklist")
     client.giveaways = Document(client.db, "giveaways")
+    client.afks = Document(client.db, "afks")
 
     # Muted Users
     currentMutes = await client.mutes.get_all()
@@ -128,16 +130,15 @@ async def on_member_remove(member):
 @client.event
 async def on_guild_join(guild):
     channel = guild.system_channel
-    await channel.send("Thank You For Inviting Me To Your Server")
-
-    embed = discord.Embed(title="Guild Joined", description="Pypke Just Joined A Guild", color=0x2f3136, timestamp=datetime.now())
-    invite_url = await channel.create_invite()
-    owner_id = guild.owner_id
-    user = client.get_user(owner_id)
-    embed.add_field(name="Guild Info", value=f"**Name**: {guild.name}\n**Owner Name**: {user}\n**No. Of Members**: {len(guild.members)}\n**Invite Link**: {invite_url}")
-    guild = client.get_guild(883378824753066015)
-    log = guild.get_channel(885092995681099786)
-    await log.send(embed=embed)
+    setup_embed = discord.Embed(
+        title="Setup Pypke",
+        description="Thank You For Inviting Me To Your Server.\n\n[**Pypke Docs**](https://docs.pypke.tk) - *Currently Work In-Progress*",
+        color=discord.Color.orange(),
+        timestamp=datetime.now()
+    )
+    setup_embed.set_author(name=client.user.name, icon_url=client.user.avatar_url)
+    setup_embed.set_footer(text="Joined At")
+    await channel.send(embed=setup_embed)
     
 @client.event
 async def on_message(message):
@@ -147,9 +148,11 @@ async def on_message(message):
             await message.delete()
             await message.channel.send("Hey There, Watch Your Language!!")
     """
+    # Checks If Message Author Is A Bot
     if message.author.bot:
         return
-
+    
+    # If The Bot Is Mentioned Tell The Bot's Prefix
     if client.user.mentioned_in(message):
         data = await client.config.get_by_id(message.guild.id)
         if not data or "prefix" not in data:
@@ -162,6 +165,25 @@ async def on_message(message):
                               colour=discord.Color.blurple())
 
         await message.channel.send(embed=embed, delete_after=5)
+    
+    # If User Has Set Afk Tell The Message Author That He/She Is Afk
+    afks = await client.afks.get_all()
+    for value in afks:
+        if str(value['_id']) in message.content.lower():
+            afk_user = message.guild.get_member(value['_id'])
+            afk_embed = discord.Embed(
+                title=f"{afk_user.name} Is Afk!",
+                color=afk_user.color,
+                timestamp=datetime.now()
+            )
+            if value['text'] is None:
+                afk_embed.description=discord.Embed.Empty
+            else:
+                afk_embed.description=f"**Status:** {value['text']}"
+            
+            afk_embed.set_footer(text="Don't Ping This User Pls!")
+            afk_embed.set_thumbnail(url=afk_user.avatar_url)
+            await message.channel.send(embed=afk_embed)
         
     """
     if "discord.gg" or "discord.com/invite" in message.content.lower():

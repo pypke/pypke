@@ -1,4 +1,4 @@
-import discord, epoch
+import discord
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 from datetime import datetime
@@ -14,6 +14,7 @@ class Utility(commands.Cog):
     @commands.command(aliases=['purge'])
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 2, commands.BucketType.user)
     async def clear(self, ctx, amount=1):
         if amount > 1000:
             await ctx.channel.purge(limit=1)
@@ -30,6 +31,7 @@ class Utility(commands.Cog):
     @commands.command(aliases=['mail'])
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
     async def dm(self, ctx, user: discord.User, *, msg):
         try:
             mail = discord.Embed(
@@ -61,6 +63,7 @@ class Utility(commands.Cog):
 
     @commands.command(aliases=['user-info', 'info'])
     @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def whois(self, ctx, member:discord.Member =  None):
 
         if member is None:
@@ -95,15 +98,14 @@ class Utility(commands.Cog):
         embed.add_field(name="Highest Role:", value=member.top_role, inline=False)
         embed.add_field(name="Bot?", value=member.bot, inline=False)
         await ctx.send(embed=embed)
-        return
-    
-    
+        
     @commands.command(
         name="prefix",
         aliases=["changeprefix", "setprefix"],
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def prefix(self, ctx, *, prefix=None):
 
         data = await self.client.config.get_by_id(ctx.guild.id)
@@ -126,6 +128,7 @@ class Utility(commands.Cog):
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def resetprefix(self, ctx):
         await self.client.config.delete(ctx.guild.id)
         await ctx.send("This guilds prefix is reset back to the default `#`")
@@ -140,7 +143,35 @@ class Utility(commands.Cog):
         embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=discord.Color.blurple(), timestamp=datetime.now())
         embed.set_footer(text="Bot by Mr.Natural#3549")
 
-        await inter.reply(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
+        await inter.send(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
+
+    @commands.command(
+        name='afk',
+        description='Set Your Afk To Let People Know What Are You Doing.'
+    )
+    @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def afk(self, ctx, *, text: str=None):
+        if text == None:
+            await self.client.afks.upsert({"_id": ctx.author.id, "text": None})
+        else:
+            await self.client.afks.upsert({"_id": ctx.author.id, "text": text})           
+            
+        await ctx.send("Your Afk Status Has Been Set.")
+
+    @commands.command(
+        name='afkremove',
+        description='Stop/Remove Your Afk',
+        aliases=['afkstop', 'afkr']
+    )
+    @commands.guild_only()
+    async def afkremove(self, ctx):
+        data = await self.client.afks.get_by_id(ctx.author.id)
+        if not data:
+            await ctx.send("You Haven't Set Your Afk Status Yet.")
+        else:
+            await self.client.afks.delete(ctx.author.id)
+            await ctx.send("Your Afk Status Has Been Removed.")            
 
 def setup(client):
     client.add_cog(Utility(client))

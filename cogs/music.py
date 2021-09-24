@@ -91,7 +91,7 @@ class Music(commands.Cog):
                 player, after=lambda e: print(f"Player error: {e}") if e else None
             )
 
-        await ctx.send(f"Now playing: `{player.title}`\n{yt_url or None}")
+        await ctx.send(f"Now playing: `{player.title}`")
 
     @commands.command()
     @commands.guild_only()

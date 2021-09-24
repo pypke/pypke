@@ -48,11 +48,12 @@ class Giveaway(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild = True)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gstart(self, ctx, time : TimeConverter, channel: discord.TextChannel=None, * , prize: str):
         etime = round(epoch.now())
         epoch_time = etime + time
         
-
+        channel = ctx.channel or channel
         embed = discord.Embed(
             title=f"{prize}", 
             description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
@@ -87,6 +88,7 @@ class Giveaway(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild = True)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gcreate(self, ctx):
         await ctx.send("Let's start with this giveaway!\n`Answer these questions within 30 seconds!`")
 
@@ -164,6 +166,7 @@ class Giveaway(commands.Cog):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild = True)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def greroll(self, ctx, channel : discord.TextChannel, _id : int):
         if channel == None:
             channel = ctx.channel

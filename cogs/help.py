@@ -61,8 +61,27 @@ class Help(commands.Cog):
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
+                                
+        fun_page = discord.Embed(
+                                 title="Fun Commands",
+                                 description=f"""
+                                 Use The Buttons Below To Change Pages.
+                                 Use `#help <command>` for extended information on a command.
 
-        pages = [mod_page, utils_page]
+                                 :smile: Fun Commands
+                                 • `8ball` - Question the 8ball and it shall answer.
+                                 • `pat` - Pat a user.
+                                 • `meme` - See memes from r/memes.
+                                 • `dankmeme` - See memes from r/dankmemes.
+                                 • `kill` - Kill a user with words. jk..
+                                 • `cat` - Shows a cat image.
+                                 • `dog` - Shows a dog image.
+                                 """,
+                                 color=random.choice(self.client.color_list),
+                                 timestamp=datetime.now()
+                                )
+        
+        pages = [mod_page, utils_page, fun_page]
         page_btn = ActionRow(
             Button(
                     label = "Back",
@@ -83,16 +102,18 @@ class Help(commands.Cog):
         help_msg = await ctx.send(embed=pages[current_page], components=[page_btn])
         while True:
             # Try and except blocks to catch timeout and break
+            def check_inter(inter):
+                return lambda i: i.component.id in ["back", "ahead"] and inter.message.id == ctx.message.id and inter.author.id == ctx.author.id
             try:
-                interaction = await self.client.wait_for(
+                inter = await self.client.wait_for(
                 "button_click",
-                check = lambda i: i.component.id in ["back", "ahead"], # You can add more
-                timeout = 20.0 # 20 seconds of inactivity
+                check = check_inter, # You can add more
+                timeout = 15.0 # 15 seconds of inactivity
             )
                 # Getting the right list index
-                if interaction.component.id == "back":
+                if inter.component.id == "back":
                     current_page -= 1
-                elif interaction.component.id == "ahead":
+                elif inter.component.id == "ahead":
                     current_page += 1
                 # If its out of index, go back to start / end
                 if current_page == len(pages):
@@ -118,7 +139,7 @@ class Help(commands.Cog):
                     custom_id = "ahead",
                     style = ButtonStyle.blurple
                 ))
-                await interaction.respond(type=7, embed=pages[current_page], components=[page_btn])
+                await inter.reply(type=7, embed=pages[current_page], components=[page_btn])
 
             except asyncio.TimeoutError:
                 disabled_page_btn = ActionRow(
@@ -142,7 +163,7 @@ class Help(commands.Cog):
                 ))
                 await help_msg.edit(components=[disabled_page_btn])
                 break
-
+    # Moderation Command
     @help.command()
     async def kick(self, ctx):
 
@@ -151,8 +172,7 @@ class Help(commands.Cog):
                           colour=discord.Color.random())
 
         em.add_field(name="**Syntax**", value="#kick <member> [reason]", inline=False)
-        em.add_field(name="**Example**",
-                    value="#kick <@!624572769484668938> Too Cool!", inline=False)
+        em.add_field(name="**Required Perms**", value="Kick Member", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
@@ -166,8 +186,7 @@ class Help(commands.Cog):
                           colour=discord.Color.random())
 
         em.add_field(name="**Syntax**", value="#ban <member> [reason]", inline=False)
-        em.add_field(name="**Example**",
-                    value="#ban <@!624572769484668938> Too Cool!", inline=False)
+        em.add_field(name="**Required Perms**", value="Ban Member", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
@@ -181,9 +200,8 @@ class Help(commands.Cog):
                           colour=discord.Color.random())
 
         em.add_field(name="**Syntax**", value="#mute <member> [time: (s|m|h|d)]", inline=False)
-        em.add_field(name="**Example**", value="#mute <@!624572769484668938> 10h", inline=False)
-        em.set_footer(
-            text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+        em.add_field(name="**Required Perms**", value="Manage Roles", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
 
@@ -196,25 +214,10 @@ class Help(commands.Cog):
                           colour=discord.Color.random())
 
         em.add_field(name="**Syntax**", value="#unban <member_id>", inline=False)
-        em.add_field(name="**Example**", value="#unban Mr.Natural#3549", inline=False)
+        em.add_field(name="**Required Perms**", value="Ban Member", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
-
-
-    @help.command()
-    async def purge(self, ctx):
-
-        em = discord.Embed(title="Purge",
-                           description="Deletes a number of messages from a channel!",
-                           colour=discord.Color.random())
-
-        em.add_field(name="**Syntax**", value="#purge <no_of_messages>", inline=False)
-        em.add_field(name="**Aliases**", value="`clear`", inline=False)
-        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
-
-        await ctx.send(embed=em)
-
 
     @help.command()
     async def unmute(self, ctx):
@@ -224,11 +227,26 @@ class Help(commands.Cog):
                           colour=discord.Color.random())
 
         em.add_field(name="**Syntax**", value="#unmute <member>", inline=False)
-        em.add_field(name="**Example**", value="#unmute <@!624572769484668938>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Roles", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
 
+    # Utility Commands
+    @help.command()
+    async def purge(self, ctx):
+
+        em = discord.Embed(title="Purge",
+                           description="Deletes a number of messages from a channel!",
+                           colour=discord.Color.random())
+
+        em.add_field(name="**Syntax**", value="#purge <no_of_messages>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Messages", inline=False)
+        em.add_field(name="**Aliases**", value="`clear`", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+
+        await ctx.send(embed=em)
 
     @help.command()
     async def ping(self, ctx):
@@ -267,6 +285,7 @@ class Help(commands.Cog):
         em = discord.Embed(title="Set Prefix Command", description="Sets Prefix For Your Server!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#prefix <prefix>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.add_field(name="**Aliases**", value="`setprefix`, `changeprefix`", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
@@ -277,6 +296,7 @@ class Help(commands.Cog):
         em = discord.Embed(title="Reset Prefix Command", description="Changes Back The Server Prefix To Default `#`!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#deleteprefix", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.add_field(name="**Aliases**", value="`resetprefix`, `delprefix`", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
@@ -287,6 +307,7 @@ class Help(commands.Cog):
         em = discord.Embed(title="Mail Command", description="Mail The User Using Meow Mail Service!", color=discord.Color.blurple())
         
         em.add_field(name="**Syntax**", value="#mail <user> <your_message>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.add_field(name="**Aliases**", value="`dm`", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
@@ -300,7 +321,7 @@ class Help(commands.Cog):
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
-
+    
     @help.command()
     async def stats(self, ctx):
         em = discord.Embed(title="Stats Command", description="Get Stats Of The Bot!", color=discord.Color.random())
@@ -310,6 +331,7 @@ class Help(commands.Cog):
 
         await ctx.send(embed=em)
 
+    # Fun Commands
     @help.command(aliases=['8ball'])
     async def _8ball(self, ctx):
         em = discord.Embed(title="8ball", description="Decides Something For You!", color=discord.Color.random())
@@ -378,7 +400,8 @@ class Help(commands.Cog):
     async def gstart(self, ctx):
         em = discord.Embed(title="Start Giveaway", description="Starts A Giveaway In Current Channel!\nI Would Recommend `#gcreate` Instead!", color=discord.Color.random())
         
-        em.add_field(name="**Syntax**", value="#gstart <time(In Mins)> <prize>", inline=False)
+        em.add_field(name="**Syntax**", value="#gstart <time> [channel] <prize>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
@@ -388,6 +411,7 @@ class Help(commands.Cog):
         em = discord.Embed(title="Creates Command", description="Creates A Giveaway!\nInteractive!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#gcreate", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
@@ -397,6 +421,7 @@ class Help(commands.Cog):
         em = discord.Embed(title="Re-roll Command", description="Re-rolls An Ended Giveaway!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#greroll <channel> <msg_id>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
