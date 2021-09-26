@@ -1,15 +1,9 @@
 import discord
 from discord.ext import commands
-from dislash import ActionRow, Button, ButtonStyle
-from datetime import datetime
 
 class Utility(commands.Cog):
     def __init__(self, client):
         self.client = client
-
-    @commands.command(aliases=['pong'])
-    async def ping(self, ctx):
-        await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(self.client.latency * 1000)}ms`")
 
     @commands.command(aliases=['purge'])
     @commands.guild_only()
@@ -133,17 +127,6 @@ class Utility(commands.Cog):
         await self.client.config.delete(ctx.guild.id)
         await ctx.send("This guilds prefix is reset back to the default `#`")
 
-    @commands.command(description="Get a link to invite this bot")
-    async def invite(self, inter):
-        invite_btn = ActionRow(Button(
-                style=ButtonStyle.link,
-                label="Invite",
-                url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
-            ))
-        embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=discord.Color.blurple(), timestamp=datetime.now())
-        embed.set_footer(text="Bot by Mr.Natural#3549")
-
-        await inter.send(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
 
     @commands.command(
         name='afk',

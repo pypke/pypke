@@ -1,13 +1,12 @@
 import discord
 from discord.ext import commands
-import platform
 from copy import copy
 
-class Config(commands.Cog):
+class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def unload(self, ctx, module: str):
         module = module.lower()
@@ -18,7 +17,7 @@ class Config(commands.Cog):
             await ctx.send("Nope, Not Like That!")
             return
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def load(self, ctx, module: str):
         module = module.lower()
@@ -29,7 +28,7 @@ class Config(commands.Cog):
             await ctx.send("Nope, Not Like That!")
             return
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def reload(self, ctx, module: str):
         module = module.lower()
@@ -41,7 +40,7 @@ class Config(commands.Cog):
             await ctx.send("Nope, Not Like That!")
             return
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def logout(self, ctx):
         try:
@@ -51,7 +50,7 @@ class Config(commands.Cog):
         await ctx.send(f"{ctx.author.mention}, Successfully Disconnected!! :wave:")
         await self.client.logout()
     
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def blacklist(self, ctx, user: discord.Member):
         if ctx.message.author.id == user.id:
@@ -63,7 +62,7 @@ class Config(commands.Cog):
         await self.client.blacklisted_users.upsert({"_id": user.id, "ban": True})
         await ctx.send(f"Hey, I have blacklisted {user.name}.")
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def unblacklist(self, ctx, user: discord.Member):
         data = await self.client.blacklisted_users.find(user.id)
@@ -73,28 +72,7 @@ class Config(commands.Cog):
         await self.client.blacklisted_users.delete(user.id)
         await ctx.send(f"Hey, I have unblacklisted {user.name}.")
 
-    @commands.command()
-    async def stats(self, ctx):
-        pythonVersion = platform.python_version()
-        dpyVersion = discord.__version__
-        serverCount = len(self.client.guilds)
-        memberCount = len(set(self.client.get_all_members()))
-
-        embed = discord.Embed(title=f"{self.client.user.name} Stats", description="\uFEFF", colour=0x2f3136, timestamp=ctx.message.created_at)
-
-        embed.add_field(name="Bot Version:", value=f"`{self.client.version}`")
-        embed.add_field(name="Python Version:", value=f"`{pythonVersion}`")
-        embed.add_field(name="Discord.Py Version", value=f"`{dpyVersion}`")
-        embed.add_field(name="Total Servers:", value=f"{serverCount} Servers")
-        embed.add_field(name="Total Users:", value=f"{memberCount} Users")
-        embed.add_field(name="Bot Developers:", value="<@624572769484668938>")
-
-        embed.set_footer(text=f"Mr.Natural#3549 | {self.client.user.name}")
-        embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)
-
-        await ctx.send(embed=embed)
-
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def sudo(self, ctx, victim: discord.Member, *, command):
         """Take control."""
@@ -103,8 +81,7 @@ class Config(commands.Cog):
         new_message.content = ctx.prefix + command
         await self.client.process_commands(new_message)
 
-    # Guild Stuff Owner Only
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def shguild(self, ctx):
         desc = ""
@@ -126,7 +103,7 @@ class Config(commands.Cog):
         )
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def shinvite(self, ctx, guildid: int):
         try:
@@ -142,7 +119,7 @@ class Config(commands.Cog):
         except Exception:
             await ctx.send("Something went wrong")
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def shleave(self, ctx, guildid: int):
         guild = self.client.get_guild(guildid)
@@ -150,4 +127,4 @@ class Config(commands.Cog):
         await ctx.send(f":ok_hand: **Left guild**: {guild.name} ({guild.id})")
 
 def setup(client):
-    client.add_cog(Config(client))
+    client.add_cog(Owners(client))
