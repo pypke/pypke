@@ -41,6 +41,8 @@ class Errors(commands.Cog):
             await ctx.send("Member With That Name Not Found. Try Again!")
         elif isinstance(error, commands.ChannelNotFound):
             await ctx.send("Channel Not Found. Try Again!")
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send(error)
         elif isinstance(error, commands.CommandOnCooldown):
             time = round(ctx.command.get_cooldown_retry_after(ctx))
             await ctx.send(f"Chill! This Command Is On Cooldown For `{time}` seconds.")
