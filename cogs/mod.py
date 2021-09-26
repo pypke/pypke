@@ -79,41 +79,54 @@ class Moderation(commands.Cog):
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
         try:
+            await member.kick(reason=reason)
+        except Exception:
+            await ctx.send(f"Unable To Kick {member.name}! Are You Sure That The Bot Has Higher Role Than {member.name} Or The Bot Isn't Missing Permissions!")
+            return
+
+        try:
             await member.send(f"You Have Been Kicked From {ctx.guild.name}, Reason " + reason)
             await ctx.send(f"Kicked {member.name} From {ctx.guild.name}")
         except:
             await ctx.send(f"Kicked {member.name} From {ctx.guild.name}")
             
-        await member.kick(reason=reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
         try:
+            await member.ban(reason=reason)
+        except Exception:
+            await ctx.send(f"Unable To Ban {member.name}! Are You Sure That The Bot Has Higher Role Than {member.name} Or The Bot Isn't Missing Permissions!")
+            return
+
+        try:
             await member.send(f"You Have Been Banned From {ctx.guild.name}, Reason " + reason)
             await ctx.send(f"Banned {member.name} From {ctx.guild.name}")
         except:
             await ctx.send(f"Banned {member.name} From {ctx.guild.name}")
 
-        await member.ban(reason=reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    async def unban(self, ctx, *, member):
+    async def unban(self, ctx, *, member: discord.User):
         banned_users = await ctx.guild.bans()
-        member_name, member_discriminator = member.split('#')
 
         for ban_entry in banned_users:
             user = ban_entry.user
+            # if (user.name, user.discriminator) == (member_name, member_discriminator):
+            #     await ctx.guild.unban(user)
+            #     await ctx.send(member_name + " Has Been Unbanned!")
+            #     return
+            member_id = member.id
+            user_id = user.id
 
-            if (user.name, user.discriminator) == (member_name, member_discriminator):
+            if member_id == user_id:
                 await ctx.guild.unban(user)
-                await ctx.send(member_name + " Has Been Unbanned!")
+                await ctx.send(f"{member.name} Is Unbanned!")
                 return
-
-        await ctx.send(member + " was not found!")
 
     @commands.command()
     @commands.guild_only()

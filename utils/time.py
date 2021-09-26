@@ -14,9 +14,7 @@ class TimeConverter(commands.Converter):
             try:
                 time += time_dict[value] * float(key)
             except KeyError:
-                raise commands.BadArgument(
-                    f"{value} is an invalid time key! s|m|h|d are valid arguments"
-                )
+                raise commands.BadArgument(f"{value} is an invalid time key! s|m|h|d are valid arguments")
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")       
         return round(time)

@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import platform
+from copy import copy
 
 class Config(commands.Cog):
     def __init__(self, client):
@@ -10,28 +11,43 @@ class Config(commands.Cog):
     @commands.is_owner()
     async def unload(self, ctx, module: str):
         module = module.lower()
-        self.client.unload_extension(f"cogs.{module}")
-        await ctx.send(f"{module.capitalize()} Module Was Successfully Unloaded!")
+        try:
+            self.client.unload_extension(f"cogs.{module}")
+            await ctx.send(f"{module.capitalize()} Module Was Successfully Unloaded!")
+        except:
+            await ctx.send("Nope, Not Like That!")
+            return
 
     @commands.command()
     @commands.is_owner()
     async def load(self, ctx, module: str):
         module = module.lower()
-        self.client.load_extension(f"cogs.{module}")
-        await ctx.send(f"{module.capitalize()} Module Was Successfully Loaded!")
+        try:
+            self.client.load_extension(f"cogs.{module}")
+            await ctx.send(f"{module.capitalize()} Module Was Successfully Loaded!")
+        except:
+            await ctx.send("Nope, Not Like That!")
+            return
 
     @commands.command()
     @commands.is_owner()
     async def reload(self, ctx, module: str):
         module = module.lower()
-        self.client.unload_extension(f"cogs.{module}")
-        self.client.load_extension(f"cogs.{module}")
-        await ctx.send(f"{module.capitalize()} Module Was Successfully Reloaded!")
+        try:
+            self.client.unload_extension(f"cogs.{module}")
+            self.client.load_extension(f"cogs.{module}")
+            await ctx.send(f"{module.capitalize()} Module Was Successfully Reloaded!")
+        except:
+            await ctx.send("Nope, Not Like That!")
+            return
 
     @commands.command()
     @commands.is_owner()
     async def logout(self, ctx):
-        await ctx.message.add_reaction("👋")
+        try:
+            await ctx.message.add_reaction("👋")
+        except:
+            pass
         await ctx.send(f"{ctx.author.mention}, Successfully Disconnected!! :wave:")
         await self.client.logout()
     
@@ -77,6 +93,15 @@ class Config(commands.Cog):
         embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)
 
         await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.is_owner()
+    async def sudo(self, ctx, victim: discord.Member, *, command):
+        """Take control."""
+        new_message = copy(ctx.message)
+        new_message.author = victim
+        new_message.content = ctx.prefix + command
+        await self.client.process_commands(new_message)
 
     # Guild Stuff Owner Only
     @commands.command()

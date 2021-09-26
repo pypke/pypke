@@ -32,7 +32,14 @@ class Giveaway(commands.Cog):
                 users = await msg.reactions[0].users().flatten()
                 users.pop(users.index(self.client.user))
                 winner = random.choice(users)
-
+                ended_time = round(epoch.now())
+                end_embed = discord.Embed(
+                                          title=value['prize'], 
+                                          description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
+                                          color=discord.Color.orange()
+                                         )
+                end_embed.set_footer(icon_url=guild.icon_url, text=guild.name)
+                await msg.edit(embed=end_embed)
                 await msg.reply(f"Congratulations! {winner.mention} Has Won The `{value['prize']}`!")
 
                 await self.client.giveaways.delete(msg.id)
@@ -59,7 +66,7 @@ class Giveaway(commands.Cog):
             description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color = discord.Color.orange()
             )
-        embed.set_footer(icon_url=ctx.guild.icon_url)
+        embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
         my_msg = await channel.send(embed = embed)
 
         data = {
@@ -80,7 +87,14 @@ class Giveaway(commands.Cog):
             users = await new_msg.reactions[0].users().flatten()
             users.pop(users.index(self.client.user))
             winner = random.choice(users)
-
+            ended_time = round(epoch.now())
+            end_embed = discord.Embed(
+                                      title=prize, 
+                                      description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
+                                      color=discord.Color.orange()
+                                    )
+            end_embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
+            await new_msg.edit(embed=end_embed)
             await new_msg.reply(f"Congratulations! {winner.mention} Has Won The `{prize}`!")
 
             await self.client.giveaways.delete(my_msg.id)
@@ -137,7 +151,7 @@ class Giveaway(commands.Cog):
             description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color = discord.Color.orange()
             )
-        embed.set_footer(icon_url=ctx.guild.icon_url)
+        embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
         my_msg = await channel.send(embed = embed)
 
         data = {
@@ -158,7 +172,14 @@ class Giveaway(commands.Cog):
             users = await new_msg.reactions[0].users().flatten()
             users.pop(users.index(self.client.user))
             winner = random.choice(users)
-
+            ended_time = round(epoch.now())
+            end_embed = discord.Embed(
+                                      title=prize, 
+                                      description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
+                                      color=discord.Color.orange()
+                                    )
+            end_embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
+            await new_msg.edit(embed=end_embed)
             await new_msg.reply(f"Congratulations! {winner.mention} Has Won The `{prize}`!")
 
             await self.client.giveaways.delete(my_msg.id)  
@@ -175,7 +196,7 @@ class Giveaway(commands.Cog):
         try:
             new_msg = await channel.fetch_message(_id)
         except:
-            await ctx.send("The id was entered incorrectly.")
+            await ctx.send("The Message Id Is Incorrect Or The Message Is Deleted.")
             return
         
         users = await new_msg.reactions[0].users().flatten()
