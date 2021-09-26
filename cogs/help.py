@@ -1,6 +1,6 @@
 import discord, random, asyncio
 from discord.ext import commands
-from dislash import ActionRow, Button, ButtonStyle, InteractionType
+from dislash import ActionRow, Button, ButtonStyle
 from datetime import datetime
 
 class Help(commands.Cog):
@@ -10,78 +10,66 @@ class Help(commands.Cog):
     @commands.group(invoke_without_command=True, aliases=['commands'])
     @commands.guild_only()
     async def help(self, ctx):
-        em = discord.Embed(title="Commands", description="Use `#help <command>` for extended information on a command.", colour=discord.Color.random())
-
-        em.add_field(name=":gear: Moderation", value="`kick`, `ban`, `unban`, `mute`, `unmute`", inline=False)
-        em.add_field(name=":tools: Utility", value="`purge`, `ping`, `avatar`, `whois`, `prefix`, `resetprefix`, `mail`", inline=False)
-        em.add_field(name=":smile: Fun", value="`8ball`, `pat`, `meme`, `dankmeme`, `kill`, `cat`, `dog`", inline=False)
-        em.add_field(name=":tada: Giveaway", value="`gstart`, `gcreate`, `greroll`", inline=False)
-
-        old_msg = await ctx.send(embed=em, content="Website is currently work in-progress!! Take a look here\nhttps://docs.pypke.tk")
-
-        if ctx.author.id == 624572769484668938:
-            await old_msg.delete()
-        else:
-            return
-
         # New Help Command Work In-Progress
         current_page = 0
+        first_page = discord.Embed(
+            title="Commands",
+            description="**Moderation Commands**\n`#help moderation`\n\n**Utility Commands**\n`#help utility`\n\n**Fun Commands**\n`#help fun`\n\n**Bot Commands**\n`#help bot`\n\n**Giveaway Commands**\n`#help giveaway`\n\n**Music Commands**\n`#help music`",
+            color=random.choice(self.client.color_list),
+            timestamp=datetime.now()
+        )
+        
+        # GLobal Pages
+        global mod_page
+        global utils_page
+        global fun_page
+        global bot_page
+        global gaway_page
+        global music_page
+
         mod_page = discord.Embed(
                                  title="Moderation Commands",
-                                 description=f"""
-                                 Use The Buttons Below To Change Pages.
-                                 Use `#help <command>` for extended information on a command.
-
-                                 :gear: Moderation Commands
-                                 • `kick` - Kicks the user from the server.
-                                 • `ban` - Bans the user from the server.
-                                 • `unban` - Unbans the user from the server.
-                                 • `mute` - Mute the member.
-                                 • `ban` - Unmute the member.
-                                 """,
+                                 description="Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:gear: Moderation Commands\n• `kick` - Kicks the user from the server.\n• `ban` - Bans the user from the server.\n• `unban` - Unbans the user from the server.\n• `mute` - Mute the member.\n• `ban` - Unmute the member.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
 
         utils_page = discord.Embed(
                                  title="Utilty Commands",
-                                 description=f"""
-                                 Use The Buttons Below To Change Pages.
-                                 Use `#help <command>` for extended information on a command.
-
-                                 :tools: Utility Commands
-                                 • `purge` - Deletes amount of messages from the used channel.
-                                 • `ping` - Check the bot's ping.
-                                 • `avatar` - Get your's or anyone else's avatar.
-                                 • `whois` - Shows info about the member.
-                                 • `prefix` - Set a custom prefix for your server.
-                                 • `resetprefix` - Reset the prefix back to '#' for your server.
-                                 • `mail` - Mails a member for you.
-                                 """,
+                                 description="Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tools: Utility Commands\n• `purge` - Deletes amount of messages from the used channel.\n• `avatar` - Get your's or anyone else's avatar.\n• `whois` - Shows info about the member.\n• `prefix` - Set a custom prefix for your server.\n• `resetprefix` - Reset the prefix back to '#' for your server.\n• `mail` - Mails a member for you.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
                                 
         fun_page = discord.Embed(
                                  title="Fun Commands",
-                                 description=f"""
-                                 Use The Buttons Below To Change Pages.
-                                 Use `#help <command>` for extended information on a command.
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words. jk..\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
+                                 color=random.choice(self.client.color_list),
+                                 timestamp=datetime.now()
+                                )
 
-                                 :smile: Fun Commands
-                                 • `8ball` - Question the 8ball and it shall answer.
-                                 • `pat` - Pat a user.
-                                 • `meme` - See memes from r/memes.
-                                 • `dankmeme` - See memes from r/dankmemes.
-                                 • `kill` - Kill a user with words. jk..
-                                 • `cat` - Shows a cat image.
-                                 • `dog` - Shows a dog image.
-                                 """,
+        bot_page = discord.Embed(
+                                 title="Bot Commands",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:robot: Bot Commands\n• `ping` - Ping to check the bot's latency.\n• `stats` - Check the bot's stats.\n• `invite` - Invite me to your server.",
+                                 color=random.choice(self.client.color_list),
+                                 timestamp=datetime.now()
+                                )
+
+        gaway_page = discord.Embed(
+                                 title="Giveaway Commands",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tada: Giveaway Commands\n• `gstart` - Start a giveaway quickly.\n• `gcreate` - Start a giveaway but interactively.\n• `greroll` - Reroll a giveaway winner.",
+                                 color=random.choice(self.client.color_list),
+                                 timestamp=datetime.now()
+                                )
+
+        music_page = discord.Embed(
+                                 title="Music Commands",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:musical_note: Music Commands\n• `join` - Make the bot join your vc.\n• `play` - Play a song.\n• `disconnect` - Make the bot leave the vc.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
         
-        pages = [mod_page, utils_page, fun_page]
+        pages = [first_page, mod_page, utils_page, bot_page, fun_page, gaway_page, music_page]
         page_btn = ActionRow(
             Button(
                     label = "Back",
@@ -94,6 +82,11 @@ class Help(commands.Cog):
                     style = ButtonStyle.gray,
                     disabled = True
                 ),
+                    Button(
+                    label = "Stop",
+                    custom_id = "stop",
+                    style = ButtonStyle.red
+                ),
                 Button(
                     label = "Next",
                     custom_id = "ahead",
@@ -102,19 +95,20 @@ class Help(commands.Cog):
         help_msg = await ctx.send(embed=pages[current_page], components=[page_btn])
         while True:
             # Try and except blocks to catch timeout and break
-            def check_inter(inter):
-                return lambda i: i.component.id in ["back", "ahead"] and inter.message.id == ctx.message.id and inter.author.id == ctx.author.id
+            def check(inter):
+                return inter.message.id == help_msg.id and inter.author.id == ctx.author.id
+                
             try:
-                inter = await self.client.wait_for(
-                "button_click",
-                check = check_inter, # You can add more
-                timeout = 15.0 # 15 seconds of inactivity
-            )
-                # Getting the right list index
-                if inter.component.id == "back":
+                inter = await ctx.wait_for_button_click(check=check, timeout=15.0)
+                
+                if (inter.clicked_button.label.lower() == "back"):
                     current_page -= 1
-                elif inter.component.id == "ahead":
+                elif (inter.clicked_button.label.lower() == "next"):
                     current_page += 1
+                elif (inter.clicked_button.label.lower() == "stop"):
+                    await help_msg.edit(components=[])
+                    break
+
                 # If its out of index, go back to start / end
                 if current_page == len(pages):
                     current_page = 0
@@ -135,6 +129,11 @@ class Help(commands.Cog):
                     disabled = True
                 ),
                     Button(
+                    label = "Stop",
+                    custom_id = "stop",
+                    style = ButtonStyle.red
+                ),
+                    Button(
                     label = "Next",
                     custom_id = "ahead",
                     style = ButtonStyle.blurple
@@ -142,27 +141,36 @@ class Help(commands.Cog):
                 await inter.reply(type=7, embed=pages[current_page], components=[page_btn])
 
             except asyncio.TimeoutError:
-                disabled_page_btn = ActionRow(
-                    Button(
-                    label = "Back",
-                    custom_id = "back",
-                    style = ButtonStyle.blurple,
-                    disabled=True
-                ),
-                    Button(
-                    label = f"Page {int(pages.index(pages[current_page])) + 1}/{len(pages)}",
-                    custom_id = "cur",
-                    style = ButtonStyle.gray,
-                    disabled = True
-                ),
-                    Button(
-                    label = "Next",
-                    custom_id = "ahead",
-                    style = ButtonStyle.blurple,
-                    disabled=True
-                ))
-                await help_msg.edit(components=[disabled_page_btn])
+                await help_msg.edit(components=[])
                 break
+            except:
+                break
+    
+    # Pages Help
+    @help.command()
+    async def moderation(self, ctx):
+        await ctx.send(embed=mod_page)
+
+    @help.command()
+    async def utility(self, ctx):
+        await ctx.send(embed=utils_page)
+
+    @help.command()
+    async def fun(self, ctx):
+        await ctx.send(embed=fun_page)
+
+    @help.command()
+    async def bot(self, ctx):
+        await ctx.send(embed=bot_page)
+
+    @help.command()
+    async def giveaway(self, ctx):
+        await ctx.send(embed=gaway_page)
+
+    @help.command()
+    async def music(self, ctx):
+        await ctx.send(embed=music_page)
+        
     # Moderation Command
     @help.command()
     async def kick(self, ctx):
@@ -418,7 +426,7 @@ class Help(commands.Cog):
     
     @help.command()
     async def greroll(self, ctx):
-        em = discord.Embed(title="Re-roll Command", description="Re-rolls An Ended Giveaway!", color=discord.Color.random())
+        em = discord.Embed(title="Re-roll Command", description="Re-rolls A Giveaway To Get A New Winner!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#greroll <channel> <msg_id>", inline=False)
         em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)

@@ -49,7 +49,6 @@ async def status_task():
         await asyncio.sleep(30)
 
 # Client Info
-guild_ids=[]
 client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
 sclient = InteractionClient(client, test_guilds=["850732056790827020"])
 client.remove_command("help")
@@ -74,11 +73,11 @@ client.colors = {
 }
 client.color_list = [c for c in client.colors.values()]
 
-#Filter Words
-profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
-
 #Mongo DB Stuff
 client.connection_url = os.getenv('mongo')
+
+#Filter Words
+profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
 
 @client.event
 async def on_ready():
