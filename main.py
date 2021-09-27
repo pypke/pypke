@@ -10,6 +10,8 @@ from datetime import datetime
 from better_profanity import profanity
 import motor.motor_asyncio
 from urllib.parse import quote_plus
+# from chatterbot import ChatBot
+# from chatterbot.trainers import ChatterBotCorpusTrainer as Trainer
 
 # Local Imports
 from utils.keep_alive import keep_alive
@@ -51,6 +53,11 @@ async def status_task():
 # Client Info
 client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
 sclient = InteractionClient(client, test_guilds=["850732056790827020"])
+# chatbot = ChatBot('Pypke')
+# trainer = Trainer(chatbot)
+# trainer.train(
+#     "chatterbot.corpus.english"
+# )
 client.remove_command("help")
 client.launch_time = datetime.now()
 client.cwd = cwd
@@ -101,6 +108,7 @@ async def on_ready():
     client.blacklisted_users = Document(client.db, "blacklist")
     client.giveaways = Document(client.db, "giveaways")
     client.afks = Document(client.db, "afks")
+    client.chatbot = Document(client.db, "chatbot")
 
     # Muted Users
     currentMutes = await client.mutes.get_all()
@@ -184,6 +192,12 @@ async def on_message(message):
             afk_embed.set_thumbnail(url=afk_user.avatar_url)
             await message.channel.send(embed=afk_embed)
         
+    # chat_guilds = await client.chatbot.get_all()
+    # # for guild in chat_guilds:
+    # if message.channel.id == 892071521634361345:
+    #     response = chatbot.get_response(message.content)
+    #     await message.reply(response, mention_author=False)
+
     """
     if "discord.gg" or "discord.com/invite" in message.content.lower():
         if message.author.bot:
@@ -223,7 +237,7 @@ async def on_message(message):
 # <--- Commands --->
 @sclient.slash_command(description="Check the ping of the bot")
 async def ping(inter):
-    await inter.respond(type=4, content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(sclient.latency * 1000)}ms`", ephemeral=True)
+    await inter.reply(type=4, content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
 
 @sclient.slash_command(description="Get a link to invite this bot")
 async def invite(inter):
@@ -235,7 +249,7 @@ async def invite(inter):
     embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=discord.Color.blurple(), timestamp=datetime.now())
     embed.set_footer(text="Bot by Mr.Natural#3549")
 
-    await inter.respond(type=4, content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
+    await inter.reply(type=4, content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
     
 @sclient.slash_command(description="Checks for how long the bot is up")
 async def uptime(inter):
@@ -243,7 +257,7 @@ async def uptime(inter):
     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
     minutes, seconds = divmod(remainder, 60)
     days, hours = divmod(hours, 24)
-    await inter.respond(type=4, content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
+    await inter.reply(type=4, content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
 
 @client.command(description="Search something on google")
 async def google(ctx, query: str):

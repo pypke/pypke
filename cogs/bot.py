@@ -1,4 +1,4 @@
-import discord, platform
+import discord, platform, epoch
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 from datetime import datetime
@@ -10,9 +10,27 @@ class Bot(commands.Cog):
 
     @commands.command(aliases=['pong'])
     async def ping(self, ctx):
-        await ctx.send(
-            f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(self.client.latency * 1000)}ms`"
-        )
+        await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(self.client.latency * 1000)}ms`")
+
+    @commands.command()
+    async def uptime(self, ctx):
+        delta_uptime = datetime.now() - self.client.launch_time
+        time = int(delta_uptime.total_seconds())   
+             
+        # Converting Time Back To Readble Letters
+        minutes, seconds = divmod(time, 60)
+        hours, minutes = divmod(minutes, 60)
+        days, hours = divmod(hours, 24)
+        duration = ""
+        if days != 0:
+            duration = duration + f"{days} days "
+        if hours != 0:
+            duration = duration + f"{hours} hrs "
+        if minutes != 0:
+            duration = duration + f"{minutes} mins "
+        if seconds != 0:
+            duration = duration + f"{seconds} secs "
+        await ctx.send(f"I'm up since {duration}")
 
     @commands.command()
     async def stats(self, ctx):

@@ -14,7 +14,7 @@ class Help(commands.Cog):
         current_page = 0
         first_page = discord.Embed(
             title="Commands",
-            description="**Moderation Commands**\n`#help moderation`\n\n**Utility Commands**\n`#help utility`\n\n**Fun Commands**\n`#help fun`\n\n**Bot Commands**\n`#help bot`\n\n**Giveaway Commands**\n`#help giveaway`\n\n**Music Commands**\n`#help music`",
+            description="Documentation is work in-progress. Take a look [here](https://docs.pypke.tk/)\n\n**Moderation Commands**\n`#help moderation`\n\n**Utility Commands**\n`#help utility`\n\n**Fun Commands**\n`#help fun`\n\n**Bot Commands**\n`#help bot`\n\n**Giveaway Commands**\n`#help giveaway`\n\n**Music Commands**\n`#help music`",
             color=random.choice(self.client.color_list),
             timestamp=datetime.now()
         )
@@ -43,21 +43,21 @@ class Help(commands.Cog):
                                 
         fun_page = discord.Embed(
                                  title="Fun Commands",
-                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words. jk..\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words.\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
 
         bot_page = discord.Embed(
                                  title="Bot Commands",
-                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:robot: Bot Commands\n• `ping` - Ping to check the bot's latency.\n• `stats` - Check the bot's stats.\n• `invite` - Invite me to your server.",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:robot: Bot Commands\n• `ping` - Ping to check the bot's latency.\n• `stats` - Check the bot's stats.\n• `uptime` - Check the bot's uptime.\n• `invite` - Invite me to your server.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
 
         gaway_page = discord.Embed(
                                  title="Giveaway Commands",
-                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tada: Giveaway Commands\n• `gstart` - Start a giveaway quickly.\n• `gcreate` - Start a giveaway but interactively.\n• `greroll` - Reroll a giveaway winner.",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tada: Giveaway Commands\n• `gstart` - Start a giveaway quickly.\n• `gcreate` - Start a giveaway but interactively.\n• `greroll` - Reroll a giveaway winner.\n• `gend` - End a giveaway.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
@@ -240,6 +240,45 @@ class Help(commands.Cog):
 
         await ctx.send(embed=em)
 
+    # Bot Commands
+    @help.command()
+    async def ping(self, ctx):
+
+        em = discord.Embed(title="Ping", description="Displays the current latency!", colour=discord.Color.random())
+
+        em.add_field(name="**Syntax**", value="#ping", inline=False)
+        em.add_field(name="**Aliases**", value="`pong`", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+    
+    @help.command()
+    async def invite(self, ctx):
+        em = discord.Embed(title="Invite Command", description="Invite This Bot To Your Server!", color=discord.Color.random())
+        
+        em.add_field(name="**Syntax**", value="#invite", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+
+    @help.command()
+    async def uptime(self, ctx):
+        em = discord.Embed(title="Uptime Command", description="Check the bots uptime!", color=discord.Color.random())
+        
+        em.add_field(name="**Syntax**", value="#uptime", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+    
+    @help.command()
+    async def stats(self, ctx):
+        em = discord.Embed(title="Stats Command", description="Get Stats Of The Bot!", color=discord.Color.random())
+        
+        em.add_field(name="**Syntax**", value="#stats", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+
     # Utility Commands
     @help.command()
     async def purge(self, ctx):
@@ -253,19 +292,6 @@ class Help(commands.Cog):
         em.add_field(name="**Aliases**", value="`clear`", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
-
-        await ctx.send(embed=em)
-
-    @help.command()
-    async def ping(self, ctx):
-
-        em = discord.Embed(title="Ping",
-                          description="Displays the current latency!",
-                          colour=discord.Color.random())
-
-        em.add_field(name="**Syntax**", value="#ping", inline=False)
-        em.add_field(name="**Aliases**", value="`pong`", inline=False)
-        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
 
@@ -317,24 +343,6 @@ class Help(commands.Cog):
         em.add_field(name="**Syntax**", value="#mail <user> <your_message>", inline=False)
         em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.add_field(name="**Aliases**", value="`dm`", inline=False)
-        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
-
-        await ctx.send(embed=em)
-
-    @help.command()
-    async def invite(self, ctx):
-        em = discord.Embed(title="Invite Command", description="Invite This Bot To Your Server!", color=discord.Color.random())
-        
-        em.add_field(name="**Syntax**", value="#invite", inline=False)
-        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
-
-        await ctx.send(embed=em)
-    
-    @help.command()
-    async def stats(self, ctx):
-        em = discord.Embed(title="Stats Command", description="Get Stats Of The Bot!", color=discord.Color.random())
-        
-        em.add_field(name="**Syntax**", value="#stats", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
         await ctx.send(embed=em)
@@ -426,9 +434,19 @@ class Help(commands.Cog):
     
     @help.command()
     async def greroll(self, ctx):
-        em = discord.Embed(title="Re-roll Command", description="Re-rolls A Giveaway To Get A New Winner!", color=discord.Color.random())
+        em = discord.Embed(title="Reroll Giveaway Command", description="Rerolls A Giveaway To Get A New Winner!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#greroll <channel> <msg_id>", inline=False)
+        em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+
+    @help.command()
+    async def gend(self, ctx):
+        em = discord.Embed(title="End Giveaway Command", description="End A Giveaway To Get A Winner!", color=discord.Color.random())
+        
+        em.add_field(name="**Syntax**", value="#gend <msg_id>", inline=False)
         em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 
