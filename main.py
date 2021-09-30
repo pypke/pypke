@@ -10,8 +10,6 @@ from datetime import datetime
 from better_profanity import profanity
 import motor.motor_asyncio
 from urllib.parse import quote_plus
-# from chatterbot import ChatBot
-# from chatterbot.trainers import ChatterBotCorpusTrainer as Trainer
 
 # Local Imports
 from utils.keep_alive import keep_alive
@@ -86,19 +84,13 @@ client.connection_url = os.getenv('mongo')
 #Filter Words
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
 
-@client.event
-async def on_ready():
-
-    # Client Connection
-    asyncio.sleep(10)
+if __name__ == "__main__":
+    # Loading Cogs    
     os.system("clear")
-    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
-    print("---------")
     for file in os.listdir(cwd + "/cogs"):
         if file.endswith(".py") and not file.startswith("_"):
             client.load_extension(f"cogs.{file[:-3]}")
             print(f"{file[:-3].capitalize()} Loaded")
-    client.loop.create_task(status_task())
 
     # Database Connection
     client.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(client.connection_url))
@@ -110,6 +102,16 @@ async def on_ready():
     client.afks = Document(client.db, "afks")
     client.chatbot = Document(client.db, "chatbot")
 
+    print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
+    print("\u001b[34mInitialized Database\u001b[0m\n--------")
+
+@client.event
+async def on_ready():
+    # Client Connection
+    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
+    print("---------")
+    client.loop.create_task(status_task())
+        
     # Muted Users
     currentMutes = await client.mutes.get_all()
     for mute in currentMutes:
@@ -118,12 +120,8 @@ async def on_ready():
     # Current Giveaways
     currentGiveaways = await client.giveaways.get_all()
     for ga in currentGiveaways:
-        client.current_giveaways[ga["_id"]] = ga
-
-    print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
-    print("\u001b[34mInitialized Database\u001b[0m\n--------")
+        client.current_giveaways[ga["_id"]] = ga 
     
-
 @client.event
 async def on_member_join(member):
     # More Updates Needed

@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import praw
+import praw, requests
 import random
 import asyncio
 
@@ -11,31 +11,66 @@ reddit = praw.Reddit(client_id="vUbW-MNqGXFHTw",
                      user_agent="pythonpraw",
                      check_for_async=False)
 
+
 class Fun(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name="joke", description="This Command Sends A Random Joke")
-    @commands.guild_only()
+    @commands.command(name="joke",
+                      description="This command sends a random joke.")
+    @commands.cooldown(1, 3, commands.BucketType.user)
     async def joke(self, ctx):
-        subreddit = reddit.subreddit("jokes")
-        all_subs = []
+        resp = requests.get("https://some-random-api.ml/joke")
+        if 300 > resp.status_code >= 200:
+            content = resp.json()
+        else:
+            content = "Something is wrong. I can't find jokes for you right now, Try Later!"
+        await ctx.send(content['joke'])
 
-        hot = subreddit.hot(limit=100)
+    @commands.command(name="pokedex",
+                      description="This command sends info about a pokemon.",
+                      aliases=['dex'])
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def pokedex(self, ctx, *, pokemon: str = None):
+        if not pokemon:
+            return await ctx.send(
+                f"You need to provide the pokemon name `#pokedex <pokemon-name>`"
+            )
 
-        for submission in hot:
-            all_subs.append(submission)
+        resp = requests.get(
+            f"https://some-random-api.ml/pokedex?pokemon={pokemon}")
+        if 300 > resp.status_code >= 200:
+            data = resp.json()
+        else:
+            return await ctx.send(
+                f"Something is wrong. I can't find dex entry for {pokemon} for you right now, Try Later!"
+            )
 
-        random_sub = random.choice(all_subs)
+        title = f"#{data['id']} - {data['name'].capitalize()}"
+        description = data['description'].capitalize()
+        sprites = data['sprites']['animated']
+        types = " "
+        for ty in data['type']:
+            types = types + f"{ty}\n"
+        gender = " "
+        for ty in data['gender']:
+            gender = gender + f"{ty}\n"
+        appearance = f"**Height**: {data['height']}\n**Weight**: {data['weight']}\n**Gender**:\n{gender}\n"
+        base_stats = f"**HP**: {data['stats']['hp']}\n**Attack**: {data['stats']['attack']}\n**Defense**: {data['stats']['defense']}\n**Sp. Atk**: {data['stats']['sp_atk']}\n**Sp. Def**: {data['stats']['sp_def']}\n**Speed**: {data['stats']['speed']}\n**Total**: {data['stats']['total']}"
+        embed = discord.Embed(title=title,
+                              description=description,
+                              color=0x2f3136)
+        embed.add_field(name="Types", value=types)
+        embed.add_field(name="Appearance", value=appearance)
+        embed.add_field(name="Base Stats", value=base_stats, inline=False)
+        embed.set_thumbnail(url=sprites)
+        embed.set_footer(text="© The Pokémon Company")
+        await ctx.send(embed=embed)
 
-        name = random_sub.title
-        text = random_sub.name
-
-        em = discord.Embed(title = name, value = text, color=discord.Color.random())
-
-        await ctx.send(embed=em)
-
-    @commands.command(name="meme", description="This command sends a random meme from the subreddit `r/memes`")
+    @commands.command(
+        name="meme",
+        description=
+        "This command sends a random meme from the subreddit `r/memes`")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def meme(self, ctx):
         subreddit = reddit.subreddit("memes")
@@ -54,13 +89,17 @@ class Fun(commands.Cog):
         comments = random_sub.num_comments
         post = random_sub.permalink
 
-        em = discord.Embed(title = name, color=random.choice(self.client.color_list), url=f"https://reddit.com/{post}")
-        em.set_image(url = url)
+        em = discord.Embed(title=name,
+                           color=random.choice(self.client.color_list),
+                           url=f"https://reddit.com/{post}")
+        em.set_image(url=url)
         em.set_footer(text=f"👍🏻 {vote} | 💬 {comments}")
 
         await ctx.send(embed=em)
 
-    @commands.command(name="cat", description="This Sends A Random Cat Picture", aliases=['cats'])
+    @commands.command(name="cat",
+                      description="This Sends A Random Cat Picture",
+                      aliases=['cats'])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def cat(self, ctx):
         subreddit = reddit.subreddit("catpictures")
@@ -75,13 +114,16 @@ class Fun(commands.Cog):
 
         url = random_sub.url
 
-        em = discord.Embed(title = ":heart_eyes_cat:Meow", color=random.choice(self.client.color_list))
+        em = discord.Embed(title=":heart_eyes_cat:Meow",
+                           color=random.choice(self.client.color_list))
 
-        em.set_image(url = url)
+        em.set_image(url=url)
 
-        await ctx.send(embed = em)
+        await ctx.send(embed=em)
 
-    @commands.command(name="dog", description="This Sends A Random Dog Picture", aliases=['dogs'])
+    @commands.command(name="dog",
+                      description="This Sends A Random Dog Picture",
+                      aliases=['dogs'])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def dog(self, ctx, url=None):
         subreddit = reddit.subreddit("dogpictures")
@@ -95,13 +137,18 @@ class Fun(commands.Cog):
         random_sub = random.choice(all_subs)
 
         url = random_sub.url
-        
-        em = discord.Embed(title = ":dog:Woof", color=random.choice(self.client.color_list))
-        em.set_image(url = url)
+
+        em = discord.Embed(title=":dog:Woof",
+                           color=random.choice(self.client.color_list))
+        em.set_image(url=url)
 
         await ctx.send(embed=em)
 
-    @commands.command(name="dankmeme", description="This commands sends a random meme from subreddit `r/dankmemes`.", aliases=['dmeme','deme'])
+    @commands.command(
+        name="dankmeme",
+        description=
+        "This commands sends a random meme from subreddit `r/dankmemes`.",
+        aliases=['dmeme', 'deme'])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def dankmeme(self, ctx):
         subreddit = reddit.subreddit("dankmemes")
@@ -120,80 +167,98 @@ class Fun(commands.Cog):
         comments = random_sub.num_comments
         post = random_sub.permalink
 
-        em = discord.Embed(title = name, color=random.choice(self.client.color_list), url=f"https://reddit.com/{post}")
-        em.set_image(url = url)
+        em = discord.Embed(title=name,
+                           color=random.choice(self.client.color_list),
+                           url=f"https://reddit.com/{post}")
+        em.set_image(url=url)
         em.set_footer(text=f"👍🏻{vote} | 💬{comments}")
 
         await ctx.send(embed=em)
 
-    @commands.command(name="8ball", description="This command answers a question like a 8Ball", usage="<question>")
+    @commands.command(
+        name="8ball",
+        description="This command answers a question like a 8Ball",
+        usage="<question>")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def _8ball(self, ctx, *, question=None):
-        responses = ["It is certain",
-                     "It is decidedly so",
-                     "Without a doubt",
-                     "Yes, definitely",
-                     "You may rely on it",
-                     "As I see it, yes",
-                     "Most likely",
-                     "Outlook good",
-                     "Yes",
-                     "Signs point to yes",
-                     "Reply hazy try again",
-                     "Ask again later",
-                     "Better not tell you now",
-                     "Cannot predict now",
-                     "Concentrate and ask again",
-                     "Don't count on it",
-                     "My reply is no",
-                     "My sources say no",
-                     "Outlook not so good",
-                     "Very doubtful"]
-                                                        
-        if question==None:
-          await ctx.send("Question is a required argument which is missing!!")
-          return
-        embed=discord.Embed(title=":8ball:| **8Ball**", color=discord.Color.random())
-        embed.add_field(name="**Question**:", value=f"{question}", inline=False)
-        embed.add_field(name="**Answer**:", value=f"{random.choice(responses)}", inline=False)
-        embed.set_footer(text=f"Asked By {ctx.author.name}", icon_url=ctx.author.avatar_url)
+        responses = [
+            "It is certain", "It is decidedly so", "Without a doubt",
+            "Yes, definitely", "You may rely on it", "As I see it, yes",
+            "Most likely", "Outlook good", "Yes", "Signs point to yes",
+            "Reply hazy try again", "Ask again later",
+            "Better not tell you now", "Cannot predict now",
+            "Concentrate and ask again", "Don't count on it", "My reply is no",
+            "My sources say no", "Outlook not so good", "Very doubtful"
+        ]
+
+        if question == None:
+            await ctx.send("Question is a required argument which is missing!!"
+                           )
+            return
+        embed = discord.Embed(title=":8ball:| **8Ball**",
+                              color=discord.Color.random())
+        embed.add_field(name="**Question**:",
+                        value=f"{question}",
+                        inline=False)
+        embed.add_field(name="**Answer**:",
+                        value=f"{random.choice(responses)}",
+                        inline=False)
+        embed.set_footer(text=f"Asked By {ctx.author.name}",
+                         icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
-    @commands.command(name="pat", description="This command pats a user on back.", usage="<user>")
+    @commands.command(name="pat",
+                      description="This command pats a user on back.",
+                      usage="<user>")
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def pat(self, ctx, member:discord.Member=None):
-            if member==None:
-                await ctx.send("There is no one to pat here it's just you and me ;-;")
-                return
-            if member==ctx.author:
-                await ctx.send("You can't pat yourself find someone!!")
-                return
+    async def pat(self, ctx, member: discord.Member = None):
+        if member == None:
+            await ctx.send(
+                "There is no one to pat here it's just you and me ;-;")
+            return
+        if member == ctx.author:
+            await ctx.send("You can't pat yourself find someone!!")
+            return
 
-            pat_gif=['https://media.giphy.com/media/5tmRHwTlHAA9WkVxTU/giphy.gif', 'https://images-ext-1.discordapp.net/external/5gTEJjgFQmEsfinxmX8eyo8-fiCOW7e-DA_J9KNxh5Q/https/cdn.nekos.life/pat/pat_015.gif', 'https://media.giphy.com/media/N0CIxcyPLputW/giphy.gif', 'https://media.giphy.com/media/Lb3vIJjaSIQWA/giphy.gif']
+        pat_gif = [
+            'https://media.giphy.com/media/5tmRHwTlHAA9WkVxTU/giphy.gif',
+            'https://images-ext-1.discordapp.net/external/5gTEJjgFQmEsfinxmX8eyo8-fiCOW7e-DA_J9KNxh5Q/https/cdn.nekos.life/pat/pat_015.gif',
+            'https://media.giphy.com/media/N0CIxcyPLputW/giphy.gif',
+            'https://media.giphy.com/media/Lb3vIJjaSIQWA/giphy.gif'
+        ]
 
-            random_pat = random.choice(pat_gif)
-            embed = discord.Embed(title=f'{ctx.author.name} pats {member.name}', color=discord.Color.random())
-            embed.set_image(url=random_pat)
-            await ctx.send(embed=embed)
+        random_pat = random.choice(pat_gif)
+        embed = discord.Embed(title=f'{ctx.author.name} pats {member.name}',
+                              color=discord.Color.random())
+        embed.set_image(url=random_pat)
+        await ctx.send(embed=embed)
 
-    @commands.command(name="kill", description="This command kills a user for you! Oops.", usage="<user>")
+    @commands.command(name="kill",
+                      description="This command kills a user for you! Oops.",
+                      usage="<user>")
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def kill(self, ctx, member:discord.Member=None):
-        if member==None:
+    async def kill(self, ctx, member: discord.Member = None):
+        if member == None:
             await ctx.send("Who do you wanna kill man?")
             return
-        if member==ctx.author:
+        if member == ctx.author:
             await ctx.send("You can't kill yourself mate! ;-;")
             return
         if member.bot:
             await ctx.send("Why are you trying to kill my fellow mate??")
             return
-        
-        kill_text=['died of hunger', 'died with getting squashed by anvil', 'died after seeing cringy fortnite', 'died after seeing the mirror', 'died while writing the sucide note', 'died of POG!', 'died after seeing the power of Pypke The Cat...']
 
-        random_kill=random.choice(kill_text)
+        kill_text = [
+            'died of hunger', 'died with getting squashed by anvil',
+            'died after seeing cringy fortnite',
+            'died after seeing the mirror',
+            'died while writing the sucide note', 'died of POG!',
+            'died after seeing the power of Pypke The Cat...'
+        ]
+
+        random_kill = random.choice(kill_text)
         await ctx.send(f"{member} {random_kill}")
 
     @commands.command()
@@ -201,27 +266,41 @@ class Fun(commands.Cog):
     async def egg(self, ctx):
         await ctx.send("This Is An Easter Egg!!", delete_after=2)
 
-    @commands.command(name="hack", description="This command can hack a user!! THIS IS NOT A JOKE.", usage="<user>")
+    @commands.command(
+        name="hack",
+        description="This command can hack a user!! THIS IS NOT A JOKE.",
+        usage="<user>")
     @commands.guild_only()
     @commands.cooldown(1, 9, commands.BucketType.user)
-    async def hack(self, ctx, member:discord.Member=None):
-        if member==None:
+    async def hack(self, ctx, member: discord.Member = None):
+        if member == None:
             await ctx.send("Who do you wanna hack?")
             return
-        if member==ctx.author:
+        if member == ctx.author:
             await ctx.send("You can't hack yourself! ;-;")
             return
         if member.bot:
             await ctx.send("Why are you trying to hack a bot??")
             return
 
-        ip=['120.10.12.13', '120.10.20.11', '170.18.15.23', '150.23.16.13', '192.158.1.38', '255.158.255.38', '192.158.101.101']
-        email=[f'{member.display_name}_smallpp.com', f'{member.display_name}_PlayzMinecraft@gmail.com', f'{member.display_name}_xxx@hotmail.com', 'poggers@games.com', 'heck@theworld.org', 'why_not@lol.com', 'flex@gmail.com']
-        password=['peepoopeepoo', '12345678', 'poggers', 'PA55W0RD', 'ilovemom', 'dreamnoob']
+        ip = [
+            '120.10.12.13', '120.10.20.11', '170.18.15.23', '150.23.16.13',
+            '192.158.1.38', '255.158.255.38', '192.158.101.101'
+        ]
+        email = [
+            f'{member.display_name}_smallpp.com',
+            f'{member.display_name}_PlayzMinecraft@gmail.com',
+            f'{member.display_name}_xxx@hotmail.com', 'poggers@games.com',
+            'heck@theworld.org', 'why_not@lol.com', 'flex@gmail.com'
+        ]
+        password = [
+            'peepoopeepoo', '12345678', 'poggers', 'PA55W0RD', 'ilovemom',
+            'dreamnoob'
+        ]
 
-        random_ip=random.choice(ip)
-        random_email=random.choice(email)
-        random_password=random.choice(password)
+        random_ip = random.choice(ip)
+        random_email = random.choice(email)
+        random_password = random.choice(password)
         msg1 = await ctx.send(f"Hacking {member.name} now!")
         await asyncio.sleep(1.5)
         await msg1.edit(content="Finding IP address..")
@@ -238,14 +317,17 @@ class Fun(commands.Cog):
         await asyncio.sleep(1.5)
         await msg1.edit(content="Bypassing 2FA Authentication...")
         await asyncio.sleep(1.5)
-        await msg1.edit(content=f"Email: `{random_email}`\nPassword: `{random_password}`")
+        await msg1.edit(
+            content=f"Email: `{random_email}`\nPassword: `{random_password}`")
         await asyncio.sleep(1.5)
         await msg1.edit(content="Report Discord For Breaking TOS....")
         await asyncio.sleep(1.5)
         await msg1.edit(content="**If You See This You Are So Cool**")
         await asyncio.sleep(0.2)
         await msg1.edit(content=f"Finished Hacking {member.name}!!")
-        await ctx.send("The *totally* real and dangerous hacking is complete!!")
+        await ctx.send("The *totally* real and dangerous hacking is complete!!"
+                       )
+
 
 def setup(client):
     client.add_cog(Fun(client))

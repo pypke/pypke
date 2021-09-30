@@ -33,6 +33,7 @@ class Errors(commands.Cog):
             await ctx.send(f"Bot doesn't have required permission to execute `#{ctx.command.qualified_name}` command.", delete_after=5)
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f"Please enter the required argument!")
+    
         elif isinstance(error, commands.NotOwner):
             await ctx.send("Only Owner Of The Bot Can Use This Command!!")
         elif isinstance(error, commands.UserNotFound):

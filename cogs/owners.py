@@ -13,9 +13,10 @@ class Owners(commands.Cog):
         try:
             self.client.unload_extension(f"cogs.{module}")
             await ctx.send(f"{module.capitalize()} Module Was Successfully Unloaded!")
-        except:
-            await ctx.send("Nope, Not Like That!")
-            return
+        except commands.ExtensionNotLoaded:
+            await ctx.send("Not Loaded!")
+        except commands.ExtensionNotFound:
+            await ctx.send("Not Found!")
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -24,9 +25,10 @@ class Owners(commands.Cog):
         try:
             self.client.load_extension(f"cogs.{module}")
             await ctx.send(f"{module.capitalize()} Module Was Successfully Loaded!")
-        except:
-            await ctx.send("Nope, Not Like That!")
-            return
+        except commands.ExtensionAlreadyLoaded:
+            await ctx.send("Already Loaded!")
+        except commands.ExtensionNotFound:
+            await ctx.send("Not Found!")
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -90,10 +92,10 @@ class Owners(commands.Cog):
         for guild in guilds:
             guild_name = guild.name
             guild_id = guild.id
-            guild_owner_name = guild.owner.name
+            guild_owner_name = guild.owner
             index += 1
-            desc = desc + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nOwner: {guild_owner_name}\n\n"
-            if index > 10:
+            desc = desc + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nMembers:{len(guild.members)}\nOwner: {guild_owner_name}\n\n"
+            if index >= 15:
                 break
             
         embed = discord.Embed(

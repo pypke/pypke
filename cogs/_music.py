@@ -93,48 +93,6 @@ class Music(commands.Cog):
 
         await ctx.send(f"Now playing: `{player.title}`")
 
-    @commands.command()
-    @commands.guild_only()
-    async def stream(self, ctx, *, url):
-        """Streams from a url (same as yt, but doesn't predownload)"""
-
-        async with ctx.typing():
-            player = await YTDLSource.from_url(url, loop=self.bot.loop, stream=True)
-            ctx.voice_client.play(
-                player, after=lambda e: print(f"Player error: {e}") if e else None
-            )
-
-        await ctx.send(f"Now playing: `{player.title}`")
-
-    @commands.command(aliases=["resume", "p"])
-    @commands.guild_only()
-    async def pause(self, ctx):
-        """Pauses any currently playing audio."""
-        bot = ctx.guild.voice_client
-        self._pause_audio(bot)
-
-    def _pause_audio(self, bot):
-        if bot.is_paused():
-            bot.resume()
-        else:
-            bot.pause()
-
-    @commands.command()
-    @commands.guild_only()
-    async def volume(self, ctx, volume: int = None):
-        """Change the volume of currently playing audio (values 0-250)."""
-
-        if ctx.voice_client is None:
-            return await ctx.send("Not connected to a voice channel.")
-
-        if 0 <= volume <= 250:
-            volume = volume / 100
-            ctx.voice_client.source.volume = volume
-        else:
-            await ctx.send('Please enter a volume between 0-250')
-
-        await ctx.send(f"Changed volume to **{volume}**%")
-
     @commands.command(aliases=['disconnect'])
     @commands.guild_only()
     async def stop(self, ctx):
@@ -162,9 +120,6 @@ class Music(commands.Cog):
     #         await ctx.send(f"{ctx.author.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)")
 
     @play.before_invoke
-    @stream.before_invoke
-    @volume.before_invoke
-    @pause.before_invoke
     async def ensure_voice(self, ctx):
         if ctx.voice_client is None:
             if ctx.author.voice:
