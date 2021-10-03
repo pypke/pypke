@@ -43,17 +43,11 @@ class Utility(commands.Cog):
 
     @commands.command()
     async def avatar(self, ctx, member : discord.User=None):
-        if member == None:
-            member = ctx.author
-            embed = discord.Embed(title=f"{member}'s Avatar!", colour=discord.Color.random(), timestamp=ctx.message.created_at)
-            embed.add_field(name="Links-", value=f"[jpg]({member.avatar_url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar_url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar_url_as(format=None, static_format='webp', size=512)})")
-            embed.set_image(url=member.avatar_url)
-            await ctx.send(embed=embed)
-        else:
-            embed = discord.Embed(title=f"{member}'s Avatar!", colour=discord.Color.random(), timestamp=ctx.message.created_at)
-            embed.add_field(name="Links-", value=f"[jpg]({member.avatar_url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar_url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar_url_as(format=None, static_format='webp', size=512)})")
-            embed.set_image(url=member.avatar_url)
-            await ctx.send(embed=embed)
+        member = ctx.author or member
+        embed = discord.Embed(title=f"{member}'s Avatar!", colour=discord.Color.random(), timestamp=ctx.message.created_at)
+        # embed.add_field(name="Links-", value=f"[jpg]({member.avatar.url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar.url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar.url_as(format=None, static_format='webp', size=512)})")
+        embed.set_image(url=member.avatar.url)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=['user-info', 'info'])
     @commands.guild_only()
@@ -81,7 +75,7 @@ class Utility(commands.Cog):
         joined_time = round(joined_time.timestamp())
 
         embed = discord.Embed(title=f"{member}", colour=discord.Color.random(), timestamp=ctx.message.created_at)
-        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
         embed.set_author(name="User Info: ")
         embed.add_field(name="ID:", value=member.id, inline=False)
         embed.add_field(name="Nickname:", value=member.display_name, inline=False)

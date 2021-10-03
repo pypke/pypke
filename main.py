@@ -76,7 +76,9 @@ client.colors = {
     "new_blurple": 0x5865F2,
     "og_blurple": 0x7289da
 }
+client.logo_color = 0xE67E22
 client.color_list = [c for c in client.colors.values()]
+client.randcolor = random.choice(client.color_list)
 
 #Mongo DB Stuff
 client.connection_url = os.getenv('mongo')
@@ -85,12 +87,13 @@ client.connection_url = os.getenv('mongo')
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
 
 if __name__ == "__main__":
-    # Loading Cogs    
+    # Loading cogs
     os.system("clear")
     for file in os.listdir(cwd + "/cogs"):
         if file.endswith(".py") and not file.startswith("_"):
             client.load_extension(f"cogs.{file[:-3]}")
             print(f"{file[:-3].capitalize()} Loaded")
+    client.load_extension('jishaku')
 
     # Database Connection
     client.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(client.connection_url))
@@ -101,6 +104,7 @@ if __name__ == "__main__":
     client.giveaways = Document(client.db, "giveaways")
     client.afks = Document(client.db, "afks")
     client.chatbot = Document(client.db, "chatbot")
+    
 
     print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
@@ -111,6 +115,7 @@ async def on_ready():
     print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
     print("---------")
     client.loop.create_task(status_task())
+
         
     # Muted Users
     currentMutes = await client.mutes.get_all()
@@ -141,7 +146,7 @@ async def on_guild_join(guild):
         color=discord.Color.orange(),
         timestamp=datetime.now()
     )
-    setup_embed.set_author(name=client.user.name, icon_url=client.user.avatar_url)
+    setup_embed.set_author(name=client.user.name, icon_url=client.user.avatar.url)
     setup_embed.set_footer(text="Joined At")
     await channel.send(embed=setup_embed)
     

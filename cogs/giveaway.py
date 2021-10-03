@@ -40,7 +40,7 @@ class Giveaway(commands.Cog):
                     description=
                     f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
                     color=discord.Color.orange())
-                end_embed.set_footer(icon_url=guild.icon_url, text=guild.name)
+                end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
                 await msg.edit(embed=end_embed)
                 await msg.reply(
                     f"Congratulations! {winner.mention} Has Won The `{value['prize']}`!"
@@ -69,7 +69,7 @@ class Giveaway(commands.Cog):
             description=
             f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color=discord.Color.orange())
-        embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
+        embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         my_msg = await channel.send(embed=embed)
 
         data = {
@@ -96,7 +96,7 @@ class Giveaway(commands.Cog):
                 description=
                 f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
                 color=discord.Color.orange())
-            end_embed.set_footer(icon_url=ctx.guild.icon_url,
+            end_embed.set_footer(icon_url=ctx.guild.icon.url,
                                  text=ctx.guild.name)
             await new_msg.edit(embed=end_embed)
             await new_msg.reply(
@@ -183,7 +183,7 @@ class Giveaway(commands.Cog):
             description=
             f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color=discord.Color.orange())
-        embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
+        embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         my_msg = await channel.send(embed=embed)
 
         data = {
@@ -210,7 +210,7 @@ class Giveaway(commands.Cog):
                 description=
                 f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
                 color=discord.Color.orange())
-            end_embed.set_footer(icon_url=ctx.guild.icon_url,
+            end_embed.set_footer(icon_url=ctx.guild.icon.url,
                                  text=ctx.guild.name)
             await new_msg.edit(embed=end_embed)
             await new_msg.reply(
@@ -272,7 +272,7 @@ class Giveaway(commands.Cog):
                                     description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
                                     color=discord.Color.orange()
                                 )
-        end_embed.set_footer(icon_url=ctx.guild.icon_url, text=ctx.guild.name)
+        end_embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         await msg.edit(embed=end_embed)
         await msg.reply(f"Congratulations! {winner.mention} Has Won The `{prize}`!")
         embed = discord.Embed(

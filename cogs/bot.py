@@ -52,7 +52,7 @@ class Bot(commands.Cog):
         embed.add_field(name="Bot Developers:", value="<@624572769484668938>")
 
         embed.set_footer(text=f"Mr.Natural#3549 | {self.client.user.name}")
-        embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar_url)
+        embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar.url)
 
         await ctx.send(embed=embed)
 

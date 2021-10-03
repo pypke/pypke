@@ -1,8 +1,6 @@
 import discord
 from discord.ext import commands
-import praw, requests
-import random
-import asyncio
+import praw, requests, random, asyncio, aiohttp
 
 reddit = praw.Reddit(client_id="vUbW-MNqGXFHTw",
                      client_secret="tfaL2Z5vI-AG-T0eb77h0-gLzPyWtw",
@@ -16,20 +14,30 @@ class Fun(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name="joke",
-                      description="This command sends a random joke.")
+    @commands.command(name="joke", description="This command sends a random joke.")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def joke(self, ctx):
-        resp = requests.get("https://some-random-api.ml/joke")
-        if 300 > resp.status_code >= 200:
-            content = resp.json()
-        else:
-            content = "Something is wrong. I can't find jokes for you right now, Try Later!"
-        await ctx.send(content['joke'])
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://v2.jokeapi.dev/joke/Programming,Miscellaneous,Dark,Pun,Spooky?blacklistFlags=nsfw,religious,political,racist,sexist,explicit') as r:
+                if 300 > r.status >= 200:
+                    data = await r.json()
+                    joke = discord.Embed(
+                        title=f"{data['category']} Joke",
+                        color=random.choice(self.client.color_list)
+                    )
+                    if data['type'] == "single":
+                        joke.description = data['joke']
+                        await ctx.send(embed=joke)
+                    if data['type'] == "twopart":
+                        joke.description = f"{data['setup']}"
+                        msg = await ctx.send(embed=joke)
+                        await asyncio.sleep(5)
+                        joke.description = f"{data['setup']}\n{data['delivery']}"
+                        await msg.edit(embed=joke)               
+                else:
+                    await ctx.send("Something is wrong. I can't find jokes for you right now, Try Later!")   
 
-    @commands.command(name="pokedex",
-                      description="This command sends info about a pokemon.",
-                      aliases=['dex'])
+    @commands.command(name="pokedex", description="This command sends info about a pokemon.", aliases=['dex'])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def pokedex(self, ctx, *, pokemon: str = None):
         if not pokemon:
@@ -62,7 +70,7 @@ class Fun(commands.Cog):
                               color=0x2f3136)
         embed.add_field(name="Types", value=types)
         embed.add_field(name="Appearance", value=appearance)
-        embed.add_field(name="Base Stats", value=base_stats, inline=False)
+        embed.add_field(name="Base Stats", value=base_stats)
         embed.set_thumbnail(url=sprites)
         embed.set_footer(text="© The Pokémon Company")
         await ctx.send(embed=embed)
