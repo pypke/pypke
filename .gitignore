@@ -7,3 +7,5 @@ keep_alive.py
 .breakpoints
 *.m4a
 *.replit
+utils/__pycache__
+cogs/__pycache__

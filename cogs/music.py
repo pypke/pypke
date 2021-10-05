@@ -91,7 +91,7 @@ class Music(commands.Cog):
                 player, after=lambda e: print(f"Player error: {e}") if e else None
             )
 
-        await ctx.send(f"Now playing: `{player.title}`\n{yt_url or None}")
+        await ctx.send(f"Now playing: `{player.title}`")
 
     @commands.command()
     @commands.guild_only()
@@ -143,23 +143,23 @@ class Music(commands.Cog):
         await ctx.voice_client.disconnect()
         await ctx.send("Disconnected")
 
-    @commands.command(aliases=['fs'])
-    @commands.guild_only()
-    async def skip(self, ctx):
-        """Skips the currently playing song, or votes to skip it."""
-        state = self.get_state(ctx.guild)
-        client = ctx.guild.voice_client
-        if ctx.channel.permissions_for(
-                ctx.author).administrator or state.is_requester(ctx.author):
-            # immediately skip if requester or admin
-            client.stop()
-        else:
-            channel = client.channel
-            self._vote_skip(channel, ctx.author)
-            # announce vote
-            users_in_channel = len([member for member in channel.members if not member.bot])
-            required_votes = math.ceil(0.5 * users_in_channel)
-            await ctx.send(f"{ctx.author.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)")
+    # @commands.command(aliases=['fs'])
+    # @commands.guild_only()
+    # async def skip(self, ctx):
+    #     """Skips the currently playing song, or votes to skip it."""
+    #     state = self.get_state(ctx.guild)
+    #     client = ctx.guild.voice_client
+    #     if ctx.channel.permissions_for(
+    #             ctx.author).administrator or state.is_requester(ctx.author):
+    #         # immediately skip if requester or admin
+    #         client.stop()
+    #     else:
+    #         channel = client.channel
+    #         self._vote_skip(channel, ctx.author)
+    #         # announce vote
+    #         users_in_channel = len([member for member in channel.members if not member.bot])
+    #         required_votes = math.ceil(0.5 * users_in_channel)
+    #         await ctx.send(f"{ctx.author.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)")
 
     @play.before_invoke
     @stream.before_invoke
