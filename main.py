@@ -63,6 +63,7 @@ client.version = "1.7.5"
 client.muted_users = {}
 client.current_giveaways = {}
 client.prefix = "#"
+client.color = 0xF7770F
 client.colors = {
     "white": 0xFFFFFF,
     "aqua": 0x1ABC9C,
@@ -71,12 +72,11 @@ client.colors = {
     "purple": 0x9B59B6,
     "pink": 0xE91E63,
     "gold": 0xF1C40F,
-    "orange": 0xE67E22,
-    "red": 0xE74C3C,
+    "orange": 0xF7770F,
+    "red": 0xED4245,
     "new_blurple": 0x5865F2,
     "og_blurple": 0x7289da
 }
-client.logo_color = 0xE67E22
 client.color_list = [c for c in client.colors.values()]
 client.randcolor = random.choice(client.color_list)
 
@@ -111,6 +111,7 @@ if __name__ == "__main__":
 
 @client.event
 async def on_ready():
+    await client.wait_until_ready()
     # Client Connection
     print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
     print("---------")
@@ -192,7 +193,7 @@ async def on_message(message):
                 afk_embed.description=f"**Status:** {value['text']}"
             
             afk_embed.set_footer(text="Don't Ping This User Pls!")
-            afk_embed.set_thumbnail(url=afk_user.avatar_url)
+            afk_embed.set_thumbnail(url=afk_user.avatar.url)
             await message.channel.send(embed=afk_embed)
         
     # chat_guilds = await client.chatbot.get_all()
@@ -275,7 +276,7 @@ async def google(ctx, query: str):
         )
     )
     google = discord.Embed(title="Google Search Results", description=f"**Query:** {query}\n**Results:** Click The Button Below To Open", color=random.choice(client.color_list), timestamp=datetime.now())
-    google.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+    google.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar.url)
     await ctx.send(embed=google, components=[google_btn])
 
 @client.command()
@@ -298,7 +299,7 @@ async def boosters(ctx):
         )
     embed.add_field(name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
     embed.set_author(name="Server Boosters")
-    embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
+    embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
 

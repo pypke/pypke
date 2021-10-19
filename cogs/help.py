@@ -14,10 +14,16 @@ class Help(commands.Cog):
         current_page = 0
         first_page = discord.Embed(
             title="Commands",
-            description="Documentation is work in-progress. Take a look [here](https://docs.pypke.tk/)\n\n**Moderation Commands**\n`#help moderation`\n\n**Utility Commands**\n`#help utility`\n\n**Fun Commands**\n`#help fun`\n\n**Bot Commands**\n`#help bot`\n\n**Giveaway Commands**\n`#help giveaway`\n\n**Music Commands**\n`#help music`",
-            color=random.choice(self.client.color_list),
+            description="Documentation is work in-progress. Take a look here\nhttps://docs.pypke.tk\n\nDo The Commands Below To View Specific Page.",
+            color=self.client.randcolor,
             timestamp=datetime.now()
         )
+        first_page.add_field(name="Moderation Commands", value="`#help moderation`")
+        first_page.add_field(name="Utility Commands", value="`#help utility`")
+        first_page.add_field(name="Fun Commands", value="`#help fun`")
+        first_page.add_field(name="Bot Commands", value="`#help bot`")
+        first_page.add_field(name="Giveaway Commands", value="`#help giveaway`")
+        first_page.add_field(name="Music Commands", value="`#help music`")
         
         # GLobal Pages
         global mod_page
@@ -43,7 +49,7 @@ class Help(commands.Cog):
                                 
         fun_page = discord.Embed(
                                  title="Fun Commands",
-                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words.\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `joke` - Sends you a joke.\n• `pokedex` - Search a pokemon's dex entry.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words.\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
@@ -64,7 +70,7 @@ class Help(commands.Cog):
 
         music_page = discord.Embed(
                                  title="Music Commands",
-                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:musical_note: Music Commands\n• `join` - Make the bot join your vc.\n• `play` - Play a song.\n• `disconnect` - Make the bot leave the vc.",
+                                 description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:musical_note: Music Commands\n• `join` - Make the bot join your vc.\n• `play` - Play a song.\n• `skip` - Skips current playing song.\n• `queue` - Shows you the songs currenly in queue.\n• `volume` - Change the bot's volume.\n• `stop` - Make the bot leave the vc.",
                                  color=random.choice(self.client.color_list),
                                  timestamp=datetime.now()
                                 )
@@ -99,7 +105,7 @@ class Help(commands.Cog):
                 return inter.message.id == help_msg.id and inter.author.id == ctx.author.id
                 
             try:
-                inter = await ctx.wait_for_button_click(check=check, timeout=15.0)
+                inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
                 
                 if (inter.clicked_button.label.lower() == "back"):
                     current_page -= 1
@@ -396,7 +402,7 @@ class Help(commands.Cog):
 
     @help.command()
     async def dog(self, ctx):
-        em = discord.Embed(title="Dog", description="Shows a dog picture!", color=discord.Color.random())
+        em = discord.Embed(title="Dog Image Command", description="Shows a dog picture!", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#dog", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
@@ -405,7 +411,7 @@ class Help(commands.Cog):
 
     @help.command()
     async def kill(self, ctx):
-        em = discord.Embed(title="Kill", description="Kills The Person You Mention!", color=discord.Color.random())
+        em = discord.Embed(title="Kill Command", description="Kills The Person With words! Not Really", color=discord.Color.random())
         
         em.add_field(name="**Syntax**", value="#kill <member>", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
@@ -413,10 +419,30 @@ class Help(commands.Cog):
         await ctx.send(embed=em)
 
     @help.command()
-    async def gstart(self, ctx):
-        em = discord.Embed(title="Start Giveaway", description="Starts A Giveaway In Current Channel!\nI Would Recommend `#gcreate` Instead!", color=discord.Color.random())
+    async def joke(self, ctx):
+        em = discord.Embed(title="Joke Command", description="Sends you a joke!", color=discord.Color.random())
         
-        em.add_field(name="**Syntax**", value="#gstart <time> [channel] <prize>", inline=False)
+        em.add_field(name="**Syntax**", value="#joke", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+
+    @help.command(aliases=['dex'])
+    async def pokedex(self, ctx):
+        em = discord.Embed(title="Pokedex Command", description="Search a pokemon's pokedex entry for you!", color=discord.Color.random())
+        
+        em.add_field(name="**Syntax**", value="#pokedex <pokemon-name>", inline=False)
+        em.add_field(name="**Aliases**", value="`dex`", inline=False)
+        em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
+
+        await ctx.send(embed=em)
+
+    # Giveaway Commands Help
+    @help.command()
+    async def gstart(self, ctx):
+        em = discord.Embed(title="Start Giveaway", description="Starts A Giveaway In Current Channel!\nI Would Recommend `#gcreate` Instead!\nCause This Command Breaks Sometimes.", color=discord.Color.random())
+        
+        em.add_field(name="**Syntax**", value="#gstart <time> <channel> <prize>", inline=False)
         em.add_field(name="**Required Perms**", value="Manage Guild", inline=False)
         em.set_footer(text="<argument> : This means the argument is required.\n [argument] : This means the argument is optional.")
 

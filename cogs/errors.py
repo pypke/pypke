@@ -57,7 +57,7 @@ class Errors(commands.Cog):
             return
         elif isinstance(error, commands.CommandInvokeError):
             if ctx.channel.id == 887258899726606336:
-                await ctx.send(f"Oops Looks Like Something Went Wrong!!\nDetails:-`{error}`", delete_after=5)
+                await ctx.send(f"```{error}```")
                 raise error
             else:
                 raise error

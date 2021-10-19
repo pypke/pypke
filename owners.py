@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from copy import copy
+from utils.pagination import Pagination
 
 class Owners(commands.Cog):
     def __init__(self, client):
@@ -88,6 +89,7 @@ class Owners(commands.Cog):
     async def shguild(self, ctx):
         desc = ""
         index = 0
+        embeds = []
         guilds = self.client.guilds
         for guild in guilds:
             guild_name = guild.name
@@ -95,15 +97,16 @@ class Owners(commands.Cog):
             guild_owner_name = guild.owner
             index += 1
             desc = desc + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nMembers:{len(guild.members)}\nOwner: {guild_owner_name}\n\n"
-            if index >= 15:
-                break
-            
-        embed = discord.Embed(
-            title="Bot Guilds",
-            description=desc,
-            color=0x2f3136
-        )
-        await ctx.send(embed=embed)
+            if index >= 5:
+                embed = discord.Embed(
+                    title="Pypke Guilds",
+                    description=desc,
+                    color=0x2f3136
+                )
+                embeds.append(embed)
+                index = 0          
+        
+        await Pagination.paginate(self, ctx, embeds)
 
     @commands.command(hidden=True)
     @commands.is_owner()

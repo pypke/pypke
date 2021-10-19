@@ -1,9 +1,6 @@
-import discord, os
+import discord, os, aiohttp
 from discord.ext import commands
-from prsaw import RandomStuffV2 as RandomStuff 
-
-
-rs = RandomStuff(async_mode = True, api_key=os.getenv('prsaw_key'))
+from urllib.parse import quote_plus
 
 class ChatBot(commands.Cog):
     def __init__(self, client):
@@ -14,8 +11,8 @@ class ChatBot(commands.Cog):
         if message.author.bot:
             return
 
-        if not message.guild:
-            return
+        # if not message.guild:
+        #     return
 
         chatbot_channels = await self.client.chatbot.get_all()
         data = await self.client.config.get_by_id(message.guild.id)
@@ -25,13 +22,18 @@ class ChatBot(commands.Cog):
             prefix = data["prefix"]
         if message.content.lower().startswith(f"{prefix}"):
             return
+        msg = quote_plus(message.content.lower())
         for channel in chatbot_channels:
             if int(channel['_id']) == message.channel.id:
                 try:
-                    response = await rs.get_ai_response(message.content)
-                    await message.reply(response['message'], mention_author=False)
-                except:
-                    pass            
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(f'http://api.brainshop.ai/get?bid=160282&key=ymIz1TEF0CNxURTu&uid={message.author.id}&msg={msg}') as r:
+                            if 300 > r.status >= 200:
+                                data = await r.json()
+                                response = data['cnt']
+                                await message.reply(response, mention_author=False)
+                except discord.HTTPException:
+                    pass
 
     @commands.group(invoke_without_command=False)
     async def chatbot(self, ctx):

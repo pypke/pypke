@@ -46,7 +46,7 @@ class Bot(commands.Cog):
 
         embed.add_field(name="Bot Version:", value=f"`{self.client.version}`")
         embed.add_field(name="Python Version:", value=f"`{pythonVersion}`")
-        embed.add_field(name="Discord.Py Version", value=f"`{dpyVersion}`")
+        embed.add_field(name="Discord.py Version", value=f"`{dpyVersion}`")
         embed.add_field(name="Total Servers:", value=f"{serverCount} Servers")
         embed.add_field(name="Total Users:", value=f"{memberCount} Users")
         embed.add_field(name="Bot Developers:", value="<@624572769484668938>")
@@ -55,6 +55,16 @@ class Bot(commands.Cog):
         embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar.url)
 
         await ctx.send(embed=embed)
+
+    @commands.command(name='news', description='See the latest news about this bot!')
+    async def news(self, ctx):
+        news = discord.Embed(
+                        description="**📢 __New Fun Commands Added__**\n• `trivia` to answer difficult questions.\n• `pokedex` to search info about a pokémon.\n• `wyr` to answer would you rather questions.\n• `joke` to read wholesome jokes.\n\n**🤖 __ChatBot AI Implementation__**\n• Use `#chatbot channel [channel-id]` to start ChatBot.\n• Use `#chatbot stop` to stop chatbot.\n\n**🔗 __Some New Links__**\n• [**Website**](https://www.pypke.tk)\n• [**Docs**](https://docs.pypke.tk)\n• [**Support Server**](https://discord.gg/mYXgu2NVzH)",
+                        color=0xF7770F
+                )
+        news.set_footer(text="If you encounter any bugs or breaks report them on our Support Server.")
+        news.set_author(name="Bot Changes", url="https://docs.pypke.tk/information/changelog")
+        await ctx.send(embed=news)
 
     @commands.command(description="Get a link to invite this bot")
     async def invite(self, inter):

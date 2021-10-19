@@ -1,6 +1,12 @@
 import discord
 from discord.ext import commands
+from dislash import ActionRow, Button, ButtonStyle
+
 import praw, requests, random, asyncio, aiohttp
+from bs4 import BeautifulSoup as bs4
+from html import unescape
+import akinator
+from akinator.async_aki import Akinator
 
 reddit = praw.Reddit(client_id="vUbW-MNqGXFHTw",
                      client_secret="tfaL2Z5vI-AG-T0eb77h0-gLzPyWtw",
@@ -8,12 +14,248 @@ reddit = praw.Reddit(client_id="vUbW-MNqGXFHTw",
                      password="aman5368",
                      user_agent="pythonpraw",
                      check_for_async=False)
+                    
+aki = Akinator()
 
 
 class Fun(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    @commands.command(name='akinator', aliases=['aki'], description='Let akinator guess about which thing/animal/character you are thinking of')
+    @commands.cooldown(1, 8, commands.BucketType.user)
+    async def akinator_command(self, ctx):
+        embed = discord.Embed(
+            title='Akinator',
+            description="Is It A?",
+            color=discord.Color.blue()
+        )
+        embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
+        guess = ActionRow()
+        guess.add_button(
+                style=ButtonStyle.gray,
+                label='Character'
+        )
+        guess.add_button(
+                style=ButtonStyle.gray,
+                label='Animal'
+        )
+        guess.add_button(
+                style=ButtonStyle.gray,
+                label='Object'
+        )
+        msg = await ctx.send(embed=embed, components=[guess])
+        while True:
+            # Try and except blocks to catch timeout and break
+            def check(inter):
+                return inter.message.id == msg.id and inter.author.id == ctx.author.id
+
+            try:
+                inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+                            
+                if (inter.clicked_button.label == 'Character'):
+                    question = await aki.start_game(language='en', child_mode=True)
+                    await inter.reply(content='Starting..', ephemeral=True)
+                    break
+                elif (inter.clicked_button.label == 'Animal'):
+                    question = await aki.start_game(language='en_animals', child_mode=True)
+                    await inter.reply(content='Starting..', ephemeral=True)
+                    break
+                else:
+                    question = await aki.start_game(language='en_objects', child_mode=True)
+                    await inter.reply(content='Starting..', ephemeral=True)
+                    break                
+                    
+            except asyncio.TimeoutError:
+                await msg.edit("Timeout Cancelling!!")
+                break
+            except:
+                break            
+        q_no = 0
+        while aki.progression <= 80:
+            q_no += 1
+            embed = discord.Embed(
+                title='Akinator',
+                description=f'Answer This Question In 20 seconds\n`{question}`\n\n**Total Question:** {q_no}\n**Progression:** {aki.progression}',
+                color=discord.Color.blue()
+            )
+            embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
+            choices = ActionRow()
+            choices.add_button(
+                style=ButtonStyle.green,
+                label='Yes'
+            )
+            choices.add_button(
+                style=ButtonStyle.red,
+                label='No'
+            )
+            choices.add_button(
+                style=ButtonStyle.grey,
+                label='Idk'
+            )
+            choices.add_button(
+                style=ButtonStyle.grey,
+                label='Probably'
+            )
+            choices.add_button(
+                style=ButtonStyle.grey,
+                label='Probably Not'
+            )
+            await msg.edit(embed=embed, components=[choices])
+            while True:
+                def check(inter):
+                    return inter.message.id == msg.id and inter.author.id == ctx.author.id
+                    
+                try:
+                    inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+                    
+                    if (inter.clicked_button.label) == 'Yes':
+                        question = await aki.answer('yes')
+                        break
+                    elif (inter.clicked_button.label) == 'No':
+                        question = await aki.answer('no')                      
+                        break
+                    elif (inter.clicked_button.label) == 'Idk':
+                        question = await aki.answer('idk')                       
+                        break
+                    elif (inter.clicked_button.label) == 'Probably':
+                        question = await aki.answer('p')                      
+                        break
+                    elif (inter.clicked_button.label) == 'Probably Not':
+                        question = await aki.answer('pn')                      
+                        break
+                except asyncio.TimeoutError:
+                    await msg.edit('Timeout, Try Again!')
+                except:
+                    break                                  
+
+    @commands.command(name='trivia', description='Answer different questions.')
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def trivia(self, ctx):
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://opentdb.com/api.php?amount=1') as r:
+                if 300 > r.status >= 200:
+                    data = await r.json()
+                    choices = [] 
+                    incorrects = data['results'][0]['incorrect_answers'] # Three Incorrect Answers
+                    choices = choices + incorrects # added to choices list
+                
+                    answer = data['results'][0]['correct_answer'] # Correct Answer
+                    choices.append(answer) # added to choices list
+                    if data['results'][0]['type'] != "boolean":
+                        random.shuffle(choices) # Shuffled The Answers If Multiple choice
+                    new_list = []
+                    for choice in choices:
+                        choice = unescape(choice)
+                        new_list.append(choice)
+                    choices = new_list
+                    question = data['results'][0]['question']
+                    question = unescape(question)
+                    embed = discord.Embed(description=f"**{question}**\n`Answer this question within 20.`", color=self.client.randcolor)
+                    embed.set_author(name=f'{ctx.author.name}\'s Trivia', icon_url=ctx.author.avatar.url)
+                    embed.add_field(name='Difficulty', value=f"`{data['results'][0]['difficulty'].capitalize()}`")
+                    embed.add_field(name='Category', value=f"`{data['results'][0]['category']}`")
+                    choicebtn = ActionRow()
+                    for choice in choices:
+                        choicebtn.add_button(
+                            label = choice,
+                            style = ButtonStyle.blurple
+                        )
+                    msg = await ctx.send(embed=embed, components=[choicebtn])
+
+                    while True:
+                     # Try and except blocks to catch timeout and break
+                        def check(inter):
+                            return inter.message.id == msg.id and inter.author.id == ctx.author.id
+                    
+                        try:
+                            inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+                            
+                            if (inter.clicked_button.label == answer):
+                                new_btn = ActionRow()
+                                for choice in choices:
+                                    if choice in incorrects:
+                                        new_btn.add_button(
+                                            label = choice,
+                                            style = ButtonStyle.grey,
+                                            disabled=True
+                                        )
+                                    else:
+                                        new_btn.add_button(
+                                            label = answer,
+                                            style = ButtonStyle.green,
+                                            disabled=True
+                                        )
+                                await inter.reply(type=7, content=f"Yes, The correct answer was `{answer}`! Well Done.", embed=embed, components=[new_btn])
+                                break
+                            else:
+                                new_btn = ActionRow()
+                                for choice in choices:
+                                    if choice == inter.clicked_button.label:
+                                        new_btn.add_button(
+                                            label = choice,
+                                            style = ButtonStyle.red,
+                                            disabled=True
+                                        )
+                                    elif choice in incorrects:
+                                        new_btn.add_button(
+                                            label = choice,
+                                            style = ButtonStyle.grey,
+                                            disabled=True
+                                        )
+                                    else:
+                                        new_btn.add_button(
+                                            label = answer,
+                                            style = ButtonStyle.green,
+                                            disabled=True
+                                        )
+                                await inter.reply(type=7, content=f"No dumbo, The correct answer was `{answer}`!", embed=embed, components=[new_btn])
+                                break
+
+                        except asyncio.TimeoutError:
+                            new_btn = ActionRow()
+                            for choice in choices:
+                                if choice in incorrects:
+                                    new_btn.add_button(
+                                        label = choice,
+                                        style = ButtonStyle.grey,
+                                        disabled=True
+                                    )
+                                else:
+                                    new_btn.add_button(
+                                        label = answer,
+                                        style = ButtonStyle.green,
+                                        disabled=True
+                                    )
+                            await msg.edit(content=f"Timeout.... Thought you wanted to play trivia, The correct answer was `{answer}`!", embed=embed, components=[new_btn])
+                            break
+                        except:
+                            break
+
+    @commands.command(
+                      name="would_you_rather",
+                      description="This command asks a would you rather question.", 
+                      aliases=['wyr']
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def wyr(self, ctx):
+        async with aiohttp.ClientSession() as session:
+            async with session.get('https://either.io/') as r:
+                if r.status == 200:
+                    text = await r.text()
+                    soup = bs4(text, 'lxml')
+                    choices = []
+                    for choice in soup.find_all('span', {'class': 'option-text'}):
+                        choices.append(choice.text)
+                        
+                    embed = discord.Embed(color=self.client.randcolor)
+                    embed.set_author(name='Would You Rather...', url='https://either.io', )
+                    embed.add_field(name='Either...', value=f':regional_indicator_a: {choices[0]}\n\uFEFF', inline=False)
+                    embed.add_field(name='Or...', value=f':regional_indicator_b: {choices[1]}', inline=False)
+                    msg = await ctx.send(embed=embed)
+                    await msg.add_reaction("🇦")
+                    await msg.add_reaction("🇧")
+                    
     @commands.command(name="joke", description="This command sends a random joke.")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def joke(self, ctx):
