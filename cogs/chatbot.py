@@ -35,11 +35,11 @@ class ChatBot(commands.Cog):
                 except discord.HTTPException:
                     pass
 
-    @commands.group(invoke_without_command=False)
+    @commands.group(name="chatbot", description="Configure chatbot in this server.", invoke_without_command=False)
     async def chatbot(self, ctx):
         pass
 
-    @chatbot.command()
+    @chatbot.command(description="Configure chatbot channel.")
     async def channel(self, ctx, channel: discord.TextChannel=None):
         channel = channel or ctx.channel
         data = {
@@ -48,7 +48,7 @@ class ChatBot(commands.Cog):
         await self.client.chatbot.upsert(data)
         await ctx.send(f"ChatBot will now function in {channel.mention}, To stop it use `#chatbot stop`")
 
-    @chatbot.command()
+    @chatbot.command(description="Stop chatbot in this server.")
     async def stop(self, ctx):
         try:
             await self.client.chatbot.delete(ctx.guild.id)

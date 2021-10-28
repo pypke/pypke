@@ -28,12 +28,12 @@ class Errors(commands.Cog):
                 await ctx.send(content="That's not a valid command! Do `#help` for the list of commands.")
 
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send("You can't do that?.", delete_after=5)
+            await ctx.send(f"You are missing permissions to run this command.", delete_after=5)
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send(f"Bot doesn't have required permission to execute `#{ctx.command.qualified_name}` command.", delete_after=5)
+            await ctx.send(f"Bot doesn't have required permission to execute `{ctx.prefix}{ctx.command.qualified_name}` command.", delete_after=5)
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(f"Please enter the required argument!")
-    
+            # await ctx.send(f"Please enter the required argument!")
+            await ctx.invoke(self.client.get_command("help"), command=ctx.command.qualified_name)
         elif isinstance(error, commands.NotOwner):
             await ctx.send("Only Owner Of The Bot Can Use This Command!!")
         elif isinstance(error, commands.UserNotFound):

@@ -233,10 +233,9 @@ class Fun(commands.Cog):
                             break
 
     @commands.command(
-                      name="would_you_rather",
-                      description="This command asks a would you rather question.", 
-                      aliases=['wyr']
-    )
+                      name="wyr",
+                      description="This is a would you rather command.")
+              
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def wyr(self, ctx):
         async with aiohttp.ClientSession() as session:

@@ -51,11 +51,6 @@ async def status_task():
 # Client Info
 client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
 sclient = InteractionClient(client, test_guilds=["850732056790827020"])
-# chatbot = ChatBot('Pypke')
-# trainer = Trainer(chatbot)
-# trainer.train(
-#     "chatterbot.corpus.english"
-# )
 client.remove_command("help")
 client.launch_time = datetime.now()
 client.cwd = cwd
@@ -66,7 +61,7 @@ client.prefix = "#"
 client.color = 0xF7770F
 client.colors = {
     "white": 0xFFFFFF,
-    "aqua": 0x1ABC9C,
+    "aqua": 0x60BAAF,
     "green": 0x2ECC71,
     "blue": 0x3498DB,
     "purple": 0x9B59B6,
@@ -341,4 +336,4 @@ async def status(
 """
 
 keep_alive()
-client.run(os.getenv('token'))
+client.run(os.getenv('token'), reconnect=True)

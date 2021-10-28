@@ -74,7 +74,7 @@ class Moderation(commands.Cog):
     async def before_check_current_mutes(self):
         await self.client.wait_until_ready()
 
-    @commands.command()
+    @commands.command(name="kick", description="Kick the member from this server.")
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def kick(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
@@ -91,7 +91,7 @@ class Moderation(commands.Cog):
             await ctx.send(f"Kicked {member.name} From {ctx.guild.name}")
             
 
-    @commands.command()
+    @commands.command(name="ban", description="Bans the member from this server.")
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def ban(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
@@ -108,7 +108,7 @@ class Moderation(commands.Cog):
             await ctx.send(f"Banned {member.name} From {ctx.guild.name}")
 
 
-    @commands.command()
+    @commands.command(name="unban", description="Unban previously banned user from this server.")
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def unban(self, ctx, *, member: discord.User):
@@ -128,7 +128,7 @@ class Moderation(commands.Cog):
                 await ctx.send(f"{member.name} Is Unbanned!")
                 return
 
-    @commands.command()
+    @commands.command(name="mute", description="Mute a member. isn't that self explainatory?")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, member: discord.Member, *, time: TimeConverter=None):
@@ -223,7 +223,7 @@ class Moderation(commands.Cog):
             except KeyError:
                 pass
 
-    @commands.command()
+    @commands.command(name="unmute", description="Unmute a muted member.")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def unmute(self, ctx, member: discord.Member):
@@ -256,7 +256,7 @@ class Moderation(commands.Cog):
         except:
             pass
     
-    @commands.group(invoke_without_command=True, pass_context=True)
+    @commands.group(name="lock", description="Lock the channel it's used in to prevent everyone from speaking", invoke_without_command=True, pass_context=True)
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def lock(self, ctx):
@@ -281,7 +281,7 @@ class Moderation(commands.Cog):
         elif channel.overwrites[ctx.guild.default_role].send_messages == False:
             await ctx.send("This Channel Is Already Locked!")
     
-    @commands.group(invoke_without_command=True, pass_context=True)
+    @commands.group(name="unlock", description="Unlock the channel it's used in to allow everyone from speaking", invoke_without_command=True, pass_context=True)
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def unlock(self, ctx):
