@@ -1,13 +1,28 @@
 from datetime import datetime
 from typing import Union, Optional
+from utils.pagination import Pagination
 
 import discord, random, asyncio
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 
-class Help(commands.Cog):
+class HelpCog(commands.Cog):
     def __init__(self, client):
         self.client = client
+
+    def command_or_cog(self, entity):
+        cog = self.client.get_cog(entity)
+        if cog:
+            return "cog"
+        else:
+            try:
+                command = self.client.get_command(entity)
+                if command:
+                    return "command"
+                else:
+                    raise commands.CommandNotFound
+            except:
+                return None
 
     def get_syntax(self, command: commands.Command):
         aliases = "|".join(command.aliases)
@@ -19,25 +34,94 @@ class Help(commands.Cog):
         return signature
 
     def cog_help(self, ctx, cog):
+        if len(cog.get_commands()) == 0:
+            return None
+
         embed = discord.Embed(
             title=cog.qualified_name,
-            description=f"Use The Buttons Below To Change Pages.\nUse `{ctx.prefix}help <command>` for extended information on a command.\n\n",
-            color=self.client.randcolor
+            description=f"Use `{ctx.prefix}help <command>` for extended information on a command.\n\n",
+            color=0x2f3136
         )
-        commands = ", ".join(str(command) for command in cog.get_commands())
+        commands = []
+        for command in cog.get_commands():
+            if not command.hidden:
+                commands.append(f"`{command.qualified_name}`")
+
         embed.add_field(
             name="Commands",
-            value=commands if commands else discord.Embed.Empty,
+            value=", ".join(command for command in commands),
             inline=False
         )
         
         return embed
 
+    def command_help(self, ctx, cmd):
+        commands = []       
+        if hasattr(cmd, "walk_commands"):
+            for sub_cmd in cmd.walk_commands():
+                if not sub_cmd.hidden:
+                    commands.append(f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No Help Provided'}")
+
+            embed = discord.Embed(
+                title=self.get_syntax(cmd),
+                description=f"{cmd.description if cmd.description else 'No Help Provided'}\n\n" + "\n\n".join(commands),
+                color=0x2f3136
+            )
+            return embed
+        
+        embed = discord.Embed(
+            title=self.get_syntax(cmd),
+            description=cmd.description if cmd.description else "No Help Provided",
+            color=0x2f3136
+        )
+        return embed
+
     @commands.command(name="testhelp", hidden=True)
     @commands.is_owner()
-    async def testhelp(self, ctx, *, cog):
-        cog = self.client.get_cog(cog)
-        embed = self.cog_help(ctx, cog)
+    async def testhelp(self, ctx, *, command_or_module=None):
+        if not command_or_module:
+            first = discord.Embed(
+                description=f"• Server Prefix: `{ctx.prefix}`\n• [Support Server](https://discord.gg/mYXgu2NVzH) | [Invite Pypke](https://dsc.gg/pypke) | [Vote Here](https://top.gg/bot/823051772045819905/vote)\n• Use `{ctx.prefix}help <command-name | module-name>` for more info on that.",
+                color=self.client.color
+            )
+            first.set_author(name=self.client.user.name, icon_url=self.client.user.avatar.url)
+            first.set_thumbnail(url=self.client.user.avatar.url)
+            first.set_footer(text=f"Requested by {ctx.author.name}.", icon_url=ctx.author.avatar.url)
+
+            cogs = [
+                "Moderation", "Utility", "Music", "Fun", "Bot", "Misc"
+            ]
+            first.add_field(
+                name="__Module__",
+                value="• Moderation\n• Utility\n• Music\n• Fun\n• Bot\n• Misc"
+            )
+            pages = [first]
+            for cog in cogs:
+                cog = self.client.get_cog(cog)
+                embed = self.cog_help(ctx, cog)
+                pages.append(embed)
+
+            return await Pagination.paginate(self, ctx, pages)
+
+        _entity = command_or_module
+        entity_type = self.command_or_cog(_entity)
+
+        if entity_type == "cog":
+            cog = self.client.get_cog(_entity)
+            embed = self.cog_help(ctx, cog)
+            if not embed:
+                return await ctx.send("That module doesn't exist wdym?")
+
+        elif entity_type == "command":
+            command = self.client.get_command(_entity)
+            embed = self.command_help(ctx, command)
+            if not embed:
+                raise commands.CommandNotFound
+                return
+
+        else:
+            return
+
         await ctx.send(embed=embed)
 
 
@@ -58,14 +142,6 @@ class Help(commands.Cog):
         first_page.add_field(name="Bot Commands", value="`#help bot`")
         first_page.add_field(name="Giveaway Commands", value="`#help giveaway`")
         first_page.add_field(name="Music Commands", value="`#help music`")
-        
-        # GLobal Pages
-        global mod
-        global utility
-        global fun
-        global bot
-        global giveaway
-        global music
 
         mod = discord.Embed(
                                  title="Moderation Commands",
@@ -531,4 +607,4 @@ class Help(commands.Cog):
     #     await ctx.send(embed=em)
 
 def setup(client):
-    client.add_cog(Help(client))
+    client.add_cog(HelpCog(client))

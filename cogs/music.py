@@ -171,7 +171,7 @@ class MusicPlayer:
         return self.client.loop.create_task(self._cog.cleanup(guild))
 
 
-class NewMusic(commands.Cog):
+class Music(commands.Cog):
     """Music related commands."""
 
     __slots__ = ('client', 'players')
@@ -432,4 +432,4 @@ class NewMusic(commands.Cog):
 
 
 def setup(client):
-    client.add_cog(NewMusic(client))
+    client.add_cog(Music(client))

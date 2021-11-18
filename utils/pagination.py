@@ -6,29 +6,33 @@ class Pagination:
         current_page = 0
         page_btn = ActionRow(
             Button(
-                    label = "First",
+                    emoji="⏮",
                     custom_id = "first",
-                    style = ButtonStyle.blurple
+                    style = ButtonStyle.grey,
+                    disabled = True if current_page == 0 else False
             ),
             Button(
-                    label = "Back",
+                    emoji="◀",
                     custom_id = "back",
-                    style = ButtonStyle.blurple
+                    style = ButtonStyle.grey,
+                    disabled = True if current_page == 0 else False
             ),
             Button(
-                    label = "Stop",
+                    emoji="⏹",
                     custom_id = "stop",
-                    style = ButtonStyle.red
+                    style = ButtonStyle.grey
             ),
             Button(
-                    label = "Next",
-                    custom_id = "ahead",
-                    style = ButtonStyle.blurple
+                    emoji="▶",
+                    custom_id = "next",
+                    style = ButtonStyle.grey,
+                    disabled = True if current_page == -1 else False
             ),
             Button(
-                    label = "Last",
+                    emoji="⏭",
                     custom_id = "last",
-                    style = ButtonStyle.blurple
+                    style = ButtonStyle.grey,
+                    disabled = True if current_page == -1 else False
             ))
         help_msg = await ctx.send(embed=embeds[current_page], components=[page_btn])
         while True:
@@ -37,17 +41,17 @@ class Pagination:
                 return inter.message.id == help_msg.id and inter.author.id == ctx.author.id
                 
             try:
-                inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+                inter = await ctx.wait_for_button_click(check=check, timeout=30.0)
                 
-                if (inter.clicked_button.label.lower() == "back"):
+                if (inter.clicked_button.custom_id.lower() == "back"):
                     current_page -= 1
-                elif (inter.clicked_button.label.lower() == "next"):
+                elif (inter.clicked_button.custom_id.lower() == "next"):
                     current_page += 1
-                elif (inter.clicked_button.label.lower() == "first"):
+                elif (inter.clicked_button.custom_id.lower() == "first"):
                     current_page = 0
-                elif (inter.clicked_button.label.lower() == "last"):
+                elif (inter.clicked_button.custom_id.lower() == "last"):
                     current_page = -1
-                elif (inter.clicked_button.label.lower() == "stop"):
+                elif (inter.clicked_button.custom_id.lower() == "stop"):
                     await help_msg.edit(components=[])
                     break
 
