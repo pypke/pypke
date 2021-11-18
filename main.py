@@ -12,6 +12,7 @@ import motor.motor_asyncio
 
 # Local Imports
 from utils.mongo import Document
+from utils.keep_alive import keep_alive
 
 # Path
 cwd = Path(__file__).parents[0]
@@ -301,5 +302,5 @@ async def status(
         await client.change_presence(status=discord.Status.idle, activity=discord.Game(name=f"{text}"))
         await ctx.send("Status Changed Successfully!! Now Playing")
 """
-
+keep_alive()
 client.run(os.getenv('token'), reconnect=True)
