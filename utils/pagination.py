@@ -3,6 +3,15 @@ from dislash import ActionRow, Button, ButtonStyle
 
 class Pagination:
     async def paginate(self, ctx, embeds: list):
+        """Paginator to paginate a list of embeds.
+
+        Args:
+            ctx (commands.Context): The command context.
+            embeds (list): The list of embeds to paginate.
+
+        Returns:
+            None: Returns nothing
+        """        
         current_page = 0
         page_btn = ActionRow(
             Button(

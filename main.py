@@ -22,6 +22,15 @@ owners = [624572769484668938]
 
 # Code To Get Prefix
 async def get_prefix(client, message):
+    """Gives the prefix for that guild.
+
+    Args:
+        client (commands.Bot): The running bot instance.
+        message (message): The context message.
+
+    Returns:
+        prefix: The prefix for that guild.
+    """    
     # If dm's
     if not message.guild:
         return commands.when_mentioned_or(client.prefix)(client, message)
@@ -293,5 +302,4 @@ async def status(
         await ctx.send("Status Changed Successfully!! Now Playing")
 """
 
-keep_alive()
 client.run(os.getenv('token'), reconnect=True)

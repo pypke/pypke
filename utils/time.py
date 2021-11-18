@@ -6,7 +6,25 @@ time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 
 class TimeConverter(commands.Converter):
+    """TimeConverter Class
+    
+    Attributes:
+      - convert: The converter itself.
+    """
     async def convert(self, ctx, argument):
+        """Converts the value i.e. "1h 32m" to secs.
+
+        Args:
+            ctx (commands.Context): The command context.
+            argument (argument): The value to convert to seconds.
+
+        Raises:
+            commands.BadArgument: The value is invalid, (s|m|h|d) are valid keys.
+            commands.BadArgument: The key is not a number.
+
+        Returns:
+            seconds: No. of seconds.
+        """        
         args = argument.lower()
         matches = re.findall(time_regex, args)
         time = 0
