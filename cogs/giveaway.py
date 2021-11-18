@@ -56,7 +56,7 @@ class Giveaway(commands.Cog):
     async def before_check_current_giveaways(self):
         await self.client.wait_until_ready()
 
-    @commands.command()
+    @commands.command(name="gstart", description="Create a giveaway quickly! this may break tbh")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
@@ -104,7 +104,7 @@ class Giveaway(commands.Cog):
 
             await self.client.giveaways.delete(my_msg.id)
 
-    @commands.command()
+    @commands.command(name="gcreate", decription="Create a Giveaway interactively!")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
@@ -218,7 +218,7 @@ class Giveaway(commands.Cog):
 
             await self.client.giveaways.delete(my_msg.id)
 
-    @commands.command()
+    @commands.command(name="greroll", description="Reroll a previous ended giveaway.")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
@@ -243,7 +243,7 @@ class Giveaway(commands.Cog):
 
         await channel.send(f"Congratulations! The new winner is {winner.mention}!")
 
-    @commands.command()
+    @commands.command(name="gend", description="End a giveaway before time.")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)

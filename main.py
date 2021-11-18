@@ -1,19 +1,17 @@
 # Discord Imports
 import discord
 from discord.ext import commands
-from dislash import InteractionClient, ActionRow, Button, ButtonStyle
+from dislash import InteractionClient
 
 # Other Imports
-import os, asyncio, random, epoch 
+import os, asyncio, random
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
 import motor.motor_asyncio
-from urllib.parse import quote_plus
 
 # Local Imports
 from utils.mongo import Document
-from utils.time import TimeConverter 
 
 # Path
 cwd = Path(__file__).parents[0]
@@ -49,13 +47,9 @@ async def status_task():
 
 # Client Info
 client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
-sclient = InteractionClient(client, test_guilds=["850732056790827020"])
-# chatbot = ChatBot('Pypke')
-# trainer = Trainer(chatbot)
-# trainer.train(
-#     "chatterbot.corpus.english"
-# )
 client.remove_command("help")
+client.slash = InteractionClient(client)
+
 client.launch_time = datetime.now()
 client.cwd = cwd
 client.version = "1.7.5"
@@ -65,7 +59,7 @@ client.prefix = "#"
 client.color = 0xF7770F
 client.colors = {
     "white": 0xFFFFFF,
-    "aqua": 0x1ABC9C,
+    "aqua": 0x60BAAF,
     "green": 0x2ECC71,
     "blue": 0x3498DB,
     "purple": 0x9B59B6,
@@ -139,19 +133,11 @@ async def on_member_remove(member):
 
 @client.event
 async def on_guild_join(guild):
-    channel = guild.system_channel
-    setup_embed = discord.Embed(
-        title="Setup Pypke",
-        description="Thank You For Inviting Me To Your Server.\n\n[**Pypke Docs**](https://docs.pypke.tk) - *Currently Work In-Progress*",
-        color=discord.Color.orange(),
-        timestamp=datetime.now()
-    )
-    setup_embed.set_author(name=client.user.name, icon_url=client.user.avatar.url)
-    setup_embed.set_footer(text="Joined At")
-    await channel.send(embed=setup_embed)
+    # More Updates Needed
+    pass
     
 @client.event
-async def on_message(message):
+async def on_message(message):  
     """
     if not message.author.bot:
         if profanity.contains_profanity(message.content.lower()):
@@ -238,45 +224,29 @@ async def on_message(message):
     await client.process_commands(message)
 
 # <--- Commands --->
-@sclient.slash_command(description="Check the ping of the bot")
-async def ping(inter):
-    await inter.reply(type=4, content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
+# @sclient.slash_command(description="Check the ping of the bot")
+# async def ping(inter):
+#     await inter.reply(type=4, content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
 
-@sclient.slash_command(description="Get a link to invite this bot")
-async def invite(inter):
-    invite_btn = ActionRow(Button(
-                style=ButtonStyle.link,
-                label="Invite",
-                url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
-            ))
-    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=discord.Color.blurple(), timestamp=datetime.now())
-    embed.set_footer(text="Bot by Mr.Natural#3549")
+# @sclient.slash_command(description="Get a link to invite this bot")
+# async def invite(inter):
+#     invite_btn = ActionRow(Button(
+#                 style=ButtonStyle.link,
+#                 label="Invite",
+#                 url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
+#             ))
+#     embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=discord.Color.blurple(), timestamp=datetime.now())
+#     embed.set_footer(text="Bot by Mr.Natural#3549")
 
-    await inter.reply(type=4, content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
+#     await inter.reply(type=4, content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
     
-@sclient.slash_command(description="Checks for how long the bot is up")
-async def uptime(inter):
-    delta_uptime = datetime.now() - client.launch_time
-    hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    days, hours = divmod(hours, 24)
-    await inter.reply(type=4, content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
-
-@client.command(description="Search something on google")
-async def google(ctx, query: str):
-    link = quote_plus(query)
-    url = f"https://www.google.com/search?q={link}"
-
-    google_btn = ActionRow(
-        Button(
-            style=ButtonStyle.link,
-            label="Search",
-            url=url
-        )
-    )
-    google = discord.Embed(title="Google Search Results", description=f"**Query:** {query}\n**Results:** Click The Button Below To Open", color=random.choice(client.color_list), timestamp=datetime.now())
-    google.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar.url)
-    await ctx.send(embed=google, components=[google_btn])
+# @sclient.slash_command(description="Checks for how long the bot is up")
+# async def uptime(inter):
+#     delta_uptime = datetime.now() - client.launch_time
+#     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
+#     minutes, seconds = divmod(remainder, 60)
+#     days, hours = divmod(hours, 24)
+#     await inter.reply(type=4, content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
 
 @client.command()
 @commands.is_owner()
@@ -301,19 +271,6 @@ async def boosters(ctx):
     embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
-
-@client.command()
-async def etime(ctx, *, value: TimeConverter=None):
-    if value == None:
-        epoch_time = round(epoch.now())
-    else:
-        epoch_time = epoch.now()
-        epoch_time = round(epoch_time + value)
-
-    embed = discord.Embed(title="Epoch Time", description="\uFEFF", color=random.choice(client.color_list), timestamp=datetime.now())
-    embed.add_field(name="Epoch Timestamp Example", value=f"<t:{epoch_time}:f>\n", inline=False)
-    embed.add_field(name="Epoch Timestamp Copy", value=f"`<t:{epoch_time}:f>`\n", inline=False)
-    await ctx.send(embed=embed)
     
 """
 @client.slash_command()
@@ -336,4 +293,5 @@ async def status(
         await ctx.send("Status Changed Successfully!! Now Playing")
 """
 
-client.run(str(os.getenv('token')))
+keep_alive()
+client.run(os.getenv('token'), reconnect=True)

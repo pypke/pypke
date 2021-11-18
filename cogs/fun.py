@@ -8,12 +8,14 @@ from html import unescape
 import akinator
 from akinator.async_aki import Akinator
 
-reddit = praw.Reddit(client_id="vUbW-MNqGXFHTw",
-                     client_secret="tfaL2Z5vI-AG-T0eb77h0-gLzPyWtw",
-                     username="Aman_Rajput",
-                     password="aman5368",
-                     user_agent="pythonpraw",
-                     check_for_async=False)
+reddit = praw.Reddit(
+    client_id="vUbW-MNqGXFHTw",
+    client_secret="tfaL2Z5vI-AG-T0eb77h0-gLzPyWtw",
+    username="Aman_Rajput",
+    password="aman5368",
+    user_agent="pythonpraw",
+    check_for_async=True
+)
                     
 aki = Akinator()
 
@@ -22,7 +24,7 @@ class Fun(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='akinator', aliases=['aki'], description='Let akinator guess about which thing/animal/character you are thinking of')
+    @commands.command(name='akinator', aliases=['aki'], description='Let akinator guess about thing/animal/character', hidden=True)
     @commands.cooldown(1, 8, commands.BucketType.user)
     async def akinator_command(self, ctx):
         embed = discord.Embed(
@@ -55,22 +57,23 @@ class Fun(commands.Cog):
                             
                 if (inter.clicked_button.label == 'Character'):
                     question = await aki.start_game(language='en', child_mode=True)
-                    await inter.reply(content='Starting..', ephemeral=True)
+                    await inter.reply(type=6, content='Starting..', ephemeral=True)
                     break
                 elif (inter.clicked_button.label == 'Animal'):
                     question = await aki.start_game(language='en_animals', child_mode=True)
-                    await inter.reply(content='Starting..', ephemeral=True)
+                    await inter.reply(type=6, content='Starting..', ephemeral=True)
                     break
                 else:
                     question = await aki.start_game(language='en_objects', child_mode=True)
-                    await inter.reply(content='Starting..', ephemeral=True)
+                    await inter.reply(type=6, content='Starting..', ephemeral=True)
                     break                
                     
             except asyncio.TimeoutError:
                 await msg.edit("Timeout Cancelling!!")
                 break
             except:
-                break            
+                break
+
         q_no = 0
         while aki.progression <= 80:
             q_no += 1
@@ -111,19 +114,19 @@ class Fun(commands.Cog):
                     
                     if (inter.clicked_button.label) == 'Yes':
                         question = await aki.answer('yes')
-                        break
+                        continue
                     elif (inter.clicked_button.label) == 'No':
-                        question = await aki.answer('no')                      
-                        break
+                        question = await aki.answer('no')
+                        continue
                     elif (inter.clicked_button.label) == 'Idk':
-                        question = await aki.answer('idk')                       
-                        break
+                        question = await aki.answer('idk')
+                        continue
                     elif (inter.clicked_button.label) == 'Probably':
-                        question = await aki.answer('p')                      
-                        break
+                        question = await aki.answer('p')
+                        continue
                     elif (inter.clicked_button.label) == 'Probably Not':
-                        question = await aki.answer('pn')                      
-                        break
+                        question = await aki.answer('pn')
+                        continue
                 except asyncio.TimeoutError:
                     await msg.edit('Timeout, Try Again!')
                 except:
@@ -233,10 +236,9 @@ class Fun(commands.Cog):
                             break
 
     @commands.command(
-                      name="would_you_rather",
-                      description="This command asks a would you rather question.", 
-                      aliases=['wyr']
-    )
+                      name="wyr",
+                      description="This is a would you rather command.")
+              
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def wyr(self, ctx):
         async with aiohttp.ClientSession() as session:
