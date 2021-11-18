@@ -12,7 +12,6 @@ import motor.motor_asyncio
 from urllib.parse import quote_plus
 
 # Local Imports
-from utils.keep_alive import keep_alive
 from utils.mongo import Document
 from utils.time import TimeConverter 
 
@@ -303,7 +302,6 @@ async def boosters(ctx):
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
 
-
 @client.command()
 async def etime(ctx, *, value: TimeConverter=None):
     if value == None:
@@ -317,8 +315,6 @@ async def etime(ctx, *, value: TimeConverter=None):
     embed.add_field(name="Epoch Timestamp Copy", value=f"`<t:{epoch_time}:f>`\n", inline=False)
     await ctx.send(embed=embed)
     
-
-
 """
 @client.slash_command()
 @commands.is_owner()
@@ -340,5 +336,4 @@ async def status(
         await ctx.send("Status Changed Successfully!! Now Playing")
 """
 
-keep_alive()
-client.run(os.getenv('token'))
+client.run(str(os.getenv('token')))
