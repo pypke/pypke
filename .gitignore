@@ -1,7 +1,8 @@
 # Extras
-__pycache__
+discord/
+examples/
+slashcogs/
 *.webm
-/examples
 *.lock
 *.toml
 keep_alive.py
