@@ -99,7 +99,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def ban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int], *, reason=None):
         if not reason: reason = f"No Reason Provided By {ctx.author}"
-        else: reason = reason + f" ( Ban initiated by {ctx.author} )"
+        else: reason = reason + f" (Banned by {ctx.author})"
         
         if not delete_days: delete_days = 0
         if 0 > delete_days > 7:
@@ -126,11 +126,7 @@ class Moderation(commands.Cog):
                 await ctx.send(f"Unable to ban {member.id}")
                 return
 
-        try:
-            await member.send(f"You Have Been Banned From {ctx.guild}\nReason: " + reason)
-            await ctx.send(f"Banned {member}.")
-        except:
-            await ctx.send(f"Banned {member}.")
+        await ctx.send(f"Banned {member}.")
 
 
     @commands.command(name="unban", description="Unban banned user from this server.")
@@ -138,7 +134,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def unban_command(self, ctx, member: discord.User, *, reason=None):
         if not reason: reason = f"No Reason Provided By {ctx.author}"
-        else: reason = reason + f" ( Unban initiated by {ctx.author} )"
+        else: reason = reason + f" (Unbanned by {ctx.author})"
 
         banned_users = await ctx.guild.bans()
 
@@ -189,6 +185,41 @@ class Moderation(commands.Cog):
 
                 except discord.HTTPException:
                     await ctx.send(f"Unable to ban {member.display_name}.")
+
+    @commands.command(name="softban", description="Softban a member to clear all his/her messages. Bans a user then instantly unbans them.")
+    @commands.guild_only()
+    @commands.has_permissions(ban_members=True)
+    async def softban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int] = 2, *, reason: Optional[str]):
+        if not reason: reason = f"No Reason Provided By {ctx.author}"
+        else: reason = reason + f" (Soft-Banned by {ctx.author})"
+        
+        if 0 > delete_days > 7:
+            return await ctx.send("Argument `delete_days` should be more than 0 or less than 7")
+                   
+        if member in ctx.guild.members:
+            if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
+                return await ctx.send(f"Can't ban {member.display_name} because you don't have higher role.")
+
+            if ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
+                return await ctx.send(f"Can't ban {member.display_name} because you both has similar role hierarchy.")
+
+            if ctx.guild.me.top_role.position < member.top_role.position:
+                return await ctx.send(f"Can't ban {member.display_name} because the member has higher role than the bot.")
+
+            if ctx.guild.me.top_role.position == member.top_role.position:
+                return await ctx.send(f"Can't ban {member.display_name} because the member has similar role hierarchy as the bot.")
+                
+            await member.ban(delete_message_days=delete_days, reason=reason)
+        else:
+            try:
+                await ctx.guild.ban(user=member, delete_message_days=delete_days, reason=reason)
+            except discord.HTTPException:
+                await ctx.send(f"Unable to ban {member.id}")
+                return
+
+        await ctx.guild.unban(member, reason=reason)
+        await ctx.send(f"Soft-Banned {member}.")
+    
 
     @commands.command(name="mute", description="Mute a member. isn't that self explainatory?")
     @commands.guild_only()

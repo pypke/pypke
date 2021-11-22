@@ -1,9 +1,13 @@
-import asyncio
+from utils import TimeConverter
+
+import asyncio, humanize
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from typing import Optional, Union
+from copy import deepcopy
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord.ext.commands import Greedy
 from dislash import ActionRow, Button, ButtonStyle, user_command
 
@@ -11,12 +15,48 @@ from dislash import ActionRow, Button, ButtonStyle, user_command
 class Utility(commands.Cog):
     def __init__(self, client):
         self.client = client
+        self.remind_loop.start()
+
+    def cog_unload(self):
+        self.remind_loop.cancel()
+
+    @tasks.loop(minutes=1)
+    async def remind_loop(self):
+        currentTime = datetime.now()
+        reminds = await self.client.remind.get_all()
+        for remind in reminds:
+            if remind['remindIn'] is None:
+                continue
+
+            endTime = remind['startedAt'] + relativedelta(seconds=remind['remindIn'])
+            if currentTime >= endTime:
+                try:
+                    guild = self.client.get_guild(remind['guildId'])
+                    channel = guild.get_channel(remind['channelId'])
+                    msg = await channel.fetch_message(remind['msgId'])
+                except discord.errors.NotFound:
+                    print("Deleted NotFound reminder!")
+                    return await self.client.remind.delete(remind['_id'])
+
+                task = remind['task']
+                try:
+                    task = discord.utils.escape_mentions(task)
+                    await msg.reply(f"{msg.author.mention}! Reminder for **{task.lower()}**.")
+                except discord.HTTPException:
+                    pass
+
+                await self.client.remind.delete(msg.author.id)
+
+    @remind_loop.before_loop
+    async def before_remind_loop(self):
+        await self.client.wait_until_ready()
 
     @commands.group(name="purge", description="Clear/purge amount of message in channel.\nIgnores pinned messages.", aliases=['clear'], invoke_without_command=True)
     @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 2, commands.BucketType.user)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_command(self, ctx, member: Optional[discord.User], amount: int = 1):
         def member_check(message):
             return not member and not message.pinned or message.author == member and not message.pinned
@@ -24,7 +64,7 @@ class Utility(commands.Cog):
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=member_check)
         
-        if len(deleted) <= 1:
+        if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
             embed = discord.Embed(
@@ -40,7 +80,8 @@ class Utility(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 2, commands.BucketType.user)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_human(self, ctx, amount: int = 1):
         def human_check(message):
             return not message.author.bot and not message.pinned
@@ -48,7 +89,7 @@ class Utility(commands.Cog):
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=human_check)
         
-        if len(deleted) <= 1:
+        if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
             embed = discord.Embed(
@@ -64,7 +105,8 @@ class Utility(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 2, commands.BucketType.user)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
     async def purge_bot(self, ctx, amount: int = 1):
         def bot_check(message):
             return message.author.bot and not message.pinned
@@ -72,7 +114,7 @@ class Utility(commands.Cog):
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=bot_check)
         
-        if len(deleted) <= 1:
+        if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
             embed = discord.Embed(
@@ -88,7 +130,8 @@ class Utility(commands.Cog):
     @commands.guild_only()
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
-    @commands.cooldown(1, 2, commands.BucketType.user)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
     async def purge_embed(self, ctx, amount: int = 1):
         def embed_check(message):
             return len(message.embeds) > 0 and not message.pinned
@@ -96,7 +139,7 @@ class Utility(commands.Cog):
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=embed_check)
         
-        if len(deleted) <= 1:
+        if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
             embed = discord.Embed(
@@ -111,7 +154,8 @@ class Utility(commands.Cog):
     @commands.command(name="nuke", description="Nukes the whole channel so you could start over.", aliases=["clone"])
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
-    @commands.cooldown(1, 10 , commands.BucketType.guild)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def nuke_command(self, ctx):
         confirm = ActionRow(
             Button(
@@ -174,12 +218,72 @@ class Utility(commands.Cog):
             await ctx.message.delete()
             await ctx.send(f"{user} has their DMs Closed!!", delete_after=5)
 
+    @commands.group(
+        name="remind",
+        description="Reminds you do to something after specified time.",
+        aliases=["reminder", "remindme"],
+        invoke_without_command=True
+    )
+    @commands.guild_only()
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def remind_command(self, ctx, time: TimeConverter, *, task: str):
+        try:
+            data = await self.client.remind.get(ctx.author.id)
+        except Exception:
+            data = None
+
+        if data:
+            remindin = humanize.precisedelta(timedelta(seconds=data['time'], minimum_unit="minutes"))
+            task = data['task']
+            task = discord.utils.escape_mentions(task)
+            return await ctx.reply(f"You will be reminded in {remindin} for **{task.lower()}**.")
+
+        data = {
+            "_id": ctx.author.id,
+            "msgId": ctx.message.id,
+            "guildId": ctx.guild.id,
+            "channelId": ctx.channel.id,
+            "startedAt": datetime.now(),
+            "remindIn": time,
+            "task": task
+        }
+        task = discord.utils.escape_mentions(task)
+        await ctx.reply(f"Ok, I will remind you <t:{round(datetime.timestamp(datetime.now()) + int(time))}:R> to **{task.lower()}**.")
+        await self.client.remind.upsert(data)
+
+        if time <= 300:
+            await asyncio.sleep(time)
+            try:
+                task = discord.utils.escape_mentions(task)
+                await ctx.message.reply(f"{ctx.author.mention} Reminder for **{task.lower()}**.")
+            except discord.HTTPException:
+                pass
+
+            await self.client.remind.delete(ctx.author.id)
+
+    @remind_command.command(
+        name="cancel",
+        description="Cancel the reminder using this command.",
+        aliases=["delete"]
+    )
+    async def remind_cancel(self, ctx):
+        try:
+            data = await self.client.remind.find(ctx.author.id)
+        except Exception:
+            pass
+
+        if not data:
+            return await ctx.send("You've no reminder ongoing.")
+        
+        await self.client.remind.delete(ctx.author.id)
+        await ctx.reply("Cancelled reminder!")
+
     @commands.command(name="avatar", description="Gives the users avatar.")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def avatar(self, ctx, member : discord.User=None):
+    async def avatar_command(self, ctx, member : discord.User=None):
         member = ctx.author or member
         embed = discord.Embed(title=f"{member}'s Avatar!", colour=discord.Color.random(), timestamp=ctx.message.created_at)
-        # embed.add_field(name="Links-", value=f"[jpg]({member.avatar.url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar.url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar.url_as(format=None, static_format='webp', size=512)})")
+        # embed.add_field(name="Links-", remind=f"[jpg]({member.avatar.url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar.url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar.url_as(format=None, static_format='webp', size=512)})")
         embed.set_image(url=member.avatar.url)
         await ctx.send(embed=embed)
 
@@ -216,12 +320,12 @@ class Utility(commands.Cog):
 
         embed.add_field(
             name="__Information__",
-            value=f"**Name:** {member}\n**ID:** {member.id}\n**Nick:** {member.display_name}\n**Status:** {str(member.status).title()}\n**Created At:** <t:{created_time}:f>\n**Joined At:** <t:{joined_time}:f>\n**Bot?** {member.bot}",
+            remind=f"**Name:** {member}\n**ID:** {member.id}\n**Nick:** {member.display_name}\n**Status:** {str(member.status).title()}\n**Created At:** <t:{created_time}:f>\n**Joined At:** <t:{joined_time}:f>\n**Bot?** {member.bot}",
             inline=False
         )
         embed.add_field(
             name="__Role Info__",
-            value=f"**Highest Role:** {member.top_role.mention}\n**Roles:** {' **|** '.join([role.mention for role in roles])}\n**Color:** `{member.top_role.color}`",
+            remind=f"**Highest Role:** {member.top_role.mention}\n**Roles:** {' **|** '.join([role.mention for role in roles])}\n**Color:** `{member.top_role.color}`",
             inline=False
         )
 
@@ -252,12 +356,12 @@ class Utility(commands.Cog):
 
         embed.add_field(
             name="__Information__",
-            value=f"**Name:** {member}\n**ID:** {member.id}\n**Nick:** {member.display_name}\n**Status:** {str(member.status).title()}\n**Created At:** <t:{created_time}:f>\n**Joined At:** <t:{joined_time}:f>\n**Bot?** {member.bot}",
+            remind=f"**Name:** {member}\n**ID:** {member.id}\n**Nick:** {member.display_name}\n**Status:** {str(member.status).title()}\n**Created At:** <t:{created_time}:f>\n**Joined At:** <t:{joined_time}:f>\n**Bot?** {member.bot}",
             inline=False
         )
         embed.add_field(
             name="__Role Info__",
-            value=f"**Highest Role:** {member.top_role.mention}\n**Roles:** {' **|** '.join([role.mention for role in roles])}\n**Color:** `{member.top_role.color}`",
+            remind=f"**Highest Role:** {member.top_role.mention}\n**Roles:** {' **|** '.join([role.mention for role in roles])}\n**Color:** `{member.top_role.color}`",
             inline=False
         )
         await ctx.respond(embed=embed)
@@ -268,10 +372,10 @@ class Utility(commands.Cog):
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
     async def prefix(self, ctx, *, prefix=None):
 
-        data = await self.client.config.get_by_id(ctx.guild.id)
+        data = await self.client.config.find(ctx.guild.id)
         if not data or "prefix" not in data:
             current_prefix = "#"
         else:
@@ -279,11 +383,18 @@ class Utility(commands.Cog):
 
         if prefix == None:
             return await ctx.send(f"My current prefix for this server is `{current_prefix}`. Use `{current_prefix}prefix <prefix>` to change it")
-            
-        await self.client.config.upsert({"_id": ctx.guild.id, "prefix": prefix})
-        await ctx.send(
-            f"The guild prefix is changed to `{prefix}`. Use `{prefix}prefix [prefix]` to change it again!"
+        
+        self.client.prefixes[ctx.guild.id] = prefix
+        await self.client.config.upsert(
+            {
+                "_id": ctx.guild.id,
+                "prefix": prefix,
+                # "modlog_mod": data["modlog_mod"] if data["modlog_mod"] else None,
+                # "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
+                # "modlog_message": data["modlog_message"] if data["modlog_member"] else None
+            }
         )
+        await ctx.send(f"The guild prefix is changed to `{prefix}`. Use `{prefix}prefix [prefix]` to change it again!")
 
     @commands.command(
         name='resetprefix',
@@ -291,11 +402,66 @@ class Utility(commands.Cog):
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 15, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.guild)
     async def resetprefix(self, ctx):
-        await self.client.config.delete(ctx.guild.id)
-        await ctx.send("This guilds prefix is reset back to the default `#`")
+        data = await self.client.config.find(ctx.guild.id)
 
+        try:
+            data = {
+                "_id": ctx.guild.id,
+                "prefix": self.client.prefix,
+                "modlog_mod": data["modlog_mod"] or None,
+                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
+                "modlog_message": data["modlog_message"] if data["modlog_member"] else None
+            }
+            await self.client.config.update(data)
+            await ctx.send("This guilds prefix is reset back to the default `#`")
+        except Exception:
+            pass
+
+    @commands.group(
+        name="modlog",
+        description="Modlog group command. Does nothing without subcommands.",
+        invoke_without_subcommand=False,
+        hidden=True
+    )
+    @commands.guild_only()
+    @commands.has_guild_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    async def modlog_command(self, ctx):
+        pass
+
+    @modlog_command.command(
+        name="moderation",
+        description="Set modlog channel for moderation actions.",
+        aliases=["mod"]
+    )
+    @commands.guild_only()
+    @commands.has_guild_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    async def modlog_mod(self, ctx, channel: Optional[discord.TextChannel]):
+        if channel:
+            data = await self.client.config.find(ctx.guild.id)
+            new_data = {
+                    "_id": ctx.guild.id,
+                    "prefix": data["prefix"] or self.client.prefix,
+                    "modlog_mod": channel.id,
+                    "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
+                    "modlog_message": data["modlog_message"] if data["modlog_member"] else None
+            }
+            await self.client.config.upsert(new_data)
+            await ctx.send(f"{channel.mention} is now set as Modlog channel for moderation actions.")
+        else:
+            data = await self.client.config.find(ctx.guild.id)
+            new_data = {
+                    "_id": ctx.guild.id,
+                    "prefix": data["prefix"] or self.client.prefix,
+                    "modlog_mod": None,
+                    "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
+                    "modlog_message": data["modlog_message"] if data["modlog_member"] else None
+            }
+            await self.client.config.upsert(new_data)
+            await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")        
 
     @commands.command(
         name='afk',

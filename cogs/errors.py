@@ -1,3 +1,4 @@
+import traceback
 from thefuzz import fuzz
 
 import discord
@@ -28,7 +29,7 @@ class ErrorsCog(commands.Cog):
             if i != 0:
                 await ctx.send(content=msg)
             else:
-                await ctx.send(content=f"That's not a valid command! Do `{ctx.prefix}help` for the list of commands.")
+                pass
 
         elif isinstance(error, commands.NoPrivateMessage):
             try:
@@ -40,23 +41,23 @@ class ErrorsCog(commands.Cog):
             await ctx.send(f"You are missing permissions to run this command.", delete_after=5)
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send(f"Bot doesn't have required permission to execute `{ctx.prefix}{ctx.command.qualified_name}` command.", delete_after=5)
+            await ctx.send(f"Bot doesn't have the required permission to execute `{ctx.prefix}{ctx.command.qualified_name}` command.", delete_after=5)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            # await ctx.send(f"Please enter the required argument!")
-            await ctx.invoke(self.client.get_command("help"), command=ctx.command.qualified_name)
+            # await ctx.send(f"Argument `\"{error.param}\"` is required.")
+            await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
 
         elif isinstance(error, commands.NotOwner):
             await ctx.send("Lol, You should be owner of the bot to do this.")
 
         elif isinstance(error, commands.UserNotFound):
-            await ctx.send("User doesn't exist. Try again!")
+            await ctx.send(f"User \"{error.argument}\" doesn't exist. Try again!")
 
-        # elif isinstance(error, commands.MemberNotFound):
-        #     await ctx.send("Member is not in this server or doesn't exist. Try again!")
+        elif isinstance(error, commands.MemberNotFound):
+            await ctx.send(f"Member \"{error.argument}\" is not in this server or doesn't exist. Try again!")
 
         elif isinstance(error, commands.ChannelNotFound):
-            await ctx.send("Channel not found. Try again!")
+            await ctx.send(f"Channel \"{error.argument}\" not found. Try again!")
 
         elif isinstance(error, commands.BadArgument):
             await ctx.send(str(error))
@@ -64,18 +65,16 @@ class ErrorsCog(commands.Cog):
         elif isinstance(error, commands.BadUnionArgument):
             await ctx.send(str(error))
 
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send(f"Woah, This command is already in progress.", delete_after=5)
+
         elif isinstance(error, commands.CommandOnCooldown):
             time = ctx.command.get_cooldown_retry_after(ctx)
-            await ctx.send(f"Chill! This command is on cooldown for `{time}` seconds.")
+            await ctx.send(f"Chill! This command is on cooldown for `{round(time)}` seconds.")
 
         elif isinstance(error, RuntimeWarning):
             return
-        elif isinstance(error, commands.ExtensionNotLoaded):
-            return
-        elif isinstance(error, commands.ExtensionAlreadyLoaded):
-            return
-        elif isinstance(error, commands.ExtensionNotFound):
-            return
+            
         elif isinstance(error, commands.CommandInvokeError):
             if ctx.guild.id == 850732056790827020:
                 await ctx.send(f"```py\n{error}\n```")

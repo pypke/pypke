@@ -37,13 +37,21 @@ async def get_prefix(client, message):
         return commands.when_mentioned_or(client.prefix)(client, message)
 
     try:
+        return client.prefixes[message.guild.id]
+    except KeyError:
+        pass
+
+    try:
         data = await client.config.find(message.guild.id)
 
         # Make sure we have a useable prefix
         if not data or "prefix" not in data:
             return commands.when_mentioned_or(client.prefix)(client, message)
+            
+        client.prefixes[message.guild.id] = data["prefix"]
         return commands.when_mentioned_or(data["prefix"])(client, message)
     except:
+        client.prefixes[message.guild.id] = client.prefix
         return commands.when_mentioned_or(client.prefix)(client, message)
 
 
@@ -55,9 +63,22 @@ async def status_task():
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="#help | #invite", type=discord.ActivityType.listening))
         await asyncio.sleep(30)
 
+class PypkeBot(commands.Bot):
+    def __init__(self):
+        self.__version__ = "1.7.5"
+        super().__init__(
+            command_prefix=get_prefix,
+            description="A Multi-purpose discord bot and apparently a cat!",
+            strip_after_prefix=True,
+            case_insensitive=False,
+            owner_ids=owners,
+            intents=discord.Intents.all()
+        )
+
+        super().remove_command("help")
+
 # Client Info
-client = commands.Bot(command_prefix=get_prefix, intents = discord.Intents.all(), owner_ids=owners)
-client.remove_command("help")
+client = PypkeBot()
 client.slash = InteractionClient(client)
 
 client.launch_time = datetime.now()
@@ -66,6 +87,7 @@ client.version = "1.7.5"
 client.muted_users = {}
 client.current_giveaways = {}
 client.prefix = "#"
+client.prefixes = {}
 client.color = 0xF7770F
 client.colors = {
     "white": 0xFFFFFF,
@@ -97,16 +119,19 @@ if __name__ == "__main__":
             client.load_extension(f"cogs.{file[:-3]}")
             print(f"{file[:-3].capitalize()} Loaded")
     client.load_extension('jishaku')
+    client.load_extension('disgames')
+    # client.load_extension('slashcogs.mod')
 
     # Database Connection
     client.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(client.connection_url))
     client.db = client.mongo["pypke"]
-    client.config = Document(client.db, "config")
-    client.mutes = Document(client.db, "mutes")
-    client.blacklisted_users = Document(client.db, "blacklist")
-    client.giveaways = Document(client.db, "giveaways")
-    client.afks = Document(client.db, "afks")
-    client.chatbot = Document(client.db, "chatbot")
+    client.config = Document(client.db, "config") # For prefixes
+    client.mutes = Document(client.db, "mutes") # For muted users
+    client.blacklisted_users = Document(client.db, "blacklist") # For blacklisted users
+    client.giveaways = Document(client.db, "giveaways") # For Giveaways
+    client.afks = Document(client.db, "afks") # For afk users 
+    client.chatbot = Document(client.db, "chatbot") # For chatbot
+    client.remind = Document(client.db, "remind") # For remind command
     
 
     print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")

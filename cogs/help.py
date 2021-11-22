@@ -24,7 +24,7 @@ class HelpCog(commands.Cog):
         Returns:
             Literal['cog', 'command'] | None: Returns if its a cog or command else None.
         """    
-        entity = entity.title()    
+        entity = entity.capitalize()    
         cog = self.client.get_cog(entity)
         if cog:
             return "cog"
@@ -127,20 +127,20 @@ class HelpCog(commands.Cog):
             )
             first.set_author(name=self.client.user.name, icon_url=self.client.user.avatar.url)
             first.set_thumbnail(url=self.client.user.avatar.url)
-            first.set_footer(text=f"Requested by {ctx.author.name}. | Page 1/7", icon_url=ctx.author.avatar.url)
+            first.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
 
             cogs = [
-                "Moderation", "Utility", "Music", "Fun", "Bot", "Misc"
+                "Moderation", "Utility", "Giveaway", "Music", "Fun", "Bot", "Misc"
             ]
             first.add_field(
                 name="__Module__",
-                value="• Moderation\n• Utility\n• Music\n• Fun\n• Bot\n• Misc"
+                value="• Moderation\n• Utility\n• Giveaway\n• Music\n• Fun\n• Bot\n• Misc"
             )
             pages = [first]
             for i, cog in enumerate(cogs):
                 cog = self.client.get_cog(cog)
                 embed = self.cog_help(ctx, cog)
-                embed.set_footer(text=f"Page {i+1}/{len(cogs)+1}")
+                embed.set_footer(text=f"Page {i+2}/{len(cogs)+1}")
                 pages.append(embed)
 
             return await Pagination.paginate(self, ctx, pages)

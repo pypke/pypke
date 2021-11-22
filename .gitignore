@@ -8,6 +8,7 @@ keep_alive.py
 .breakpoints
 *.m4a
 *.replit
+*.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

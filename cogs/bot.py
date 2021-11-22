@@ -1,7 +1,12 @@
-import discord, platform, epoch
+import platform, epoch
+from datetime import datetime
+from psutil import Process, cpu_percent
+from os import getpid
+
+import discord
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
-from datetime import datetime
+
 
 
 class Bot(commands.Cog):
@@ -38,17 +43,22 @@ class Bot(commands.Cog):
         dpyVersion = discord.__version__
         serverCount = len(self.client.guilds)
         memberCount = len(set(self.client.get_all_members()))
+        memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204/1204/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
+        cpuPercent = cpu_percent()
 
-        embed = discord.Embed(title=f"{self.client.user.name} Stats",
-                              description="\uFEFF",
-                              colour=0x2f3136,
-                              timestamp=ctx.message.created_at)
-
+        embed = discord.Embed(
+            title=f"{self.client.user.name} Stats",
+            description="\uFEFF",
+            colour=0x2f3136,
+            timestamp=ctx.message.created_at
+        )
         embed.add_field(name="Bot Version:", value=f"`{self.client.version}`")
         embed.add_field(name="Python Version:", value=f"`{pythonVersion}`")
         embed.add_field(name="Discord.py Version", value=f"`{dpyVersion}`")
         embed.add_field(name="Total Servers:", value=f"{serverCount} Servers")
         embed.add_field(name="Total Users:", value=f"{memberCount} Users")
+        embed.add_field(name="Memory Used:", value=f"{memoryUsed}")
+        embed.add_field(name="CPU Usage:", value=f"{cpuPercent}%")
         embed.add_field(name="Bot Developers:", value="<@624572769484668938>")
 
         embed.set_footer(text=f"Mr.Natural#3549 | {self.client.user.name}")
@@ -63,7 +73,7 @@ class Bot(commands.Cog):
                         color=0xF7770F
                 )
         news.set_footer(text="If you encounter any bugs or breaks report them on our Support Server.")
-        news.set_author(name="Bot Changes", url="https://docs.pypke.tk/information/changelog")
+        news.set_author(name="Bot Changes", url="https://docs.pypke.tk/")
         await ctx.send(embed=news)
 
     @commands.command(description="Get a link to invite this bot")
@@ -89,6 +99,26 @@ class Bot(commands.Cog):
             embed=embed,
             components=[invite_btn]
         )
+
+    @commands.command(slash_command=True, description="Send feedback to the developer's server.", aliases=["report"])
+    @commands.cooldown(1, 30, commands.BucketType.user)
+    async def feedback(self, ctx, *, message):
+        """Send feedback to the developer's server."""
+
+        channel = await self.client.fetch_channel(911854839074537513)
+        embed = discord.Embed(
+            title=f"Feedback from {ctx.author}",
+            description=message,
+            color=self.client.color,
+            timestamp=datetime.now()
+        )
+        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
+                
+        msg = await channel.send(embed=embed)
+        await msg.add_reaction("✅")
+        await msg.add_reaction("❌")
+        
+        await ctx.send("Message sent! Thanks for your feedback!")
 
 
 def setup(client):

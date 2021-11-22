@@ -1,24 +1,25 @@
+import asyncpraw, requests, random, asyncio, aiohttp
+import akinator
+from bs4 import BeautifulSoup as bs4
+from html import unescape
+from asyncprawcore import exceptions as prawexc
+from akinator.async_aki import Akinator
+
 import discord
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 
-import praw, requests, random, asyncio, aiohttp
-from bs4 import BeautifulSoup as bs4
-from html import unescape
-import akinator
-from akinator.async_aki import Akinator
+DAGPI_KEY = "MTYzNzE4MTAyMA.Ey9BeBE87uBOMt3epgNAp0IZlnnWzgIz.440c8c658a6169b3"
 
-reddit = praw.Reddit(
+reddit = asyncpraw.Reddit(
     client_id="vUbW-MNqGXFHTw",
     client_secret="tfaL2Z5vI-AG-T0eb77h0-gLzPyWtw",
     username="Aman_Rajput",
     password="aman5368",
-    user_agent="pythonpraw",
-    check_for_async=True
+    user_agent="pythonpraw"
 )
                     
 aki = Akinator()
-
 
 class Fun(commands.Cog):
     def __init__(self, client):
@@ -57,15 +58,15 @@ class Fun(commands.Cog):
                             
                 if (inter.clicked_button.label == 'Character'):
                     question = await aki.start_game(language='en', child_mode=True)
-                    await inter.reply(type=6, content='Starting..', ephemeral=True)
+                    await inter.reply(content='Starting..', ephemeral=True)
                     break
                 elif (inter.clicked_button.label == 'Animal'):
                     question = await aki.start_game(language='en_animals', child_mode=True)
-                    await inter.reply(type=6, content='Starting..', ephemeral=True)
+                    await inter.reply(content='Starting..', ephemeral=True)
                     break
                 else:
                     question = await aki.start_game(language='en_objects', child_mode=True)
-                    await inter.reply(type=6, content='Starting..', ephemeral=True)
+                    await inter.reply(content='Starting..', ephemeral=True)
                     break                
                     
             except asyncio.TimeoutError:
@@ -114,25 +115,60 @@ class Fun(commands.Cog):
                     
                     if (inter.clicked_button.label) == 'Yes':
                         question = await aki.answer('yes')
-                        continue
                     elif (inter.clicked_button.label) == 'No':
                         question = await aki.answer('no')
-                        continue
                     elif (inter.clicked_button.label) == 'Idk':
                         question = await aki.answer('idk')
-                        continue
                     elif (inter.clicked_button.label) == 'Probably':
                         question = await aki.answer('p')
-                        continue
                     elif (inter.clicked_button.label) == 'Probably Not':
                         question = await aki.answer('pn')
-                        continue
+
+                    if aki.progression > 80:
+                        await aki.win()
+                        embed = discord.Embed(
+                            title=f"It's {aki.first_guess['name']}",
+                            description=f"{aki.first_guess['description']}"
+                        )
+                        embed.set_image(url=aki.first_guess['absolute_picture_path'])
+                        await inter.respond(type=7, embed=embed, components=[])
+                        break
+
+                    embed = discord.Embed(
+                        title='Akinator',
+                        description=f'Answer This Question In 20 seconds\n`{question}`\n\n**Total Question:** {q_no}\n**Progression:** {aki.progression}',
+                        color=discord.Color.blue()
+                    )
+                    embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
+                    choices = ActionRow()
+                    choices.add_button(
+                        style=ButtonStyle.green,
+                        label='Yes'
+                    )
+                    choices.add_button(
+                        style=ButtonStyle.red,
+                        label='No'
+                    )
+                    choices.add_button(
+                        style=ButtonStyle.grey,
+                        label='Idk'
+                    )
+                    choices.add_button(
+                        style=ButtonStyle.grey,
+                        label='Probably'
+                    )
+                    choices.add_button(
+                        style=ButtonStyle.grey,
+                        label='Probably Not'
+                    )
+
+                    await inter.respond(type=7, embed=embed, components=[choices])            
                 except asyncio.TimeoutError:
                     await msg.edit('Timeout, Try Again!')
                 except:
                     break                                  
 
-    @commands.command(name='trivia', description='Answer different questions.')
+    @commands.command(name='trivia', description='Answer difficult questions.')
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def trivia(self, ctx):
         async with aiohttp.ClientSession() as session:
@@ -152,9 +188,20 @@ class Fun(commands.Cog):
                         choice = unescape(choice)
                         new_list.append(choice)
                     choices = new_list
+
+                    if data['results'][0]['difficulty'] == "easy":
+                        timeout = 15.0
+                    elif data['results'][0]['difficulty'] == "medium":
+                        timeout = 12.0
+                    else:
+                        timeout = 10.0
+
                     question = data['results'][0]['question']
                     question = unescape(question)
-                    embed = discord.Embed(description=f"**{question}**\n`Answer this question within 20.`", color=self.client.randcolor)
+                    embed = discord.Embed(
+                        description=f"**{question}**\n`Answer this question within {round(timeout)}.`",
+                        color=self.client.randcolor
+                    )
                     embed.set_author(name=f'{ctx.author.name}\'s Trivia', icon_url=ctx.author.avatar.url)
                     embed.add_field(name='Difficulty', value=f"`{data['results'][0]['difficulty'].capitalize()}`")
                     embed.add_field(name='Category', value=f"`{data['results'][0]['category']}`")
@@ -172,7 +219,7 @@ class Fun(commands.Cog):
                             return inter.message.id == msg.id and inter.author.id == ctx.author.id
                     
                         try:
-                            inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+                            inter = await ctx.wait_for_button_click(check=check, timeout=timeout)
                             
                             if (inter.clicked_button.label == answer):
                                 new_btn = ActionRow()
@@ -236,11 +283,12 @@ class Fun(commands.Cog):
                             break
 
     @commands.command(
-                      name="wyr",
-                      description="This is a would you rather command.")
-              
+        name="wouldyourather",
+        description="Would you rather use this command or solve a quadratic equation?.",
+        aliases=["wyr"]
+    )          
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def wyr(self, ctx):
+    async def wyr_command(self, ctx):
         async with aiohttp.ClientSession() as session:
             async with session.get('https://either.io/') as r:
                 if r.status == 200:
@@ -286,11 +334,10 @@ class Fun(commands.Cog):
     async def pokedex(self, ctx, *, pokemon: str = None):
         if not pokemon:
             return await ctx.send(
-                f"You need to provide the pokemon name `#pokedex <pokemon-name>`"
+                f"You need to provide the pokemon name `{ctx.prefix}pokedex <pokemon-name>`"
             )
 
-        resp = requests.get(
-            f"https://some-random-api.ml/pokedex?pokemon={pokemon}")
+        resp = requests.get(f"https://some-random-api.ml/pokedex?pokemon={pokemon}")
         if 300 > resp.status_code >= 200:
             data = resp.json()
         else:
@@ -298,7 +345,7 @@ class Fun(commands.Cog):
                 f"Something is wrong. I can't find dex entry for {pokemon} for you right now, Try Later!"
             )
 
-        title = f"#{data['id']} - {data['name'].capitalize()}"
+        title = f"#{data['id']} - {data['name'].title()}"
         description = data['description'].capitalize()
         sprites = data['sprites']['animated']
         types = " "
@@ -306,12 +353,14 @@ class Fun(commands.Cog):
             types = types + f"{ty}\n"
         gender = " "
         for ty in data['gender']:
-            gender = gender + f"{ty}\n"
+            gender = gender + f"{ty.title()}\n"
         appearance = f"**Height**: {data['height']}\n**Weight**: {data['weight']}\n**Gender**:\n{gender}\n"
         base_stats = f"**HP**: {data['stats']['hp']}\n**Attack**: {data['stats']['attack']}\n**Defense**: {data['stats']['defense']}\n**Sp. Atk**: {data['stats']['sp_atk']}\n**Sp. Def**: {data['stats']['sp_def']}\n**Speed**: {data['stats']['speed']}\n**Total**: {data['stats']['total']}"
-        embed = discord.Embed(title=title,
-                              description=description,
-                              color=0x2f3136)
+        embed = discord.Embed(
+            title=title,
+            description=description,
+            color=0x2f3136
+        )
         embed.add_field(name="Types", value=types)
         embed.add_field(name="Appearance", value=appearance)
         embed.add_field(name="Base Stats", value=base_stats)
@@ -320,18 +369,132 @@ class Fun(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(
-        name="meme",
-        description=
-        "This command sends a random meme from the subreddit `r/memes`")
+        name="whosthatpokemon",
+        description="Who's That Pokémon?",
+        aliases=["wtp"]
+    )
+    @commands.cooldown(1, 2, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)
+    async def wtp_command(self, ctx):
+        headers = {
+        'Authorization': DAGPI_KEY
+        }
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.get('https://api.dagpi.xyz/data/wtp') as r:
+                if 300 > r.status >= 200:
+                    data = await r.json()
+                else:
+                    return await ctx.send("Can't seem to fetch who's that pokemon right now!")
+                
+                answer = data['Data']['name']
+                    
+                answer_img = data['answer']
+                question_img = data['question']
+
+                embed = discord.Embed(
+                    title="Who's That Pokemon?",
+                    color=self.client.colors["red"]
+                )
+                embed.set_image(url=question_img)
+                embed.set_footer(text="© The Pokémon Company")
+                msg = await ctx.send(embed=embed)
+
+                while True:
+                    def check(message):
+                        return ctx.channel.id == message.channel.id and not message.author.bot and not message.content.startswith(ctx.prefix)
+
+                    try:
+                        message = await self.client.wait_for("message", check=check, timeout=30.0)
+
+                        if message.content.lower() == answer.lower():
+                            await ctx.send(f"{message.author.mention}, Correct!!")
+                            embed = discord.Embed(
+                                title=f"It's {answer}!",
+                                color=self.client.colors["red"]
+                            )
+                            embed.set_image(url=answer_img)
+                            embed.set_footer(text="© The Pokémon Company")
+                            await msg.edit(embed=embed)
+                            break
+                        elif "end" in message.content.lower():
+                            embed = discord.Embed(
+                                title=f"It's {answer}!",
+                                color=self.client.colors["red"]
+                            )
+                            embed.set_image(url=answer_img)
+                            embed.set_footer(text="© The Pokémon Company")
+                            await msg.edit(embed=embed)
+                            break
+                        else:
+                            await ctx.send("Try again! Reply with `end` to stop guessing.", delete_after=6)
+
+                    except asyncio.TimeoutError:
+                        embed = discord.Embed(
+                            title=f"It's {answer}!",
+                            color=self.client.colors["red"]
+                        )
+                        embed.set_image(url=answer_img)
+                        embed.set_footer(text="© The Pokémon Company")
+                        await msg.edit(content="Timeout!", embed=embed)
+                        break
+
+                    except discord.HTTPException:
+                        pass
+
+    @commands.command(
+        name="reddit",
+        description="This command sends a random post from given subreddit."
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def meme(self, ctx):
-        subreddit = reddit.subreddit("memes")
+    async def reddit_command(self, ctx, subreddit: str):
+        try:
+            subreddit = await reddit.subreddit(subreddit, fetch=True)
+        except prawexc.Forbidden:
+            return await ctx.send("Sorry, The subreddit you are requesting is not currently available.")
+        except prawexc.NotFound:
+            return await ctx.send("Sorry, This subreddit doesn't exist.")
+
         all_subs = []
 
-        hot = subreddit.hot(limit=100)
+        if subreddit.over18:
+            if not ctx.channel.is_nsfw():
+                return await ctx.send("The subreddit you are requesting is NSFW. So, This channel needs to be marked NSFW.")
 
-        for submission in hot:
-            all_subs.append(submission)
+        async for submission in subreddit.hot(limit=100):
+            if not submission.locked and not submission.stickied:
+                all_subs.append(submission)
+
+        random_sub = random.choice(all_subs)
+
+        name = random_sub.title
+        description = random_sub.selftext if len(random_sub.selftext) < 2001 else ""
+        url = random_sub.url
+        vote = random_sub.score
+        comments = random_sub.num_comments
+        post = random_sub.permalink
+
+        em = discord.Embed(
+            title=name,
+            description=description,
+            color=self.client.randcolor,
+            url=f"https://reddit.com{post}"
+        )
+        em.set_image(url=url)
+        em.set_footer(text=f"👍🏻 {vote} | 💬 {comments} | r/{subreddit.display_name}")
+        await ctx.send(embed=em)
+
+    @commands.command(
+        name="meme",
+        description="This command sends a random meme from reddit."
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def meme(self, ctx):
+        subreddit = await reddit.subreddit(random.choice(["memes", "dankmemes", "wholesomemes"]))
+        all_subs = []
+
+        async for submission in subreddit.hot(limit=100):
+            if not submission.locked and not submission.stickied:
+                all_subs.append(submission)
 
         random_sub = random.choice(all_subs)
 
@@ -341,98 +504,72 @@ class Fun(commands.Cog):
         comments = random_sub.num_comments
         post = random_sub.permalink
 
-        em = discord.Embed(title=name,
-                           color=random.choice(self.client.color_list),
-                           url=f"https://reddit.com/{post}")
+        em = discord.Embed(
+            title=name,
+            color=self.client.randcolor,
+            url=f"https://reddit.com{post}"
+        )
         em.set_image(url=url)
         em.set_footer(text=f"👍🏻 {vote} | 💬 {comments}")
 
         await ctx.send(embed=em)
 
-    @commands.command(name="cat",
-                      description="This Sends A Random Cat Picture",
-                      aliases=['cats'])
+    @commands.command(
+        name="cat",
+        description="This Sends A Random Cat Picture",
+        aliases=['cats']
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def cat(self, ctx):
-        subreddit = reddit.subreddit("catpictures")
+        subreddit = await reddit.subreddit("catpictures")
         all_subs = []
 
-        hot = subreddit.hot(limit=100)
-
-        for submission in hot:
-            all_subs.append(submission)
-
-        random_sub = random.choice(all_subs)
-
-        url = random_sub.url
-
-        em = discord.Embed(title=":heart_eyes_cat:Meow",
-                           color=random.choice(self.client.color_list))
-
-        em.set_image(url=url)
-
-        await ctx.send(embed=em)
-
-    @commands.command(name="dog",
-                      description="This Sends A Random Dog Picture",
-                      aliases=['dogs'])
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    async def dog(self, ctx, url=None):
-        subreddit = reddit.subreddit("dogpictures")
-        all_subs = []
-
-        hot = subreddit.hot(limit=100)
-
-        for submission in hot:
-            all_subs.append(submission)
+        async for submission in subreddit.hot(limit=100):
+            if not submission.locked and not submission.stickied:
+                all_subs.append(submission)
 
         random_sub = random.choice(all_subs)
-
         url = random_sub.url
 
-        em = discord.Embed(title=":dog:Woof",
-                           color=random.choice(self.client.color_list))
+        em = discord.Embed(
+            title=":heart_eyes_cat: Meow",
+            color=random.choice(self.client.color_list)
+        )
         em.set_image(url=url)
-
         await ctx.send(embed=em)
 
     @commands.command(
-        name="dankmeme",
-        description=
-        "This commands sends a random meme from subreddit `r/dankmemes`.",
-        aliases=['dmeme', 'deme'])
+        name="dog",
+        description="This Sends A Random Dog Picture",
+        aliases=['dogs']
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def dankmeme(self, ctx):
-        subreddit = reddit.subreddit("dankmemes")
+    async def dog(self, ctx, url=None):
+        subreddit = await reddit.subreddit("dogpictures")
         all_subs = []
-
-        hot = subreddit.hot(limit=100)
-
-        for submission in hot:
-            all_subs.append(submission)
+        
+        async for submission in subreddit.hot(limit=100):
+            if not submission.locked and not submission.stickied:
+                all_subs.append(submission)
 
         random_sub = random.choice(all_subs)
-
-        name = random_sub.title
         url = random_sub.url
-        vote = random_sub.score
-        comments = random_sub.num_comments
-        post = random_sub.permalink
 
-        em = discord.Embed(title=name,
-                           color=random.choice(self.client.color_list),
-                           url=f"https://reddit.com/{post}")
+        em = discord.Embed(
+            title=":dog: Woof",
+            color=random.choice(self.client.color_list)
+        )
         em.set_image(url=url)
-        em.set_footer(text=f"👍🏻{vote} | 💬{comments}")
 
         await ctx.send(embed=em)
 
     @commands.command(
         name="8ball",
         description="This command answers a question like a 8Ball",
-        usage="<question>")
+        usage="<question>"
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def _8ball(self, ctx, *, question=None):
+    async def _8ball(self, ctx, *, question):
         responses = [
             "It is certain", "It is decidedly so", "Without a doubt",
             "Yes, definitely", "You may rely on it", "As I see it, yes",
@@ -444,9 +581,9 @@ class Fun(commands.Cog):
         ]
 
         if question == None:
-            await ctx.send("Question is a required argument which is missing!!"
-                           )
+            await ctx.send("Question is a required argument which is missing!!")
             return
+
         embed = discord.Embed(title=":8ball:| **8Ball**",
                               color=discord.Color.random())
         embed.add_field(name="**Question**:",
@@ -459,15 +596,32 @@ class Fun(commands.Cog):
                          icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
-    @commands.command(name="pat",
-                      description="This command pats a user on back.",
-                      usage="<user>")
+    @commands.command(
+        name="choose",
+        description="This command helps you to choose between things.",
+        aliases=["choices"]
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def choose_command(self, ctx, *choices):
+        if len(choices) > 10:
+            return await ctx.reply("Jeez, Give me less choices! Max 10.")
+        elif len(choices) < 2:
+            return await ctx.reply("Give me atleast 2 choices to choose from.")
+
+        choice = random.choice(choices)
+        choice = discord.utils.escape_mentions(choice)
+        await ctx.send(f"I choose {choice}.")
+
+    @commands.command(
+        name="pat",
+        description="This command pats a user on back."
+    )
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def pat(self, ctx, member: discord.Member = None):
+    async def pat(self, ctx, member: discord.Member):
         if member == None:
             await ctx.send(
-                "There is no one to pat here it's just you and me ;-;")
+                "There is no one to pat here")
             return
         if member == ctx.author:
             await ctx.send("You can't pat yourself find someone!!")
@@ -486,12 +640,14 @@ class Fun(commands.Cog):
         embed.set_image(url=random_pat)
         await ctx.send(embed=embed)
 
-    @commands.command(name="kill",
-                      description="This command kills a user for you! Oops.",
-                      usage="<user>")
+    @commands.command(
+        name="kill",
+        description="This command kills a user for you! Oops.",
+        hidden=True
+    )
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def kill(self, ctx, member: discord.Member = None):
+    async def kill(self, ctx, member: discord.Member):
         if member == None:
             await ctx.send("Who do you wanna kill man?")
             return
@@ -513,7 +669,7 @@ class Fun(commands.Cog):
         random_kill = random.choice(kill_text)
         await ctx.send(f"{member} {random_kill}")
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.cooldown(1, 18000, commands.BucketType.user)
     async def egg(self, ctx):
         await ctx.send("This Is An Easter Egg!!", delete_after=2)
@@ -521,7 +677,9 @@ class Fun(commands.Cog):
     @commands.command(
         name="hack",
         description="This command can hack a user!! THIS IS NOT A JOKE.",
-        usage="<user>")
+        usage="<user>",
+        hidden=True
+    )
     @commands.guild_only()
     @commands.cooldown(1, 9, commands.BucketType.user)
     async def hack(self, ctx, member: discord.Member = None):
