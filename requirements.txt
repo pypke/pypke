@@ -74,7 +74,7 @@ matplotlib==3.4.3
 motor @ file:///home/runner/.cache/pypoetry/artifacts/f3/ef/12/48c6a2da5c496c7d77b2c7153e37acaef8dfe0019f64fb6a6bd10154a8/motor-2.5.1-py3-none-any.whl
 msgpack==1.0.2
 multidict @ file:///home/runner/.cache/pypoetry/artifacts/f5/69/c1/e8ec31c0813b46446f7a336c67e8d136d12ab12dc65e13bb8cd1b530ab/multidict-5.2.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl
-nltk==3.6.2
+nltk==3.6.5
 numpy==1.21.2
 oauthlib==3.1.1
 opt-einsum==3.3.0
