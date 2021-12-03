@@ -59,7 +59,7 @@ class GiveawayHelper:
 
         print(f"Removed Giveaway With Id: {_id}")
 
-class Giveaway(commands.Cog):
+class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     def __init__(self, client):
         self.client = client
         self.giveaways_task = self.check_current_giveaways.start()

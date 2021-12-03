@@ -1,7 +1,8 @@
 # Extras
-discord/
+disnake/
 examples/
 slashcogs/
+dislash/
 *.webm
 *.lock
 *.toml

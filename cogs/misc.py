@@ -11,7 +11,7 @@ from dislash import message_command, ActionRow, Button, ButtonStyle
 
 WEATHER_KEY = "073a1838197e477bb83141102213110"
 
-class Misc(commands.Cog):
+class Misc(commands.Cog, description="Commands that do not belong to any module."):
     def __init__(self, client):
         self.client = client
 

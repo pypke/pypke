@@ -1,6 +1,6 @@
 from utils import TimeConverter
 
-import asyncio, humanize
+import asyncio, humanize, re
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from typing import Optional, Union
@@ -13,6 +13,7 @@ from dislash import ActionRow, Button, ButtonStyle, user_command
 
 
 class Utility(commands.Cog):
+    """Commands to help you with various tasks."""
     def __init__(self, client):
         self.client = client
         self.remind_loop.start()
@@ -40,8 +41,7 @@ class Utility(commands.Cog):
 
                 task = remind['task']
                 try:
-                    task = discord.utils.escape_mentions(task)
-                    await msg.reply(f"{msg.author.mention}! Reminder for **{task.lower()}**.")
+                    await msg.reply(f"{msg.author.mention}! Reminder for `{task.lower()}`.")
                 except discord.HTTPException:
                     pass
 
@@ -70,9 +70,9 @@ class Utility(commands.Cog):
             embed = discord.Embed(
                 title=f"{ctx.author.name} purged: {ctx.channel.name}",
                 description=f"{len(deleted)} messages were cleared!",
-                color=discord.Color.orange()
+                color=self.client.color
             )
-            await ctx.send(embed=embed, delete_after=5)
+            await ctx.send(embed=embed, delete_after=3)
         else:
             return await ctx.send("Amount should be less 1000 and more than 0.")
 
@@ -95,9 +95,9 @@ class Utility(commands.Cog):
             embed = discord.Embed(
                 title=f"{ctx.author.name} purged: {ctx.channel.name}",
                 description=f"{len(deleted)} messages were cleared!",
-                color=discord.Color.orange()
+                color=self.client.color
             )
-            await ctx.send(embed=embed, delete_after=5)
+            await ctx.send(embed=embed, delete_after=3)
         else:
             return await ctx.send("Amount should be less 1000 and more than 0.")
 
@@ -120,9 +120,9 @@ class Utility(commands.Cog):
             embed = discord.Embed(
                 title=f"{ctx.author.name} purged: {ctx.channel.name}",
                 description=f"{len(deleted)} messages were cleared!",
-                color=discord.Color.orange()
+                color=self.client.color
             )
-            await ctx.send(embed=embed, delete_after=5)
+            await ctx.send(embed=embed, delete_after=3)
         else:
             return await ctx.send("Amount should be less 1000 and more than 0.")
 
@@ -145,9 +145,169 @@ class Utility(commands.Cog):
             embed = discord.Embed(
                 title=f"{ctx.author.name} purged: {ctx.channel.name}",
                 description=f"{len(deleted)} messages were cleared!",
-                color=discord.Color.orange()
+                color=self.client.color
             )
-            await ctx.send(embed=embed, delete_after=5)
+            await ctx.send(embed=embed, delete_after=3)
+        else:
+            return await ctx.send("Amount should be less 1000 and more than 0.")
+
+    @purge_command.command(name="attachments", description="Removes messages with attachments.\nIgnores pinned messages.", aliases=["files", "file"])
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
+    async def purge_files(self, ctx, amount: int = 1):
+        def embed_check(message):
+            return len(message.attachments) > 0 and not message.pinned
+        
+        await ctx.message.delete()
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=embed_check)
+        
+        if len(deleted) < 1:
+            return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
+        elif 0 < amount <= 1000:
+            embed = discord.Embed(
+                title=f"{ctx.author.name} purged: {ctx.channel.name}",
+                description=f"{len(deleted)} messages were cleared!",
+                color=self.client.color
+            )
+            await ctx.send(embed=embed, delete_after=3)
+        else:
+            return await ctx.send("Amount should be less 1000 and more than 0.")
+
+    @purge_command.command(name="mention", description="Removes messages with mentions in it.\nIgnores pinned messages.", aliases=["mentions"])
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
+    async def purge_mention(self, ctx, amount: int = 1):
+        def mention_check(message):
+            return len(message.mentions) or len(message.role_mentions) and not message.pinned
+        
+        await ctx.message.delete()
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=mention_check)
+        
+        if len(deleted) < 1:
+            return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
+        elif 0 < amount <= 1000:
+            embed = discord.Embed(
+                title=f"{ctx.author.name} purged: {ctx.channel.name}",
+                description=f"{len(deleted)} messages were cleared!",
+                color=self.client.color
+            )
+            await ctx.send(embed=embed, delete_after=3)
+        else:
+            return await ctx.send("Amount should be less 1000 and more than 0.")
+
+    @purge_command.command(name="contains", description="Removes messages with substr in it.\nIgnores pinned messages.", aliases=["has"])
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
+    async def purge_contain(self, ctx, substr: str, amount: int = 1):
+        def contain_check(message):
+            return substr in message.content and not message.pinned
+
+        if len(substr) < 3:
+            await ctx.send("The substring length must be at least 3 characters.")
+
+        await ctx.message.delete()
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=contain_check)
+        
+        if len(deleted) < 1:
+            return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
+        elif 0 < amount <= 1000:
+            embed = discord.Embed(
+                title=f"{ctx.author.name} purged: {ctx.channel.name}",
+                description=f"{len(deleted)} messages were cleared!",
+                color=self.client.color
+            )
+            await ctx.send(embed=embed, delete_after=3)
+        else:
+            return await ctx.send("Amount should be less 1000 and more than 0.")
+
+    @purge_command.command(name="reaction", description="Removes reactions in from a message.\nIgnores pinned messages.", aliases=["reactions"])
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
+    async def purge_reaction(self, ctx, amount: int = 1):
+        def reaction_check(message):
+            return not message.pinned
+
+        await ctx.message.delete()
+        total_reactions = 0
+        async for message in ctx.history(limit=amount, before=ctx.message):
+            if len(message.reactions):
+                total_reactions += sum(r.count for r in message.reactions)
+                await message.clear_reactions()
+        
+        if total_reactions < 1:
+            return await ctx.send("No reaction was clear! Make sure the messages aren't two weeks old.")
+        elif 0 < amount <= 1000:
+            embed = discord.Embed(
+                title=f"{ctx.author.name} purged: {ctx.channel.name}",
+                description=f"{total_reactions} reactions were cleared!",
+                color=self.client.color
+            )
+            await ctx.send(embed=embed, delete_after=3)
+        else:
+            return await ctx.send("Amount should be less 1000 and more than 0.")
+
+    @purge_command.command(name="emoji", description="Removes messages with emojis in it.\nIgnores pinned messages.", aliases=["emojis"])
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
+    async def purge_emoji(self, ctx, amount: int = 1):
+        custom_emoji = re.compile(r"<a?:(.*?):(\d{17,21})>|[\u263a-\U0001f645]")
+                        
+        def emoji_check(message):
+            return custom_emoji.search(message.content) and not message.pinned
+        
+        await ctx.message.delete()
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=emoji_check)
+        
+        if len(deleted) < 1:
+            return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
+        elif 0 < amount <= 1000:
+            embed = discord.Embed(
+                title=f"{ctx.author.name} purged: {ctx.channel.name}",
+                description=f"{len(deleted)} messages were cleared!",
+                color=self.client.color
+            )
+            await ctx.send(embed=embed, delete_after=3)
+        else:
+            return await ctx.send("Amount should be less 1000 and more than 0.")
+
+    @purge_command.command(name="after", description="Removes messages after the specified message.\nIgnores pinned messages.", hidden=True)
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.channel)    
+    async def purge_after(self, ctx, message_id: int, amount: int = 1):
+        def after_check(message):
+            return not message.pinned
+        
+        msg = ctx.channel.fetch_message(message_id)
+        await ctx.message.delete()
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=after_check)
+        
+        if len(deleted) < 1:
+            return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
+        elif 0 < amount <= 1000:
+            embed = discord.Embed(
+                title=f"{ctx.author.name} purged: {ctx.channel.name}",
+                description=f"{len(deleted)} messages were cleared!",
+                color=self.client.color
+            )
+            await ctx.send(embed=embed, delete_after=3)
         else:
             return await ctx.send("Amount should be less 1000 and more than 0.")
 
@@ -213,10 +373,10 @@ class Utility(commands.Cog):
                  )
             mail.set_footer(text=f"Mail From {ctx.author.name}")
             await user.send(embed=mail)
-            await ctx.send(f"Mailed {user} Successfully!!")
+            await ctx.send(f"Mailed {user} successfully!!")
         except:
             await ctx.message.delete()
-            await ctx.send(f"{user} has their DMs Closed!!", delete_after=5)
+            await ctx.send(f"{user} has their DMs closed!!", delete_after=3)
 
     @commands.group(
         name="remind",
@@ -280,14 +440,18 @@ class Utility(commands.Cog):
 
     @commands.command(name="avatar", description="Gives the users avatar.")
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def avatar_command(self, ctx, member : discord.User=None):
-        member = ctx.author or member
-        embed = discord.Embed(title=f"{member}'s Avatar!", colour=discord.Color.random(), timestamp=ctx.message.created_at)
+    async def avatar_command(self, ctx, member: Optional[discord.User]):
+        member = member or ctx.author
+        embed = discord.Embed(
+            title=f"{member}'s Avatar!",
+            colour=member.color, 
+            timestamp=ctx.message.created_at
+        )
         # embed.add_field(name="Links-", remind=f"[jpg]({member.avatar.url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar.url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar.url_as(format=None, static_format='webp', size=512)})")
         embed.set_image(url=member.avatar.url)
         await ctx.send(embed=embed)
 
-    @commands.command(name="whois", description="Shows some interesting information about a member.",aliases=["userinfo"])
+    @commands.command(name="whois", description="Shows some interesting information about a member.", aliases=["userinfo", "ui"])
     @commands.guild_only()
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def whois_command(self, ctx, member: Optional[discord.Member]):
@@ -365,59 +529,6 @@ class Utility(commands.Cog):
             inline=False
         )
         await ctx.respond(embed=embed)
-        
-    @commands.command(
-        name="prefix",
-        aliases=["changeprefix", "setprefix"],
-    )
-    @commands.guild_only()
-    @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 10, commands.BucketType.guild)
-    async def prefix(self, ctx, *, prefix=None):
-
-        data = await self.client.config.find(ctx.guild.id)
-        if not data or "prefix" not in data:
-            current_prefix = "#"
-        else:
-            current_prefix = data["prefix"]
-
-        if prefix == None:
-            return await ctx.send(f"My current prefix for this server is `{current_prefix}`. Use `{current_prefix}prefix <prefix>` to change it")
-        
-        self.client.prefixes[ctx.guild.id] = prefix
-        await self.client.config.upsert(
-            {
-                "_id": ctx.guild.id,
-                "prefix": prefix,
-                # "modlog_mod": data["modlog_mod"] if data["modlog_mod"] else None,
-                # "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                # "modlog_message": data["modlog_message"] if data["modlog_member"] else None
-            }
-        )
-        await ctx.send(f"The guild prefix is changed to `{prefix}`. Use `{prefix}prefix [prefix]` to change it again!")
-
-    @commands.command(
-        name='resetprefix',
-        aliases=['deleteprefix'],
-    )
-    @commands.guild_only()
-    @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 5, commands.BucketType.guild)
-    async def resetprefix(self, ctx):
-        data = await self.client.config.find(ctx.guild.id)
-
-        try:
-            data = {
-                "_id": ctx.guild.id,
-                "prefix": self.client.prefix,
-                "modlog_mod": data["modlog_mod"] or None,
-                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                "modlog_message": data["modlog_message"] if data["modlog_member"] else None
-            }
-            await self.client.config.update(data)
-            await ctx.send("This guilds prefix is reset back to the default `#`")
-        except Exception:
-            pass
 
     @commands.group(
         name="modlog",

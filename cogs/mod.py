@@ -11,6 +11,7 @@ from discord.ext.commands import Greedy
 
 
 class Moderation(commands.Cog):
+    """Commands for server Moderation."""
     def __init__(self, client):
         self.client = client
         self.mute_task = self.check_current_mutes.start()
@@ -77,7 +78,7 @@ class Moderation(commands.Cog):
     async def before_check_current_mutes(self):
         await self.client.wait_until_ready()
 
-    @commands.command(name="kick", description="Kick the member from this server.")
+    @commands.command(name="kick", description="Kick the member from this server.", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def kick_command(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
@@ -94,7 +95,7 @@ class Moderation(commands.Cog):
             await ctx.send(f"Kicked {member}!")
             
 
-    @commands.command(name="ban", description="Bans a member whether or not the member is in the server.", aliases=["hackban"])
+    @commands.command(name="ban", description="Bans a member whether or not the member is in the server.", aliases=["hackban"], cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def ban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int], *, reason=None):
@@ -129,7 +130,7 @@ class Moderation(commands.Cog):
         await ctx.send(f"Banned {member}.")
 
 
-    @commands.command(name="unban", description="Unban banned user from this server.")
+    @commands.command(name="unban", description="Unban banned user from this server.", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def unban_command(self, ctx, member: discord.User, *, reason=None):
@@ -148,7 +149,7 @@ class Moderation(commands.Cog):
                 await ctx.send(f"{member} Is Unbanned!")
                 return
 
-    @commands.command(name="massban", description="Bans any number of members whether or not they're in the server.")
+    @commands.command(name="massban", description="Bans any number of members whether or not they're in the server.", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def massban_command(self, ctx, delete_days: Optional[int], members: Greedy[Union[discord.Member, discord.User]]):
@@ -186,7 +187,7 @@ class Moderation(commands.Cog):
                 except discord.HTTPException:
                     await ctx.send(f"Unable to ban {member.display_name}.")
 
-    @commands.command(name="softban", description="Softban a member to clear all his/her messages. Bans a user then instantly unbans them.")
+    @commands.command(name="softban", description="Softban a member to clear all his/her messages. Bans a user then instantly unbans them.", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def softban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int] = 2, *, reason: Optional[str]):
@@ -221,7 +222,7 @@ class Moderation(commands.Cog):
         await ctx.send(f"Soft-Banned {member}.")
     
 
-    @commands.command(name="mute", description="Mute a member. isn't that self explainatory?")
+    @commands.command(name="mute", description="Mute a member. isn't that self explainatory?", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def mute(self, ctx, member: discord.Member, *, time: TimeConverter=None):
@@ -316,7 +317,7 @@ class Moderation(commands.Cog):
             except KeyError:
                 pass
 
-    @commands.command(name="unmute", description="Unmute a muted member.")
+    @commands.command(name="unmute", description="Unmute a muted member.", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     async def unmute(self, ctx, member: discord.Member):
