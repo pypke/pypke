@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from typing import Union, Optional
 from utils.pagination import Pagination
@@ -70,9 +71,9 @@ class HelpCog(commands.Cog):
             return None
 
         embed = discord.Embed(
-            title=cog.qualified_name,
-            description=f"Use `{ctx.prefix}help <command>` for extended information on a command.\n\n",
-            color=0x2f3136
+            title=cog.qualified_name + " Module",
+            description=f"{cog.description if cog.description else ''}\n\n`{ctx.prefix}help <command>` for extended information on a command.\n",
+            color=self.client.colors["og_blurple"]
         )
         commands = []
         for command in cog.get_commands():
@@ -106,14 +107,14 @@ class HelpCog(commands.Cog):
             embed = discord.Embed(
                 title=self.get_syntax(cmd),
                 description=f"{cmd.description if cmd.description else 'No Help Provided'}\n\n" + "\n\n".join(commands),
-                color=0x2f3136
+                color=self.client.colors["og_blurple"]
             )
             return embed
         
         embed = discord.Embed(
             title=self.get_syntax(cmd),
             description=cmd.description if cmd.description else "No Help Provided",
-            color=0x2f3136
+            color=self.client.colors["og_blurple"]
         )
         return embed
 
@@ -121,26 +122,29 @@ class HelpCog(commands.Cog):
     @commands.guild_only()
     async def help_command(self, ctx, *, command_or_module=None):     
         if not command_or_module:
-            first = discord.Embed(
-                description=f"• Server Prefix: `{ctx.prefix}`\n• [Support Server](https://discord.gg/mYXgu2NVzH) | [Invite Pypke](https://dsc.gg/pypke) | [Vote Here](https://top.gg/bot/823051772045819905/vote)\n• Use `{ctx.prefix}help <command-name | module-name>` for more info on that.",
-                color=self.client.colors["orange"]
-            )
-            first.set_author(name=self.client.user.name, icon_url=self.client.user.avatar.url)
-            first.set_thumbnail(url=self.client.user.avatar.url)
-            first.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar.url)
-
             cogs = [
                 "Moderation", "Utility", "Giveaway", "Music", "Fun", "Bot", "Misc"
             ]
-            first.add_field(
-                name="__Module__",
-                value="• Moderation\n• Utility\n• Giveaway\n• Music\n• Fun\n• Bot\n• Misc"
+
+            first = discord.Embed(
+                description=f"Use `{ctx.prefix}help <command|module>` for more info.",
+                color=self.client.colors["og_blurple"]
             )
+            first.set_author(name=self.client.user.name + " Help", url='https://docs.pypke.tk')
+            first.set_thumbnail(url=self.client.user.avatar.url)
+            first.add_field(name="Info", value=f"Server Prefix: `{ctx.prefix}`\nTotal Commands: `{len(self.client.all_commands)}`")
+            first.add_field(
+                name="Links", 
+                value="[Invite Me](https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands)\n"
+                      "[Vote Here](https://top.gg/bot/823051772045819905)\n"
+                      "[Documentation](https://docs.pypke.tk)\n"
+            )
+
             pages = [first]
             for i, cog in enumerate(cogs):
                 cog = self.client.get_cog(cog)
                 embed = self.cog_help(ctx, cog)
-                embed.set_footer(text=f"Page {i+2}/{len(cogs)+1}")
+                embed.set_footer(text=f"Page {i + 2}/{len(cogs) + 1}")
                 pages.append(embed)
 
             return await Pagination.paginate(self, ctx, pages)
@@ -173,7 +177,7 @@ class HelpCog(commands.Cog):
     #     first_page = discord.Embed(
     #         title="Commands",
     #         description="Documentation is work in-progress. Take a look here\nhttps://docs.pypke.tk\n\nDo The Commands Below To View Specific Page.",
-    #         color=self.client.randcolor,
+    #         color=self.client.colors["og_blurple"],
     #         timestamp=datetime.now()
     #     )
     #     first_page.add_field(name="Moderation Commands", value="`#help moderation`")
@@ -186,42 +190,42 @@ class HelpCog(commands.Cog):
     #     mod = discord.Embed(
     #                              title="Moderation Commands",
     #                              description="Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:gear: Moderation Commands\n• `kick` - Kicks the user from the server.\n• `ban` - Bans the user from the server.\n• `unban` - Unbans the user from the server.\n• `mute` - Mute the member.\n• `ban` - Unmute the member.",
-    #                              color=random.choice(self.client.color_list),
+    #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
 
     #     utility = discord.Embed(
     #                              title="Utilty Commands",
     #                              description="Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tools: Utility Commands\n• `purge` - Deletes amount of messages from the used channel.\n• `avatar` - Get your's or anyone else's avatar.\n• `whois` - Shows info about the member.\n• `prefix` - Set a custom prefix for your server.\n• `resetprefix` - Reset the prefix back to '#' for your server.\n• `mail` - Mails a member for you.",
-    #                              color=random.choice(self.client.color_list),
+    #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
                                 
     #     fun = discord.Embed(
     #                              title="Fun Commands",
     #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `joke` - Sends you a joke.\n• `pokedex` - Search a pokemon's dex entry.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words.\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
-    #                              color=random.choice(self.client.color_list),
+    #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
 
     #     bot = discord.Embed(
     #                              title="Bot Commands",
     #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:robot: Bot Commands\n• `ping` - Ping to check the bot's latency.\n• `stats` - Check the bot's stats.\n• `uptime` - Check the bot's uptime.\n• `invite` - Invite me to your server.",
-    #                              color=random.choice(self.client.color_list),
+    #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
 
     #     giveaway = discord.Embed(
     #                              title="Giveaway Commands",
     #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tada: Giveaway Commands\n• `gstart` - Start a giveaway quickly.\n• `gcreate` - Start a giveaway but interactively.\n• `greroll` - Reroll a giveaway winner.\n• `gend` - End a giveaway.",
-    #                              color=random.choice(self.client.color_list),
+    #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
 
     #     music = discord.Embed(
     #                              title="Music Commands",
     #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:musical_note: Music Commands\n• `join` - Make the bot join your vc.\n• `play` - Play a song.\n• `skip` - Skips current playing song.\n• `queue` - Shows you the songs currenly in queue.\n• `volume` - Change the bot's volume.\n• `stop` - Make the bot leave the vc.",
-    #                              color=random.choice(self.client.color_list),
+    #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
         

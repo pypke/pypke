@@ -1,5 +1,4 @@
-import asyncpraw, requests, random, asyncio, aiohttp
-import akinator
+import asyncpraw, requests, random, asyncio, aiohttp, akinator
 from bs4 import BeautifulSoup as bs4
 from html import unescape
 from asyncprawcore import exceptions as prawexc
@@ -21,23 +20,37 @@ reddit = asyncpraw.Reddit(
                     
 aki = Akinator()
 
-class Fun(commands.Cog):
+class Fun(commands.Cog, description="All the commands that you can have fun with."):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='akinator', aliases=['aki'], description='Let akinator guess about thing/animal/character', hidden=True)
+
+    @commands.command(
+        name="coinflip",
+        description="Flips a coin.",
+        aliases=["coin"]
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def coinflip_command(self, ctx):
+        sides = ["Heads", "Tails"]
+        await ctx.send(f"It landed on {random.choice(sides)}!!")
+
+    @commands.command(name='akinator', aliases=['aki'], description='Akinator guesses about object/animal/character.', hidden=True)
+    @commands.bot_has_permissions(read_messages=True, read_message_history=True)
     @commands.cooldown(1, 8, commands.BucketType.user)
+    @commands.max_concurrency(1, commands.BucketType.user)
     async def akinator_command(self, ctx):
         embed = discord.Embed(
-            title='Akinator',
-            description="Is It A?",
-            color=discord.Color.blue()
+            description="Can you specify is it a?",
+            color=self.client.colors["purple"]
         )
-        embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
+        embed.set_author(name="Akinator", icon_url="https://i.imgur.com/n6km6ch.png")
+        embed.set_thumbnail(url="https://i.imgur.com/n6km6ch.png")
         guess = ActionRow()
         guess.add_button(
                 style=ButtonStyle.gray,
-                label='Character'
+                label='Character',
+                # disabled=True
         )
         guess.add_button(
                 style=ButtonStyle.gray,
@@ -48,6 +61,7 @@ class Fun(commands.Cog):
                 label='Object'
         )
         msg = await ctx.send(embed=embed, components=[guess])
+
         while True:
             # Try and except blocks to catch timeout and break
             def check(inter):
@@ -55,63 +69,84 @@ class Fun(commands.Cog):
 
             try:
                 inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
-                            
-                if (inter.clicked_button.label == 'Character'):
-                    question = await aki.start_game(language='en', child_mode=True)
-                    await inter.reply(content='Starting..', ephemeral=True)
-                    break
+
+                if not inter:
+                    return await ctx.send("Something went wrong that shouldn't have happened huh.")
                 elif (inter.clicked_button.label == 'Animal'):
                     question = await aki.start_game(language='en_animals', child_mode=True)
-                    await inter.reply(content='Starting..', ephemeral=True)
+                    try:
+                        await inter.respond(type=6)
+                    except Exception:
+                        pass
+
                     break
-                else:
+                elif (inter.clicked_button.label == 'Object'):
                     question = await aki.start_game(language='en_objects', child_mode=True)
-                    await inter.reply(content='Starting..', ephemeral=True)
-                    break                
+                    try:
+                        await inter.respond(type=6)
+                    except Exception:
+                        pass
+
+                    break     
+                elif (inter.clicked_button.label == 'Character'):
+                    question = await aki.start_game(child_mode=True)
+                    try:
+                        await inter.respond(type=6)
+                    except Exception:
+                        pass
+
+                    break
                     
             except asyncio.TimeoutError:
-                await msg.edit("Timeout Cancelling!!")
+                await aki.close()
+                await msg.edit("Timeout cancelling!!")
                 break
-            except:
+            except Exception as e:
+                await aki.close()
+                raise e
                 break
 
-        q_no = 0
-        while aki.progression <= 80:
-            q_no += 1
+        while int(aki.progression) <= 85:
             embed = discord.Embed(
                 title='Akinator',
-                description=f'Answer This Question In 20 seconds\n`{question}`\n\n**Total Question:** {q_no}\n**Progression:** {aki.progression}',
-                color=discord.Color.blue()
+                description=f'**Total Question:** {int(aki.step) + 1}\n**Progression:** {round(aki.progression)}%\n\nAnswer this question in 30 seconds.\n`{question}`',
+                color=self.client.colors["purple"]
             )
             embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
-            choices = ActionRow()
-            choices.add_button(
+            choices1 = ActionRow()
+            choices1.add_button(
                 style=ButtonStyle.green,
                 label='Yes'
             )
-            choices.add_button(
+            choices1.add_button(
                 style=ButtonStyle.red,
                 label='No'
             )
-            choices.add_button(
+            choices1.add_button(
                 style=ButtonStyle.grey,
                 label='Idk'
             )
-            choices.add_button(
+            choices2 = ActionRow()
+            choices2.add_button(
                 style=ButtonStyle.grey,
                 label='Probably'
             )
-            choices.add_button(
+            choices2.add_button(
                 style=ButtonStyle.grey,
                 label='Probably Not'
             )
-            await msg.edit(embed=embed, components=[choices])
+            choices2.add_button(
+                style=ButtonStyle.blurple,
+                label='Back'
+            )
+            await msg.edit(embed=embed, components=[choices1, choices2])
+
             while True:
                 def check(inter):
                     return inter.message.id == msg.id and inter.author.id == ctx.author.id
                     
                 try:
-                    inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+                    inter = await ctx.wait_for_button_click(check=check, timeout=30.0)
                     
                     if (inter.clicked_button.label) == 'Yes':
                         question = await aki.answer('yes')
@@ -123,50 +158,71 @@ class Fun(commands.Cog):
                         question = await aki.answer('p')
                     elif (inter.clicked_button.label) == 'Probably Not':
                         question = await aki.answer('pn')
+                    elif (inter.clicked_button.label) == 'Back':
+                        try:
+                            question = await aki.back()
+                        except akinator.CantGoBackAnyFurther:
+                            await inter.respond("You are on the first page.", ephemeral=True)
 
-                    if aki.progression > 80:
+                    if aki.progression >= 85:
                         await aki.win()
                         embed = discord.Embed(
                             title=f"It's {aki.first_guess['name']}",
-                            description=f"{aki.first_guess['description']}"
+                            description=f"{aki.first_guess['description']}\n\n**Total Questions: **{int(aki.step) + 1}",
+                            color=self.client.colors["purple"]
                         )
+                        embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
                         embed.set_image(url=aki.first_guess['absolute_picture_path'])
                         await inter.respond(type=7, embed=embed, components=[])
+                        await aki.close()
                         break
+                    else:
+                        pass
 
                     embed = discord.Embed(
                         title='Akinator',
-                        description=f'Answer This Question In 20 seconds\n`{question}`\n\n**Total Question:** {q_no}\n**Progression:** {aki.progression}',
-                        color=discord.Color.blue()
+                        description=f'**Total Question:** {int(aki.step) + 1}\n**Progression:** {round(aki.progression)}%\n\nAnswer this question in 30 seconds.\n`{question}`',
+                        color=self.client.colors["purple"]
                     )
                     embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
-                    choices = ActionRow()
-                    choices.add_button(
+                    choices1 = ActionRow()
+                    choices1.add_button(
                         style=ButtonStyle.green,
                         label='Yes'
                     )
-                    choices.add_button(
+                    choices1.add_button(
                         style=ButtonStyle.red,
                         label='No'
                     )
-                    choices.add_button(
+                    choices1.add_button(
                         style=ButtonStyle.grey,
                         label='Idk'
                     )
-                    choices.add_button(
+                    choices2 = ActionRow()
+                    choices2.add_button(
                         style=ButtonStyle.grey,
                         label='Probably'
                     )
-                    choices.add_button(
+                    choices2.add_button(
                         style=ButtonStyle.grey,
                         label='Probably Not'
                     )
-
-                    await inter.respond(type=7, embed=embed, components=[choices])            
+                    choices2.add_button(
+                        style=ButtonStyle.blurple,
+                        label='Back'
+                    )
+                    try:
+                        await inter.respond(type=7, embed=embed, components=[choices1, choices2])
+                    except Exception:
+                        await msg.edit(embed=embed, components=[choices1, choices2])          
                 except asyncio.TimeoutError:
-                    await msg.edit('Timeout, Try Again!')
-                except:
-                    break                                  
+                    await aki.close()
+                    await msg.edit('Timeout, Try again!')
+                    break
+                except Exception as e:
+                    await aki.close()
+                    raise e
+                    break             
 
     @commands.command(name='trivia', description='Answer difficult questions.')
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -200,7 +256,7 @@ class Fun(commands.Cog):
                     question = unescape(question)
                     embed = discord.Embed(
                         description=f"**{question}**\n`Answer this question within {round(timeout)}.`",
-                        color=self.client.randcolor
+                        color=random.choice(self.client.color_list)
                     )
                     embed.set_author(name=f'{ctx.author.name}\'s Trivia', icon_url=ctx.author.avatar.url)
                     embed.add_field(name='Difficulty', value=f"`{data['results'][0]['difficulty'].capitalize()}`")
@@ -236,7 +292,7 @@ class Fun(commands.Cog):
                                             style = ButtonStyle.green,
                                             disabled=True
                                         )
-                                await inter.reply(type=7, content=f"Yes, The correct answer was `{answer}`! Well Done.", embed=embed, components=[new_btn])
+                                await inter.respond(type=7, content=f"Yes, The correct answer was `{answer}`! Well Done.", embed=embed, components=[new_btn])
                                 break
                             else:
                                 new_btn = ActionRow()
@@ -259,7 +315,7 @@ class Fun(commands.Cog):
                                             style = ButtonStyle.green,
                                             disabled=True
                                         )
-                                await inter.reply(type=7, content=f"No dumbo, The correct answer was `{answer}`!", embed=embed, components=[new_btn])
+                                await inter.respond(type=7, content=f"No dumbo, The correct answer was `{answer}`!", embed=embed, components=[new_btn])
                                 break
 
                         except asyncio.TimeoutError:
@@ -298,7 +354,7 @@ class Fun(commands.Cog):
                     for choice in soup.find_all('span', {'class': 'option-text'}):
                         choices.append(choice.text)
                         
-                    embed = discord.Embed(color=self.client.randcolor)
+                    embed = discord.Embed(color=random.choice(self.client.color_list))
                     embed.set_author(name='Would You Rather...', url='https://either.io', )
                     embed.add_field(name='Either...', value=f':regional_indicator_a: {choices[0]}\n\uFEFF', inline=False)
                     embed.add_field(name='Or...', value=f':regional_indicator_b: {choices[1]}', inline=False)
@@ -443,7 +499,7 @@ class Fun(commands.Cog):
 
     @commands.command(
         name="reddit",
-        description="This command sends a random post from given subreddit."
+        description="This command sends a random post from given subreddit.\n__NSFW subreddit requires NSFW marked text channel.__"
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def reddit_command(self, ctx, subreddit: str):
@@ -476,7 +532,7 @@ class Fun(commands.Cog):
         em = discord.Embed(
             title=name,
             description=description,
-            color=self.client.randcolor,
+            color=random.choice(self.client.color_list),
             url=f"https://reddit.com{post}"
         )
         em.set_image(url=url)
@@ -506,7 +562,7 @@ class Fun(commands.Cog):
 
         em = discord.Embed(
             title=name,
-            color=self.client.randcolor,
+            color=random.choice(self.client.color_list),
             url=f"https://reddit.com{post}"
         )
         em.set_image(url=url)
@@ -584,22 +640,27 @@ class Fun(commands.Cog):
             await ctx.send("Question is a required argument which is missing!!")
             return
 
-        embed = discord.Embed(title=":8ball:| **8Ball**",
-                              color=discord.Color.random())
-        embed.add_field(name="**Question**:",
-                        value=f"{question}",
-                        inline=False)
-        embed.add_field(name="**Answer**:",
-                        value=f"{random.choice(responses)}",
-                        inline=False)
-        embed.set_footer(text=f"Asked By {ctx.author.name}",
-                         icon_url=ctx.author.avatar_url)
+        embed = discord.Embed(
+            title=":8ball:| **8Ball**",
+            color=discord.Color.random()
+        )
+        embed.add_field(
+            name="**Question**:",
+            value=f"{question}",
+            inline=False
+        )
+        embed.add_field(
+            name="**Answer**:",
+            value=f"{random.choice(responses)}",
+            inline=False
+        )
+        embed.set_footer(text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar_url)
         await ctx.send(embed=embed)
 
     @commands.command(
         name="choose",
         description="This command helps you to choose between things.",
-        aliases=["choices"]
+        aliases=["pick"]
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def choose_command(self, ctx, *choices):
@@ -609,8 +670,7 @@ class Fun(commands.Cog):
             return await ctx.reply("Give me atleast 2 choices to choose from.")
 
         choice = random.choice(choices)
-        choice = discord.utils.escape_mentions(choice)
-        await ctx.send(f"I choose {choice}.")
+        await ctx.send(f"I choose `{choice}`.")
 
     @commands.command(
         name="pat",
@@ -619,12 +679,8 @@ class Fun(commands.Cog):
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def pat(self, ctx, member: discord.Member):
-        if member == None:
-            await ctx.send(
-                "There is no one to pat here")
-            return
         if member == ctx.author:
-            await ctx.send("You can't pat yourself find someone!!")
+            await ctx.send("You can't pat yourself lol!")
             return
 
         pat_gif = [
@@ -652,17 +708,17 @@ class Fun(commands.Cog):
             await ctx.send("Who do you wanna kill man?")
             return
         if member == ctx.author:
-            await ctx.send("You can't kill yourself mate! ;-;")
+            await ctx.send("You can't kill yourself.")
             return
         if member.bot:
-            await ctx.send("Why are you trying to kill my fellow mate??")
+            await ctx.send("Why are you trying to kill my fellow friend??")
             return
 
         kill_text = [
             'died of hunger', 'died with getting squashed by anvil',
             'died after seeing cringy fortnite',
             'died after seeing the mirror',
-            'died while writing the sucide note', 'died of POG!',
+            'died while writing the sucide note',
             'died after seeing the power of Pypke The Cat...'
         ]
 
@@ -676,68 +732,13 @@ class Fun(commands.Cog):
 
     @commands.command(
         name="hack",
-        description="This command can hack a user!! THIS IS NOT A JOKE.",
-        usage="<user>",
+        description="This command can hack a user! THIS IS NOT A JOKE.",
         hidden=True
     )
     @commands.guild_only()
-    @commands.cooldown(1, 9, commands.BucketType.user)
-    async def hack(self, ctx, member: discord.Member = None):
-        if member == None:
-            await ctx.send("Who do you wanna hack?")
-            return
-        if member == ctx.author:
-            await ctx.send("You can't hack yourself! ;-;")
-            return
-        if member.bot:
-            await ctx.send("Why are you trying to hack a bot??")
-            return
-
-        ip = [
-            '120.10.12.13', '120.10.20.11', '170.18.15.23', '150.23.16.13',
-            '192.158.1.38', '255.158.255.38', '192.158.101.101'
-        ]
-        email = [
-            f'{member.display_name}_smallpp.com',
-            f'{member.display_name}_PlayzMinecraft@gmail.com',
-            f'{member.display_name}_xxx@hotmail.com', 'poggers@games.com',
-            'heck@theworld.org', 'why_not@lol.com', 'flex@gmail.com'
-        ]
-        password = [
-            'peepoopeepoo', '12345678', 'poggers', 'PA55W0RD', 'ilovemom',
-            'dreamnoob'
-        ]
-
-        random_ip = random.choice(ip)
-        random_email = random.choice(email)
-        random_password = random.choice(password)
-        msg1 = await ctx.send(f"Hacking {member.name} now!")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Finding IP address..")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content=f"IP Address Hacked: {random_ip}")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Stealing Their Data...")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Data Stoled...")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Selling Data To Government!!")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Trying To Hack Their Password...")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Bypassing 2FA Authentication...")
-        await asyncio.sleep(1.5)
-        await msg1.edit(
-            content=f"Email: `{random_email}`\nPassword: `{random_password}`")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="Report Discord For Breaking TOS....")
-        await asyncio.sleep(1.5)
-        await msg1.edit(content="**If You See This You Are So Cool**")
-        await asyncio.sleep(0.2)
-        await msg1.edit(content=f"Finished Hacking {member.name}!!")
-        await ctx.send("The *totally* real and dangerous hacking is complete!!"
-                       )
-
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def hack(self, ctx, member: discord.Member):
+        pass
 
 def setup(client):
     client.add_cog(Fun(client))
