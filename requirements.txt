@@ -1,6 +1,6 @@
 absl-py==0.13.0
 aiofiles @ file:///home/runner/.cache/pypoetry/artifacts/94/ae/46/878df6d15aced0fbc5557db8d99288ba5726a563ca165cda13166eceb5/aiofiles-0.6.0-py3-none-any.whl
-aiohttp==3.7.4.post0
+aiohttp>=3.7.4
 aiosqlite @ file:///home/runner/.cache/pypoetry/artifacts/91/5c/94/44e4d0f87a7556bde61ccebada52d3067f492c5fb49cdf78a169336a4b/aiosqlite-0.17.0-py3-none-any.whl
 akinator.py @ file:///home/runner/.cache/pypoetry/artifacts/41/7d/39/adb5a9093d21817e9d5d8a79aa7edc70f43c20ea190e4bbfc571368e4e/akinator.py-5.0.0-py3-none-any.whl
 antlr4-python3-runtime==4.9.2
