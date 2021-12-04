@@ -69,7 +69,7 @@ def random_color(color_list):
 
 class PypkeBot(commands.Bot):
     def __init__(self):
-        self.__version__ = "1.7.5"
+        self.__version__ = "1.7.6"
         super().__init__(
             command_prefix=get_prefix,
             description="A Multi-purpose discord bot and apparently a cat!",
@@ -88,7 +88,7 @@ client.slash = dislash.InteractionClient(client, modify_send=True, show_warnings
 
 client.launch_time = datetime.now()
 client.cwd = cwd
-client.version = "1.7.5"
+client.version = "1.7.6"
 client.muted_users = {}
 client.current_giveaways = {}
 client.prefix = "#"
