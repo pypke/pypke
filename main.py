@@ -263,30 +263,30 @@ async def on_message(message):
     await client.process_commands(message)
 
 # <--- Commands --->
-@client.slash_command(description="Check the ping of the bot")
-async def ping(ctx):
-    await ctx.respond(content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
+# @client.slash_command(description="Check the ping of the bot")
+# async def ping(ctx):
+#     await ctx.respond(content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
 
-@client.slash_command(description="Get a link to invite this bot")
-async def invite(ctx):
-    invite_btn = ActionRow(
-            Button(
-                style=ButtonStyle.link,
-                label="Invite",
-                url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
-            ))
-    embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=client.colors["og_blurple"], timestamp=datetime.now())
-    embed.set_footer(text="Bot by Mr.Natural#3549")
+# @client.slash_command(description="Get a link to invite this bot")
+# async def invite(ctx):
+#     invite_btn = ActionRow(
+#             Button(
+#                 style=ButtonStyle.link,
+#                 label="Invite",
+#                 url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
+#             ))
+#     embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=client.colors["og_blurple"], timestamp=datetime.now())
+#     embed.set_footer(text="Bot by Mr.Natural#3549")
 
-    await ctx.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
+#     await ctx.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
     
-@client.slash_command(description="Checks for how long the bot is up")
-async def uptime(ctx):
-    delta_uptime = datetime.now() - client.launch_time
-    hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    days, hours = divmod(hours, 24)
-    await ctx.respond(content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
+# @client.slash_command(description="Checks for how long the bot is up")
+# async def uptime(ctx):
+#     delta_uptime = datetime.now() - client.launch_time
+#     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
+#     minutes, seconds = divmod(remainder, 60)
+#     days, hours = divmod(hours, 24)
+#     await ctx.respond(content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
 
 @client.command()
 @commands.is_owner()

@@ -396,7 +396,7 @@ class Images(commands.Cog, description="This modules handles image manupulation 
         name="gay",
         description="Put an image on the Laughs in Sithlord meme."
     )
-    async def shatter_command (self, ctx, member: Optional[discord.Member]):
+    async def gay_command (self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         
         img = await ImgClient.image_process(ImageFeatures.shatter(), member.avatar.url)
@@ -404,14 +404,14 @@ class Images(commands.Cog, description="This modules handles image manupulation 
         await ctx.send(file=file)
 
 
-@commands.command(
-        name="shatter",
+    @commands.command(
+        name="poster",
         description="Put an image on the Laughs in Sithlord meme."
     )
-    async def shatter_command (self, ctx, member: Optional[discord.Member]):
+    async def poster_command (self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         
-        img = await ImgClient.image_process(ImageFeatures.shatter(), member.avatar.url)
+        img = await ImgClient.image_process(ImageFeatures.poster(), member.avatar.url)
         file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
     # ------- ! -------- #   
