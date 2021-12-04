@@ -190,7 +190,7 @@ async def on_message(message):
     
     # If The Bot Is Mentioned Tell The Bot's Prefix
     if client.user.mentioned_in(message):
-        ctx = client.get_context(message)
+        ctx = await client.get_context(message)
 
         embed = discord.Embed(
             title="Bot Mentioned",
@@ -252,7 +252,7 @@ async def on_message(message):
     # This Checks Whether The Message Author Is Blacklisted Or Not
     users = await client.blacklisted_users.find(message.author.id)
     if users:
-        ctx = client.get_context(message)
+        ctx = await client.get_context(message)
         prefix = ctx.prefix
         if message.content.startswith(f"{prefix}"):
             await message.channel.send("Hey, lol you did something bad you are banned from using this bot.", delete_after=3)
