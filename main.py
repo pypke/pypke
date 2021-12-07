@@ -51,7 +51,7 @@ async def get_prefix(client, message):
             
         client.prefixes[message.guild.id] = data["prefix"]
         return commands.when_mentioned_or(data["prefix"])(client, message)
-    except:
+    except Exception:
         client.prefixes[message.guild.id] = client.prefix
         return commands.when_mentioned_or(client.prefix)(client, message)
 
@@ -91,7 +91,7 @@ client.cwd = cwd
 client.version = "1.7.6"
 client.muted_users = {}
 client.current_giveaways = {}
-client.prefix = "#"
+client.prefix = "?"
 client.prefixes = {}
 client.color = 0x6495ED
 client.colors = {
@@ -190,15 +190,15 @@ async def on_message(message):
     
     # If The Bot Is Mentioned Tell The Bot's Prefix
     if client.user.mentioned_in(message):
-        ctx = await client.get_context(message)
+        prefix = await get_prefix(client, message)
 
         embed = discord.Embed(
             title="Bot Mentioned",
-            description=f"Prefix of the bot is `{ctx.prefix}`\nDo `{ctx.prefix}help` to view help on each command.",
+            description=f"Prefix of the bot is `{prefix}`\nDo `{prefix}help` to view help on each command.",
             colour=client.colors["og_blurple"]
         )
 
-        await ctx.send(embed=embed, delete_after=5)
+        await message.channel.send(embed=embed, delete_after=5)
     
     # If User Has Set Afk Tell The Message Author That He/She Is Afk
     afks = await client.afks.get_all()
@@ -252,8 +252,7 @@ async def on_message(message):
     # This Checks Whether The Message Author Is Blacklisted Or Not
     users = await client.blacklisted_users.find(message.author.id)
     if users:
-        ctx = await client.get_context(message)
-        prefix = ctx.prefix
+        prefix = client.prefixes[message.guild.id]
         if message.content.startswith(f"{prefix}"):
             await message.channel.send("Hey, lol you did something bad you are banned from using this bot.", delete_after=3)
             return

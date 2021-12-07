@@ -444,10 +444,8 @@ class Utility(commands.Cog):
         member = member or ctx.author
         embed = discord.Embed(
             title=f"{member}'s Avatar!",
-            colour=member.color, 
-            timestamp=ctx.message.created_at
+            colour=self.client.colors["og_blurple"]
         )
-        # embed.add_field(name="Links-", remind=f"[jpg]({member.avatar.url_as(format=None, static_format='jpg', size=512)}) | [png]({member.avatar.url_as(format=None, static_format='png', size=512)}) | [webp]({member.avatar.url_as(format=None, static_format='webp', size=512)})")
         embed.set_image(url=member.avatar.url)
         await ctx.send(embed=embed)
 
@@ -476,7 +474,7 @@ class Utility(commands.Cog):
         joined_time = member.joined_at
         joined_time = round(joined_time.timestamp())
 
-        embed = discord.Embed(colour=member.top_role.color, timestamp=ctx.message.created_at)
+        embed = discord.Embed(colour=member.color, timestamp=ctx.message.created_at)
 
         embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
         embed.set_author(name=member, icon_url=member.avatar.url if member.avatar else member.default_avatar.url)
@@ -484,12 +482,12 @@ class Utility(commands.Cog):
 
         embed.add_field(
             name="__Information__",
-            remind=f"**Name:** {member}\n**ID:** {member.id}\n**Nick:** {member.display_name}\n**Status:** {str(member.status).title()}\n**Created At:** <t:{created_time}:f>\n**Joined At:** <t:{joined_time}:f>\n**Bot?** {member.bot}",
+            value=f"**Name:** {member}\n**ID:** {member.id}\n**Nick:** {member.display_name}\n**Status:** {str(member.status).title()}\n**Created At:** <t:{created_time}:f>\n**Joined At:** <t:{joined_time}:f>\n**Bot?** {member.bot}",
             inline=False
         )
         embed.add_field(
             name="__Role Info__",
-            remind=f"**Highest Role:** {member.top_role.mention}\n**Roles:** {' **|** '.join([role.mention for role in roles])}\n**Color:** `{member.top_role.color}`",
+            value=f"**Highest Role:** {member.top_role.mention}\n**Roles:** {' **|** '.join([role.mention for role in roles])}\n**Color:** `{member.top_role.color}`",
             inline=False
         )
 

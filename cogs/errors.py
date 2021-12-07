@@ -44,8 +44,8 @@ class ErrorsCog(commands.Cog):
             await ctx.send(f"Bot doesn't have the required permission to execute `{ctx.prefix}{ctx.command.qualified_name}` command.", delete_after=5)
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            # await ctx.send(f"Argument `\"{error.param}\"` is required.")
-            await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
+            await ctx.send(f"`{error.param.name}` is a required argument that is missing.")
+            # await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
 
         elif isinstance(error, commands.NotOwner):
             await ctx.send("Lol, You should be owner of the bot to do this.")
@@ -76,11 +76,8 @@ class ErrorsCog(commands.Cog):
             return
             
         elif isinstance(error, commands.CommandInvokeError):
-            if ctx.guild.id == 850732056790827020:
-                await ctx.send(f"```py\n{error}\n```")
-                raise error
-            else:
-                raise error
+            await ctx.send(f"```diff\n{error.original}\n\n- Looks like an error occured, pls consider reporting it on support server.\n```")
+            raise error
         else:
             raise error
 

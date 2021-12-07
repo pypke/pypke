@@ -6,52 +6,6 @@ from utils.pagination import Pagination
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
-
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def unload(self, ctx, module: str):
-        module = module.lower()
-        try:
-            self.client.unload_extension(f"cogs.{module}")
-            await ctx.send(f"{module.capitalize()} Module Was Successfully Unloaded!")
-        except commands.ExtensionNotLoaded:
-            await ctx.send("Not Loaded!")
-        except commands.ExtensionNotFound:
-            await ctx.send("Not Found!")
-
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def load(self, ctx, module: str):
-        module = module.lower()
-        try:
-            self.client.load_extension(f"cogs.{module}")
-            await ctx.send(f"{module.capitalize()} Module Was Successfully Loaded!")
-        except commands.ExtensionAlreadyLoaded:
-            await ctx.send("Already Loaded!")
-        except commands.ExtensionNotFound:
-            await ctx.send("Not Found!")
-
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def reload(self, ctx, module: str):
-        module = module.lower()
-        try:
-            self.client.unload_extension(f"cogs.{module}")
-            self.client.load_extension(f"cogs.{module}")
-            await ctx.send(f"{module.capitalize()} Module Was Successfully Reloaded!")
-        except:
-            await ctx.send("Nope, Not Like That!")
-            return
-
-    @commands.command(hidden=True)
-    @commands.is_owner()
-    async def logout(self, ctx):
-        try:
-            await ctx.message.add_reaction("👋")
-        except:
-            pass
-        await ctx.send(f"{ctx.author.mention}, Successfully Disconnected!! :wave:")
-        await self.client.logout()
     
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -91,6 +45,7 @@ class Owners(commands.Cog):
         index = 0
         embeds = []
         guilds = self.client.guilds
+        
         for guild in guilds:
             guild_name = guild.name
             guild_id = guild.id

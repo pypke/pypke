@@ -11,6 +11,7 @@ keep_alive.py
 *.m4a
 *.replit
 *.zip
+*.old
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

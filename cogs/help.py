@@ -24,8 +24,7 @@ class HelpCog(commands.Cog):
 
         Returns:
             Literal['cog', 'command'] | None: Returns if its a cog or command else None.
-        """    
-        entity = entity.capitalize()    
+        """      
         cog = self.client.get_cog(entity)
         if cog:
             return "cog"
@@ -102,18 +101,18 @@ class HelpCog(commands.Cog):
         if hasattr(cmd, "walk_commands"):
             for sub_cmd in cmd.walk_commands():
                 if not sub_cmd.hidden:
-                    commands.append(f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No Help Provided'}")
+                    commands.append(f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
 
             embed = discord.Embed(
                 title=self.get_syntax(cmd),
-                description=f"{cmd.description if cmd.description else 'No Help Provided'}\n\n" + "\n\n".join(commands),
+                description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" + "\n\n".join(commands),
                 color=self.client.colors["og_blurple"]
             )
             return embed
         
         embed = discord.Embed(
             title=self.get_syntax(cmd),
-            description=cmd.description if cmd.description else "No Help Provided",
+            description=cmd.description if cmd.description else "No help provided",
             color=self.client.colors["og_blurple"]
         )
         return embed
@@ -123,7 +122,7 @@ class HelpCog(commands.Cog):
     async def help_command(self, ctx, *, command_or_module=None):     
         if not command_or_module:
             cogs = [
-                "Moderation", "Utility", "Giveaway", "Music", "Fun", "Bot", "Misc"
+                "Moderation", "Utility", "Giveaway", "Music", "Fun", "Images", "Bot", "Misc"
             ]
 
             first = discord.Embed(
@@ -149,7 +148,7 @@ class HelpCog(commands.Cog):
 
             return await Pagination.paginate(self, ctx, pages)
 
-        _entity = command_or_module
+        _entity = command_or_module.capitalize()
         entity_type = self.command_or_cog(_entity)
 
         if entity_type == "cog":
@@ -241,7 +240,7 @@ class HelpCog(commands.Cog):
             
     #         cmd_embed = discord.Embed(
     #             title=f"{cmd.qualified_name} {cmd.signature}",
-    #             description=cmd.description if cmd.description else "No Help Provided",
+    #             description=cmd.description if cmd.description else "No help provided",
     #             color=self.client.color
     #         )
     #         return await ctx.send(embed=cmd_embed)
