@@ -1,4 +1,4 @@
-aiohttp==3.6.3
+aiohttp==3.7.4
 akinator.py==5.0.0
 asyncdagpi==4.0.0
 asyncpraw==7.5.0
