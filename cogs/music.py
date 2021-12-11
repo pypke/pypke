@@ -167,12 +167,6 @@ class Music(commands.Cog):
                 except AttributeError:
                     pass
 
-                channel = self.channel[member.guild.id]
-                try:
-                    await channel.send("Disconnected cause everyone left.")
-                except Exception:
-                    pass
-
     @commands.command(
         name="play",
         description="Searches and plays a song from a given query.",

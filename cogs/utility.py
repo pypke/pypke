@@ -311,21 +311,23 @@ class Utility(commands.Cog):
         else:
             return await ctx.send("Amount should be less 1000 and more than 0.")
 
-    @commands.command(name="nuke", description="Nukes the whole channel so you could start over.", aliases=["clone"])
+    @commands.command(name="nuke", description="Purges the whole channel by cloning and deleting the original.", aliases=["clone"])
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
-    @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    @commands.max_concurrency(1, commands.BucketType.guild)
     async def nuke_command(self, ctx):
         confirm = ActionRow(
             Button(
-                style=ButtonStyle.blurple,
-                emoji="✅",
+                style=ButtonStyle.grey,
+                emoji="<:agreed:918425367251935242>",
+                label="Confirm",
                 custom_id="yes"
             ),
             Button(
-                style=ButtonStyle.blurple,
-                emoji="❌",
+                style=ButtonStyle.grey,
+                emoji="<:disagreed:918425439960186930>",
+                label="Cancel",
                 custom_id="no"
             )
         )
@@ -348,10 +350,12 @@ class Utility(commands.Cog):
                     new_channel = await channel.clone(reason=f"Channel Nuked By {ctx.author} (ID: {ctx.author.id})")
                     await channel.delete(reason=f"Channel Nuked By {ctx.author} (ID: {ctx.author.id})")
                     await new_channel.send(f"{ctx.author.mention} Successfully nuked the channel!")
+                    break
                 else:
                     await msg.delete()
                     await ctx.send("Ok, withdrawing the nukes..  Canceling the attack")
                     break
+
             except asyncio.TimeoutError:
                 await msg.delete()
                 await ctx.send("Ok, withdrawing the nukes..  Canceling the attack")

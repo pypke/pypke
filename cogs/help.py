@@ -122,7 +122,7 @@ class HelpCog(commands.Cog):
     async def help_command(self, ctx, *, command_or_module=None):     
         if not command_or_module:
             cogs = [
-                "Moderation", "Utility", "Giveaway", "Music", "Fun", "Images", "Bot", "Misc"
+                "Moderation", "Utility", "Giveaway", "Music", "Fun", "Bot", "Misc"
             ]
 
             first = discord.Embed(

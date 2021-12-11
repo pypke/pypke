@@ -217,10 +217,11 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         await msg.edit(embed=embed, components=[choices1, choices2])          
                 except asyncio.TimeoutError:
                     await aki.close()
-                    await msg.edit('Timeout, Try again!')
+                    await msg.edit('Timeout, Try again!', components=[])
                     break
                 except Exception as e:
                     await aki.close()
+                    await msg.edit(components=[])
                     raise e
                     break             
 

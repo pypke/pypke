@@ -1,9 +1,8 @@
-import traceback
 from thefuzz import fuzz
 
 import discord
 from discord.ext import commands
-from dislash import InteractionClient, ContextMenuInteraction, ApplicationCommandError
+# from dislash import InteractionClient, ContextMenuInteraction, ApplicationCommandError
 
 class ErrorsCog(commands.Cog):
     def __init__(self, client):
@@ -21,13 +20,13 @@ class ErrorsCog(commands.Cog):
                     ratio = fuzz.ratio(ctx.message.content, cmd)
                     if ratio >= 59:
                         i += 1
-                        msg = msg + f"**[{i}].** `{cmd}`\n"
+                        msg = msg + f"[{i}]. `{cmd}`\n"
                         if i >= 10:
                             break
                     else:
                         continue
             if i != 0:
-                await ctx.send(content=msg)
+                await ctx.send(msg, delete_after=7)
             else:
                 pass
 
@@ -38,10 +37,16 @@ class ErrorsCog(commands.Cog):
                 pass
 
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send(f"You are missing permissions to run this command.", delete_after=5)
+            try:
+                await ctx.send(f"You are missing `{', '.join(error.missing_permissions)}` permission(s) to run this command.", delete_after=5)
+                await ctx.message.delete()
+            except Exception: pass
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send(f"Bot doesn't have the required permission to execute `{ctx.prefix}{ctx.command.qualified_name}` command.", delete_after=5)
+            try:
+                await ctx.send(f"Bot doesn't have the required `{', '.join(error.missing_permissions)}` permission(s).", delete_after=5)
+                await ctx.message.delete()
+            except Exception: pass
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f"`{error.param.name}` is a required argument that is missing.")
@@ -79,12 +84,6 @@ class ErrorsCog(commands.Cog):
             await ctx.send(f"```diff\n{error.original}\n\n- Looks like an error occured, pls consider reporting it on support server.\n```")
             raise error
         else:
-            raise error
-
-    @commands.Cog.listener()
-    async def on_message_command_error(inter, error):
-        if isinstance(error, ApplicationCommandError):
-            await inter.respond(f"Failed to execute {inter.message_command} due to {error}.")
             raise error
             
 def setup(client):
