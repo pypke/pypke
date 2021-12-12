@@ -1,6 +1,8 @@
 from utils.time import TimeConverter
 
-import asyncio, random, epoch
+import asyncio
+import random
+import epoch
 from typing import Optional
 from copy import deepcopy
 from dateutil.relativedelta import relativedelta
@@ -8,7 +10,7 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands, tasks
-from discord.ext.commands import Greedy
+
 
 class GiveawayHelper:
 
@@ -24,7 +26,7 @@ class GiveawayHelper:
             await GiveawayHelper.remove_giveaway(self, data['_id'])
             print(f"Removed Deleted Giveaway. Id: {data['_id']}")
             return
-        
+
         users = await msg.reactions[0].users().flatten()
         users.pop(users.index(self.client.user))
 
@@ -59,6 +61,7 @@ class GiveawayHelper:
 
         print(f"Removed Giveaway With Id: {_id}")
 
+
 class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     def __init__(self, client):
         self.client = client
@@ -75,7 +78,8 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             if value['gaDuration'] is None:
                 continue
 
-            endTime = value['startedAt'] + relativedelta(seconds=value['gaDuration'])
+            endTime = value['startedAt'] + \
+                relativedelta(seconds=value['gaDuration'])
             if currentTime >= endTime:
                 await GiveawayHelper.roll_giveaway(self, value['_id'])
 
@@ -97,8 +101,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
         embed = discord.Embed(
             title=f"{prize}",
-            description=
-            f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
+            description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color=self.client.colors["orange"])
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         await ctx.send(
@@ -127,10 +130,10 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gcreate_command(self, ctx):
         embed = discord.Embed(
-                                title="Create Giveaway!",
-                                description="Let's start with this giveaway!\n`Answer these questions within 30 seconds!`",
-                                color=self.client.colors["orange"]
-                            )
+            title="Create Giveaway!",
+            description="Let's start with this giveaway!\n`Answer these questions within 30 seconds!`",
+            color=self.client.colors["orange"]
+        )
         ques_msg = await ctx.send(embed=embed)
         await asyncio.sleep(2)
 
@@ -193,8 +196,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         )
         embed = discord.Embed(
             title=f"{prize}",
-            description=
-            f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
+            description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color=self.client.colors["orange"])
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         my_msg = await channel.send(embed=embed)
@@ -247,7 +249,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gend_command(self, ctx, message_id: int):
         _id = message_id
-        
+
         try:
             data = await self.client.giveaways.find(_id)
         except Exception:
@@ -257,7 +259,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         if data == None:
             await ctx.send("The message id is incorrect or the message is deleted.")
             return
-        
+
         await GiveawayHelper.roll_giveaway(self, _id)
 
     @commands.command(name="gdelete", description="Delete a ongoing giveaway.", aliases=['gcancel'])
@@ -278,7 +280,8 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             return
 
         await GiveawayHelper.remove_giveaway(self, _id)
-        await ctx.send("Deleted the giveaway!")   
+        await ctx.send("Deleted the giveaway!")
+
 
 def setup(client):
     client.add_cog(Giveaway(client))

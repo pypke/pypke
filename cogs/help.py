@@ -1,15 +1,13 @@
-import random, math
-from datetime import datetime
-from typing import Union, Optional
+import math
 from utils.pagination import Pagination
 
 import discord
 from discord.ext import commands
-from dislash import ActionRow, Button, ButtonStyle
+
 
 class HelpCog(commands.Cog):
     """HelpCog for all the help command stuff."""
-    
+
     def __init__(self, client):
         self.client = client
 
@@ -24,7 +22,7 @@ class HelpCog(commands.Cog):
 
         Returns:
             Literal['cog', 'command'] | None: Returns if its a cog or command else None.
-        """      
+        """
         cog = self.client.get_cog(entity)
         if cog:
             return "cog"
@@ -47,7 +45,7 @@ class HelpCog(commands.Cog):
 
         Returns:
             syntax (str): The command usage syntax.
-        """        
+        """
         aliases = "|".join(command.aliases)
         cmd_invoke = f"[{command.name}|{aliases}]" if command.aliases else command.name
 
@@ -65,7 +63,7 @@ class HelpCog(commands.Cog):
 
         Returns:
             embed: The embed with cog's help.
-        """        
+        """
         if len(cog.get_commands()) == 0:
             return None
 
@@ -84,7 +82,7 @@ class HelpCog(commands.Cog):
             value=", ".join(command for command in commands),
             inline=False
         )
-        
+
         return embed
 
     def command_help(self, ctx, cmd):
@@ -96,13 +94,14 @@ class HelpCog(commands.Cog):
 
         Returns:
             embed: The embed with command's help.
-        """        
-        commands = []       
+        """
+        commands = []
         if hasattr(cmd, "walk_commands"):
             for sub_cmd in cmd.walk_commands():
                 if not sub_cmd.hidden:
-                    commands.append(f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
-            
+                    commands.append(
+                        f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
+
             # I Know there is surely a better way to do this but Idfk it.
             per_page = 3
             pages = math.ceil(len(commands) / per_page)
@@ -114,14 +113,15 @@ class HelpCog(commands.Cog):
                 for command in commands[start:end]:
                     embed = discord.Embed(
                         title=self.get_syntax(cmd),
-                        description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" + "\n\n".join(commands[start:end]),
+                        description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" +
+                        "\n\n".join(commands[start:end]),
                         color=self.client.colors["og_blurple"]
                     )
-                embeds.append(embed)    
+                embeds.append(embed)
                 page += 1
 
             return embeds
-        
+
         embed = discord.Embed(
             title=self.get_syntax(cmd),
             description=cmd.description if cmd.description else "No help provided",
@@ -131,7 +131,7 @@ class HelpCog(commands.Cog):
 
     @commands.command(name="help", description="wdym you need a help for help command? idiot", aliases=['commands'])
     @commands.guild_only()
-    async def help_command(self, ctx, *, command_or_module=None):     
+    async def help_command(self, ctx, *, command_or_module=None):
         if not command_or_module:
             cogs = [
                 "Moderation", "Utility", "Giveaway", "Music", "Fun", "Bot", "Misc"
@@ -141,11 +141,13 @@ class HelpCog(commands.Cog):
                 description=f"Use `{ctx.prefix}help <command|module>` for more info.",
                 color=self.client.colors["og_blurple"]
             )
-            first.set_author(name=self.client.user.name + " Help", url='https://docs.pypke.tk')
+            first.set_author(name=self.client.user.name +
+                             " Help", url='https://docs.pypke.tk')
             first.set_thumbnail(url=self.client.user.avatar.url)
-            first.add_field(name="Info", value=f"Server Prefix: `{ctx.prefix}`\nTotal Commands: `{len(self.client.all_commands)}`")
             first.add_field(
-                name="Links", 
+                name="Info", value=f"Server Prefix: `{ctx.prefix}`\nTotal Commands: `{len(self.client.all_commands)}`")
+            first.add_field(
+                name="Links",
                 value="[Invite Me](https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands)\n"
                       "[Vote Here](https://top.gg/bot/823051772045819905)\n"
                       "[Documentation](https://docs.pypke.tk)\n"
@@ -218,7 +220,7 @@ class HelpCog(commands.Cog):
     #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
-                                
+
     #     fun = discord.Embed(
     #                              title="Fun Commands",
     #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `joke` - Sends you a joke.\n• `pokedex` - Search a pokemon's dex entry.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words.\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
@@ -246,7 +248,7 @@ class HelpCog(commands.Cog):
     #                              color=self.client.colors["og_blurple"],
     #                              timestamp=datetime.now()
     #                             )
-        
+
     #     pages = [first_page, mod, utility, bot, fun, giveaway, music]
 
     #     # if command != None and command.lower() in pages:
@@ -256,7 +258,7 @@ class HelpCog(commands.Cog):
     #         if not cmd:
     #             raise commands.CommandNotFound
     #             return
-            
+
     #         cmd_embed = discord.Embed(
     #             title=f"{cmd.qualified_name} {cmd.signature}",
     #             description=cmd.description if cmd.description else "No help provided",
@@ -293,10 +295,10 @@ class HelpCog(commands.Cog):
     #         # Try and except blocks to catch timeout and break
     #         def check(inter):
     #             return inter.message.id == help_msg.id and inter.author.id == ctx.author.id
-                
+
     #         try:
     #             inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
-                
+
     #             if (inter.clicked_button.label.lower() == "back"):
     #                 current -= 1
     #             elif (inter.clicked_button.label.lower() == "next"):
@@ -341,6 +343,7 @@ class HelpCog(commands.Cog):
     #             break
     #         except Exception:
     #             break
+
 
 def setup(client):
     client.add_cog(HelpCog(client))

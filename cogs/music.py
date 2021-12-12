@@ -13,6 +13,7 @@ from discord.ext import commands
 
 url_rx = re.compile('https?:\\/\\/(?:www\\.)?.+')
 
+
 class LavalinkVoiceClient(discord.VoiceClient):
     def __init__(self, client: discord.Client, channel: discord.abc.Connectable):
         self.client = client
@@ -23,29 +24,29 @@ class LavalinkVoiceClient(discord.VoiceClient):
         else:
             self.client.lavalink = lavalink.Client(client.user.id)
             self.client.lavalink.add_node(
-                    'localhost',
-                    2333,
-                    'youshallnotpass',
-                    'us',
-                    'default-node')
+                'localhost',
+                2333,
+                'youshallnotpass',
+                'us',
+                'default-node')
             self.lavalink = self.client.lavalink
 
     async def on_voice_server_update(self, data):
         # the data needs to be transformed before being handed down to
         # voice_update_handler
         lavalink_data = {
-                't': 'VOICE_SERVER_UPDATE',
-                'd': data
-                }
+            't': 'VOICE_SERVER_UPDATE',
+            'd': data
+        }
         await self.lavalink.voice_update_handler(lavalink_data)
 
     async def on_voice_state_update(self, data):
         # the data needs to be transformed before being handed down to
         # voice_update_handler
         lavalink_data = {
-                't': 'VOICE_STATE_UPDATE',
-                'd': data
-                }
+            't': 'VOICE_STATE_UPDATE',
+            'd': data
+        }
         await self.lavalink.voice_update_handler(lavalink_data)
 
     async def connect(self, *, timeout: float, reconnect: bool) -> None:
@@ -73,10 +74,11 @@ class LavalinkVoiceClient(discord.VoiceClient):
 
         # update the channel_id of the player to None
         # this must be done because the on_voice_state_update that
-        # would set channel_id to None doesn't get dispatched after the 
+        # would set channel_id to None doesn't get dispatched after the
         # disconnect
         player.channel_id = None
         self.cleanup()
+
 
 class Music(commands.Cog):
     """Module to jam with."""
@@ -88,7 +90,9 @@ class Music(commands.Cog):
 
         if not hasattr(client, 'lavalink'):
             client.lavalink = lavalink.Client(823051772045819905)
-            client.lavalink.add_node('lava.link', 80, 'youshallnotpass', 'eu', 'default-node')  # Host, Port, Password, Region, Name
+            # Host, Port, Password, Region, Name
+            client.lavalink.add_node(
+                'lava.link', 80, 'youshallnotpass', 'eu', 'default-node')
             print("Success, Nodes Connected!")
 
         client.lavalink.add_event_hook(self.track_hook)
@@ -104,7 +108,8 @@ class Music(commands.Cog):
 
     async def ensure_voice(self, ctx):
         """ This check ensures that the client and command author are in the same voicechannel. """
-        player = self.client.lavalink.player_manager.create(ctx.guild.id, endpoint=str(ctx.guild.region))
+        player = self.client.lavalink.player_manager.create(
+            ctx.guild.id, endpoint=str(ctx.guild.region))
         should_connect = ctx.command.name in ('play',)
 
         if not ctx.author.voice or not ctx.author.voice.channel:
@@ -162,7 +167,8 @@ class Music(commands.Cog):
         if not member.bot and after.channel is None:
             await asyncio.sleep(30)
             if not [m for m in before.channel.members if not m.bot]:
-                player = self.client.lavalink.player_manager.get(member.guild.id)
+                player = self.client.lavalink.player_manager.get(
+                    member.guild.id)
                 try:
                     await player.stop()
                     await member.guild.voice_client.disconnect(force=True)
@@ -202,7 +208,8 @@ class Music(commands.Cog):
             embed.title = 'Track Queued!'
             embed.description = f'[{track["info"]["title"]}]({track["info"]["uri"]})'
 
-            track = lavalink.models.AudioTrack(track, ctx.author.id, recommended=True)
+            track = lavalink.models.AudioTrack(
+                track, ctx.author.id, recommended=True)
             player.add(requester=ctx.author.id, track=track)
 
         await ctx.send(embed=embed)
@@ -269,12 +276,12 @@ class Music(commands.Cog):
         else:
             duration = lavalink.utils.format_time(player.current.duration)
 
-        requester = await self.client.fetch_user(player.current.requester)    
+        requester = await self.client.fetch_user(player.current.requester)
         song = f'[{player.current.title}]({player.current.uri}) - `{requester}`\n`({position}/{duration})`'
 
         embed = discord.Embed(
             color=self.client.colors["og_blurple"],
-            title='Now Playing!', 
+            title='Now Playing!',
             description=song
         )
         await ctx.send(embed=embed)
@@ -369,8 +376,9 @@ class Music(commands.Cog):
             return await ctx.send(f'🔈 | {player.volume}%')
         if 0 > volume > 201:
             return await ctx.send(f'Volume should be 0-200.')
-            
-        await player.set_volume(volume)  # Values are automatically capped between, or equal to 0-200.
+
+        # Values are automatically capped between, or equal to 0-200.
+        await player.set_volume(volume)
         await ctx.send(f'🔈 | Set to {player.volume}%')
 
     @commands.command(
@@ -470,7 +478,8 @@ class Music(commands.Cog):
             track_uri = track['info']['uri']
             o += f'`{index}.` [{track_title}]({track_uri})\n'
 
-        embed = discord.Embed(color=self.client.colors["og_blurple"], description=o)
+        embed = discord.Embed(
+            color=self.client.colors["og_blurple"], description=o)
         await ctx.send(embed=embed)
 
     @commands.command(
@@ -491,6 +500,7 @@ class Music(commands.Cog):
         await player.stop()
         await ctx.voice_client.disconnect(force=True)
         await ctx.send('👋 | Disconnected.')
+
 
 def setup(client):
     client.add_cog(Music(client))

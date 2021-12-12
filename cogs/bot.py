@@ -1,4 +1,4 @@
-import platform, epoch
+import platform
 from datetime import datetime
 from psutil import Process, cpu_percent
 from os import getpid
@@ -19,8 +19,8 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     @commands.command(slash_command=True)
     async def uptime(self, ctx):
         delta_uptime = datetime.now() - self.client.launch_time
-        time = int(delta_uptime.total_seconds())   
-             
+        time = int(delta_uptime.total_seconds())
+
         # Converting Time Back To Readble Letters
         minutes, seconds = divmod(time, 60)
         hours, minutes = divmod(minutes, 60)
@@ -61,17 +61,19 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         embed.add_field(name="Bot Developers:", value="<@624572769484668938>")
 
         embed.set_footer(text=f"Mr.Natural#3549 | {self.client.user.name}")
-        embed.set_author(name=self.client.user.name, icon_url=self.client.user.avatar.url)
+        embed.set_author(name=self.client.user.name,
+                         icon_url=self.client.user.avatar.url)
 
         await ctx.send(embed=embed)
 
     @commands.command(name='news', description='See the latest news about this bot!')
     async def news(self, ctx):
         news = discord.Embed(
-                        description="**📢 __New Fun Commands Added__**\n• `trivia` to answer difficult questions.\n• `pokedex` to search info about a pokémon.\n• `wyr` to answer would you rather questions.\n• `joke` to read wholesome jokes.\n\n**🤖 __ChatBot AI Implementation__**\n• Use `#chatbot <channel-id>` to start ChatBot.\n• Use `#chatbot stop` to stop chatbot.\n\n**🔗 __Some New Links__**\n• [**Website**](https://www.pypke.tk)\n• [**Docs**](https://docs.pypke.tk)\n• [**Support Server**](https://discord.gg/mYXgu2NVzH)",
-                        color=0xF7770F
-                )
-        news.set_footer(text="If you encounter any bugs or breaks report them on our Support Server.")
+            description="**📢 __New Fun Commands Added__**\n• `trivia` to answer difficult questions.\n• `pokedex` to search info about a pokémon.\n• `wyr` to answer would you rather questions.\n• `joke` to read wholesome jokes.\n\n**🤖 __ChatBot AI Implementation__**\n• Use `#chatbot <channel-id>` to start ChatBot.\n• Use `#chatbot stop` to stop chatbot.\n\n**🔗 __Some New Links__**\n• [**Website**](https://www.pypke.tk)\n• [**Docs**](https://docs.pypke.tk)\n• [**Support Server**](https://discord.gg/mYXgu2NVzH)",
+            color=0xF7770F
+        )
+        news.set_footer(
+            text="If you encounter any bugs or breaks report them on our Support Server.")
         news.set_author(name="Bot Changes", url="https://docs.pypke.tk/")
         await ctx.send(embed=news)
 
@@ -102,7 +104,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         )
         em = discord.Embed(
             description="Links related to Pypke.",
-            color=self.client.colors["og_blurple"]            
+            color=self.client.colors["og_blurple"]
         )
         await ctx.send(
             embed=em,
@@ -126,7 +128,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         )
         em = discord.Embed(
             description="Bot development is hard & I need money for bot hosting as you know.\nSo you can support this bot by donating. Thanks!\nIf you don't have money by still wanna help consider voting for us everyday on topgg. Please",
-            color=self.client.colors["og_blurple"]            
+            color=self.client.colors["og_blurple"]
         )
         await ctx.send(embed=em, components=[donate_btn])
 
@@ -162,7 +164,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
 
         if prefix == None:
             return await ctx.send(f"My current prefix for this server is `{current_prefix}`. Use `{current_prefix}prefix <prefix>` to change it")
-        
+
         self.client.prefixes[ctx.guild.id] = prefix
         await self.client.config.upsert(
             {
@@ -212,11 +214,11 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
             timestamp=datetime.now()
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
-                
+
         msg = await channel.send(embed=embed)
         await msg.add_reaction("✅")
         await msg.add_reaction("❌")
-        
+
         await ctx.send("Message sent! Thanks for your feedback!")
 
 

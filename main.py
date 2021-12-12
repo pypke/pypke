@@ -3,16 +3,19 @@ from utils.mongo import Document
 from utils.keep_alive import keep_alive
 
 # Other Imports
-import os, asyncio, random, topgg
+import os
+import asyncio
+import random
+import topgg
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
 import motor.motor_asyncio
 
 # Discord Imports
-import discord, dislash
+import discord
+import dislash
 from discord.ext import commands
-from dislash import Button, ButtonStyle, ActionRow
 
 
 # Path
@@ -23,6 +26,8 @@ cwd = str(cwd)
 owners = [624572769484668938]
 
 # Code To Get Prefix
+
+
 async def get_prefix(client, message):
     """Gives the prefix for that guild.
 
@@ -32,7 +37,7 @@ async def get_prefix(client, message):
 
     Returns:
         prefix: The prefix for that guild.
-    """    
+    """
     # If dm's
     if not message.guild:
         return commands.when_mentioned_or(client.prefix)(client, message)
@@ -48,7 +53,7 @@ async def get_prefix(client, message):
         # Make sure we have a useable prefix
         if not data or "prefix" not in data:
             return commands.when_mentioned_or(client.prefix)(client, message)
-            
+
         client.prefixes[message.guild.id] = data["prefix"]
         return commands.when_mentioned_or(data["prefix"])(client, message)
     except Exception:
@@ -64,8 +69,10 @@ async def status_task():
         await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="?help | ?invite", type=discord.ActivityType.watching))
         await asyncio.sleep(30)
 
+
 def random_color(color_list):
     return random.choice(color_list)
+
 
 class PypkeBot(commands.Bot):
     def __init__(self):
@@ -81,6 +88,7 @@ class PypkeBot(commands.Bot):
         )
 
         super().remove_command("help")
+
 
 # Client Info
 client = PypkeBot()
@@ -112,10 +120,10 @@ client.colors = {
 client.color_list = [c for c in client.colors.values()]
 client.randcolor = random_color(client.color_list)
 
-#Mongo DB Stuff
+# Mongo DB Stuff
 client.connection_url = os.getenv('mongo')
 
-#Filter Words
+# Filter Words
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
 
 if __name__ == "__main__":
@@ -128,29 +136,32 @@ if __name__ == "__main__":
     # client.load_extension('slashcogs.mod')
 
     # Database Connection
-    client.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(client.connection_url))
+    client.mongo = motor.motor_asyncio.AsyncIOMotorClient(
+        str(client.connection_url))
     client.db = client.mongo["pypke"]
-    client.config = Document(client.db, "config") # For prefixes
-    client.mutes = Document(client.db, "mutes") # For muted users
-    client.blacklisted_users = Document(client.db, "blacklist") # For blacklisted users
-    client.giveaways = Document(client.db, "giveaways") # For Giveaways
-    client.afks = Document(client.db, "afks") # For afk users 
-    client.chatbot = Document(client.db, "chatbot") # For chatbot
-    client.remind = Document(client.db, "remind") # For remind command
+    client.config = Document(client.db, "config")  # For prefixes
+    client.mutes = Document(client.db, "mutes")  # For muted users
+    client.blacklisted_users = Document(
+        client.db, "blacklist")  # For blacklisted users
+    client.giveaways = Document(client.db, "giveaways")  # For Giveaways
+    client.afks = Document(client.db, "afks")  # For afk users
+    client.chatbot = Document(client.db, "chatbot")  # For chatbot
+    client.remind = Document(client.db, "remind")  # For remind command
 
     print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
+
 
 @client.event
 async def on_ready():
     await client.wait_until_ready()
     # Client Connection
     os.system('clear')
-    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
+    print(
+        f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
     print("---------")
     client.loop.create_task(status_task())
 
-        
     # Muted Users
     currentMutes = await client.mutes.get_all()
     for mute in currentMutes:
@@ -159,25 +170,29 @@ async def on_ready():
     # Current Giveaways
     currentGiveaways = await client.giveaways.get_all()
     for ga in currentGiveaways:
-        client.current_giveaways[ga["_id"]] = ga 
-    
+        client.current_giveaways[ga["_id"]] = ga
+
+
 @client.event
 async def on_member_join(member):
     # More Updates Needed
     pass
-    
+
+
 @client.event
 async def on_member_remove(member):
     # More Updates Needed
     pass
 
+
 @client.event
 async def on_guild_join(guild):
     # More Updates Needed
     pass
-    
+
+
 @client.event
-async def on_message(message):  
+async def on_message(message):
     """
     if not message.author.bot:
         if profanity.contains_profanity(message.content.lower()):
@@ -187,7 +202,7 @@ async def on_message(message):
     # Checks If Message Author Is A Bot
     if message.author.bot:
         return
-    
+
     # If The Bot Is Mentioned Tell The Bot's Prefix
     if client.user.mentioned_in(message):
         prefix = await get_prefix(client, message)
@@ -199,7 +214,7 @@ async def on_message(message):
         )
 
         await message.channel.send(embed=embed, delete_after=5)
-    
+
     # If User Has Set Afk Tell The Message Author That He/She Is Afk
     afks = await client.afks.get_all()
     for value in afks:
@@ -211,14 +226,14 @@ async def on_message(message):
                 timestamp=datetime.now()
             )
             if value['text'] is None:
-                afk_embed.description=discord.Embed.Empty
+                afk_embed.description = discord.Embed.Empty
             else:
-                afk_embed.description=f"**Status:** {value['text']}"
-            
+                afk_embed.description = f"**Status:** {value['text']}"
+
             afk_embed.set_footer(text="Don't Ping This User Pls!")
             afk_embed.set_thumbnail(url=afk_user.avatar.url)
             await message.channel.send(embed=afk_embed)
-        
+
     # chat_guilds = await client.chatbot.get_all()
     # # for guild in chat_guilds:
     # if message.channel.id == 892071521634361345:
@@ -278,7 +293,7 @@ async def on_message(message):
 #     embed.set_footer(text="Bot by Mr.Natural#3549")
 
 #     await ctx.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
-    
+
 # @client.slash_command(description="Checks for how long the bot is up")
 # async def uptime(ctx):
 #     delta_uptime = datetime.now() - client.launch_time
@@ -286,6 +301,7 @@ async def on_message(message):
 #     minutes, seconds = divmod(remainder, 60)
 #     days, hours = divmod(hours, 24)
 #     await ctx.respond(content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
+
 
 @client.command()
 @commands.is_owner()
@@ -295,16 +311,16 @@ async def boosters(ctx):
     if not members:
         return await ctx.send("Sad, No one is boosting this server.")
     embed = discord.Embed(
-            title=f"No. Of Booster: {len(members)}",
-            description=(
-                "\n".join(
-                    f"**{i+1}.** {member.display_name}"
-                    for i, member in enumerate(members)
-                )
-            ),
-            colour=random.choice(client.color_list),
-            timestamp=datetime.now()
-        )
+        title=f"No. Of Booster: {len(members)}",
+        description=(
+            "\n".join(
+                f"**{i+1}.** {member.display_name}"
+                for i, member in enumerate(members)
+            )
+        ),
+        colour=random.choice(client.color_list),
+        timestamp=datetime.now()
+    )
     embed.add_field(name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
     embed.set_author(name="Server Boosters")
     embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)

@@ -8,6 +8,7 @@ needing to know the syntax for it. Just pass in the db instance
 on init and the document to create an instance on and boom
 """
 
+
 class Document:
     def __init__(self, connection, document_name):
         """
