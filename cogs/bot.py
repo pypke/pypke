@@ -12,11 +12,11 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases=['pong'])
+    @commands.command(aliases=['pong'], slash_command=True)
     async def ping(self, ctx):
         await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(self.client.latency * 1000)}ms`")
 
-    @commands.command()
+    @commands.command(slash_command=True)
     async def uptime(self, ctx):
         delta_uptime = datetime.now() - self.client.launch_time
         time = int(delta_uptime.total_seconds())   
@@ -36,7 +36,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
             duration = duration + f"{seconds} secs "
         await ctx.send(f"I'm up since {duration}.")
 
-    @commands.command()
+    @commands.command(slash_command=True)
     async def stats(self, ctx):
         pythonVersion = platform.python_version()
         dpyVersion = discord.__version__
@@ -102,7 +102,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         )
         em = discord.Embed(
             description="Links related to Pypke.",
-            color=self.client.color
+            color=self.client.colors["og_blurple"]            
         )
         await ctx.send(
             embed=em,
@@ -126,9 +126,24 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         )
         em = discord.Embed(
             description="Bot development is hard & I need money for bot hosting as you know.\nSo you can support this bot by donating. Thanks!\nIf you don't have money by still wanna help consider voting for us everyday on topgg. Please",
-            color=self.client.color
+            color=self.client.colors["og_blurple"]            
         )
         await ctx.send(embed=em, components=[donate_btn])
+
+    @commands.command(name="vote", description="Vote for the bot because it's really cool!", slash_command=True)
+    async def vote_command(self, ctx):
+        vote_btn = ActionRow(
+            Button(
+                style=ButtonStyle.link,
+                label="Vote For Us!",
+                url="https://top.gg/bot/823051772045819905"
+            )
+        )
+        em = discord.Embed(
+            description="Vote for Pypke, So that we can continue to exist.",
+            color=self.client.colors["og_blurple"]
+        )
+        await ctx.send(embed=em, components=[vote_btn])
 
     @commands.command(
         name="prefix",
@@ -183,10 +198,10 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         except Exception:
             pass
 
-    @commands.command(slash_command=True, description="Send feedback to the developer's server.", aliases=["report"])
+    @commands.command(name="feedback", description="Send feedback to the developer's server.", aliases=["report"], slash_command=True)
     @commands.guild_only()
     @commands.cooldown(1, 30, commands.BucketType.user)
-    async def feedback(self, ctx, *, message):
+    async def feedback_command(self, ctx, *, message):
         """Send feedback to the developer's server."""
 
         channel = await self.client.fetch_channel(911854839074537513)

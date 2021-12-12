@@ -1,9 +1,9 @@
-import random
+import random, math
 from datetime import datetime
 from typing import Union, Optional
 from utils.pagination import Pagination
 
-import discord, random, asyncio
+import discord
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 
@@ -102,13 +102,25 @@ class HelpCog(commands.Cog):
             for sub_cmd in cmd.walk_commands():
                 if not sub_cmd.hidden:
                     commands.append(f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
+            
+            # I Know there is surely a better way to do this but Idfk it.
+            per_page = 3
+            pages = math.ceil(len(commands) / per_page)
+            page = 1
+            embeds = []
+            while page <= pages:
+                start = (page - 1) * per_page
+                end = start + per_page
+                for command in commands[start:end]:
+                    embed = discord.Embed(
+                        title=self.get_syntax(cmd),
+                        description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" + "\n\n".join(commands[start:end]),
+                        color=self.client.colors["og_blurple"]
+                    )
+                embeds.append(embed)    
+                page += 1
 
-            embed = discord.Embed(
-                title=self.get_syntax(cmd),
-                description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" + "\n\n".join(commands),
-                color=self.client.colors["og_blurple"]
-            )
-            return embed
+            return embeds
         
         embed = discord.Embed(
             title=self.get_syntax(cmd),
@@ -160,9 +172,16 @@ class HelpCog(commands.Cog):
         elif entity_type == "command":
             command = self.client.get_command(_entity)
             embed = self.command_help(ctx, command)
+
             if not embed:
-                raise commands.CommandNotFound
-            
+                return
+
+            if isinstance(embed, list):
+                if len(embed) > 1:
+                    return await Pagination.paginate(self, ctx, embed)
+                else:
+                    embed = embed[0]
+
         else:
             return
 

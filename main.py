@@ -38,7 +38,7 @@ async def get_prefix(client, message):
         return commands.when_mentioned_or(client.prefix)(client, message)
 
     try:
-        return client.prefixes[message.guild.id]
+        return commands.when_mentioned_or(client.prefixes[message.guild.id])(client, message)
     except KeyError:
         pass
 
@@ -69,14 +69,15 @@ def random_color(color_list):
 
 class PypkeBot(commands.Bot):
     def __init__(self):
-        self.__version__ = "1.7.6"
+        self.__version__ = "v1.7.6"
         super().__init__(
             command_prefix=get_prefix,
             description="A Multi-purpose discord bot and apparently a cat!",
             strip_after_prefix=True,
             case_insensitive=True,
             owner_ids=owners,
-            intents=discord.Intents.all()
+            intents=discord.Intents.all(),
+            slash_command_guilds=[850732056790827020]
         )
 
         super().remove_command("help")
@@ -88,7 +89,7 @@ client.slash = dislash.InteractionClient(client, modify_send=True, show_warnings
 
 client.launch_time = datetime.now()
 client.cwd = cwd
-client.version = "1.7.6"
+client.version = "v1.7.6"
 client.muted_users = {}
 client.current_giveaways = {}
 client.prefix = "?"
@@ -136,7 +137,6 @@ if __name__ == "__main__":
     client.afks = Document(client.db, "afks") # For afk users 
     client.chatbot = Document(client.db, "chatbot") # For chatbot
     client.remind = Document(client.db, "remind") # For remind command
-    
 
     print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
@@ -310,9 +310,6 @@ async def boosters(ctx):
     embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
-
-
-
 
 keep_alive()
 client.run(os.getenv('token'), reconnect=True)

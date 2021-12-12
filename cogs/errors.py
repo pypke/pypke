@@ -20,7 +20,7 @@ class ErrorsCog(commands.Cog):
                     ratio = fuzz.ratio(ctx.message.content, cmd)
                     if ratio >= 59:
                         i += 1
-                        msg = msg + f"[{i}]. `{cmd}`\n"
+                        msg = msg + f"**{i}.** `{cmd}`\n"
                         if i >= 10:
                             break
                     else:

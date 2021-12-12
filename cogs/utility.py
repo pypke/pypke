@@ -347,8 +347,10 @@ class Utility(commands.Cog):
 
                 if (inter.clicked_button.custom_id) == "yes":
                     channel = ctx.channel
+                    position = channel.position
                     new_channel = await channel.clone(reason=f"Channel Nuked By {ctx.author} (ID: {ctx.author.id})")
                     await channel.delete(reason=f"Channel Nuked By {ctx.author} (ID: {ctx.author.id})")
+                    await new_channel.edit(position=position)
                     await new_channel.send(f"{ctx.author.mention} Successfully nuked the channel!")
                     break
                 else:
@@ -363,10 +365,27 @@ class Utility(commands.Cog):
             except:
                 break
 
+    @commands.command(
+        name="slowmode", 
+        description="Change the channels slowmode time.\nExample: `?slowmo 1h`\nPossible values:\n`0s, 5s, 10s, 15s, 30s, 1m, 2m, 5m, 10m, 15m, 30m, 1h, 2h, 6h`",
+        aliases=["slowmo"]
+    )
+    @commands.guild_only()
+    @commands.has_permissions(manage_channels=True)
+    @commands.cooldown(1, 5, commands.BucketType.user)
+    async def slowmode_command(self, ctx, channel: Optional[discord.TextChannel], slowmode: TimeConverter):
+        channel = channel or ctx.channel
+
+        if slowmode > 21600:
+            slowmode = 21600
+
+        await channel.edit(slowmode_delay=slowmode)
+        await ctx.send(f"Set channel slowmode to {channel.slowmode_delay} secs.")
+
     @commands.command(name="mail", description="Mail/Dm a user through the bot because you're lazy ;-; to manually do it.", aliases=['dm'])
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    @commands.cooldown(1, 10, commands.BucketType.user)
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def mail_command(self, ctx, user: discord.User, *, msg):
         try:
             mail = discord.Embed(

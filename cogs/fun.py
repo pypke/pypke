@@ -500,7 +500,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="reddit",
-        description="This command sends a random post from given subreddit.\n__NSFW subreddit requires NSFW marked text channel.__"
+        description="Random post from given subreddit.\n__NSFW subreddit requires NSFW marked text channel.__"
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def reddit_command(self, ctx, subreddit: str):
@@ -517,7 +517,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             if not ctx.channel.is_nsfw():
                 return await ctx.send("The subreddit you are requesting is NSFW. So, This channel needs to be marked NSFW.")
 
-        async for submission in subreddit.hot(limit=100):
+        async for submission in subreddit.hot(limit=75):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -542,14 +542,14 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="meme",
-        description="This command sends a random meme from reddit."
+        description="Random meme from reddit."
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def meme(self, ctx):
         subreddit = await reddit.subreddit(random.choice(["memes", "dankmemes", "wholesomemes"]))
         all_subs = []
 
-        async for submission in subreddit.hot(limit=100):
+        async for submission in subreddit.hot(limit=75):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -573,7 +573,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="cat",
-        description="This Sends A Random Cat Picture",
+        description="Random cat image.",
         aliases=['cats']
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -581,7 +581,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         subreddit = await reddit.subreddit("catpictures")
         all_subs = []
 
-        async for submission in subreddit.hot(limit=100):
+        async for submission in subreddit.hot(limit=75):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -597,7 +597,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="dog",
-        description="This Sends A Random Dog Picture",
+        description="Random dog image.",
         aliases=['dogs']
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -605,7 +605,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         subreddit = await reddit.subreddit("dogpictures")
         all_subs = []
         
-        async for submission in subreddit.hot(limit=100):
+        async for submission in subreddit.hot(limit=75):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -622,8 +622,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="8ball",
-        description="This command answers a question like a 8Ball",
-        usage="<question>"
+        description="Answers a question like a 8Ball",
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def _8ball(self, ctx, *, question):
@@ -637,13 +636,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             "My sources say no", "Outlook not so good", "Very doubtful"
         ]
 
-        if question == None:
-            await ctx.send("Question is a required argument which is missing!!")
-            return
-
         embed = discord.Embed(
             title=":8ball:| **8Ball**",
-            color=discord.Color.random()
+            color=self.client.colors["og_blurple"]
         )
         embed.add_field(
             name="**Question**:",
@@ -655,12 +650,12 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             value=f"{random.choice(responses)}",
             inline=False
         )
-        embed.set_footer(text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar_url)
+        embed.set_footer(text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command(
         name="choose",
-        description="This command helps you to choose between things.",
+        description="Chooses between things.",
         aliases=["pick"]
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -675,7 +670,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="pat",
-        description="This command pats a user on back."
+        description="Pats a user."
     )
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
