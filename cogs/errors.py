@@ -1,47 +1,90 @@
-import discord
-import dislash
-from discord.ext import commands
+from thefuzz import fuzz
 
-class Errors(commands.Cog):
+import discord
+from discord.ext import commands
+# from dislash import InteractionClient, ContextMenuInteraction, ApplicationCommandError
+
+class ErrorsCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.MissingPermissions):
-            await ctx.send("You can't do that?.", delete_after=5)
-        if isinstance(error, commands.BotMissingPermissions):
-            await ctx.send("Bot doesn't have required permission to do that mind giving the bot the required perms!!.\nOr you are trying to do it to a member with higher role than the bot", delete_after=5)
-        elif isinstance(error, commands.CommandNotFound):
-            await ctx.send(f"That's not a valid command! Do `{self.client.prefix}help` for the list of commands...", delete_after=5)
-        elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Please enter the required argument!", delete_after=5)
-        elif isinstance(error, commands.NotOwner):
-            await ctx.send("Only Owner Of The Bot Can Use This Command!!")
-        elif isinstance(error, commands.UserNotFound):
-            await ctx.send("User With That Name Not Found. Try Again!")
-        elif isinstance(error, commands.MemberNotFound):
-            await ctx.send("Member With That Name Not Found. Try Again!")
-        elif isinstance(error, commands.ChannelNotFound):
-            await ctx.send("Channel Not Found. Try Again!")
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send("This Command Is On Cooldown So, Chill!")
-        elif isinstance(error, RuntimeWarning):
-            pass
-        elif isinstance(error, commands.ExtensionNotLoaded):
-            pass
-        elif isinstance(error, commands.ExtensionAlreadyLoaded):
-            pass
-        elif isinstance(error, commands.ExtensionNotFound):
-            pass
-        elif isinstance(error, commands.CommandInvokeError):
-            if ctx.channel.id == 887258899726606336:
-                await ctx.send(f"Oops Looks Like Something Went Wrong!!\nDetails:-`{error}`", delete_after=5)
-                raise error
+        if isinstance(error, commands.CommandNotFound):
+            cmd_list = self.client.all_commands
+            i = 0
+            msg = f"That's not a valid command! Do `{ctx.prefix}help` for the list of commands.\nDid you meant one of these?\n"
+            for cmd in cmd_list:
+                command = self.client.get_command(cmd)
+                if not command.hidden == True:
+                    ratio = fuzz.ratio(ctx.message.content, cmd)
+                    if ratio >= 59:
+                        i += 1
+                        msg = msg + f"**{i}.** `{cmd}`\n"
+                        if i >= 10:
+                            break
+                    else:
+                        continue
+            if i != 0:
+                await ctx.send(msg, delete_after=7)
             else:
-                raise error
+                pass
+
+        elif isinstance(error, commands.NoPrivateMessage):
+            try:
+                await ctx.author.send(f'{ctx.command} can not be used in Private Messages.')
+            except discord.HTTPException:
+                pass
+
+        elif isinstance(error, commands.MissingPermissions):
+            try:
+                await ctx.send(f"You are missing `{', '.join(error.missing_permissions)}` permission(s) to run this command.", delete_after=5)
+                await ctx.message.delete()
+            except Exception: pass
+
+        elif isinstance(error, commands.BotMissingPermissions):
+            try:
+                await ctx.send(f"Bot doesn't have the required `{', '.join(error.missing_permissions)}` permission(s).", delete_after=5)
+                await ctx.message.delete()
+            except Exception: pass
+
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send(f"`{error.param.name}` is a required argument that is missing.")
+            # await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
+
+        elif isinstance(error, commands.NotOwner):
+            await ctx.send("Lol, You should be owner of the bot to do this.")
+
+        elif isinstance(error, commands.UserNotFound):
+            await ctx.send(f"User \"{error.argument}\" doesn't exist. Try again!")
+
+        elif isinstance(error, commands.MemberNotFound):
+            await ctx.send(f"Member \"{error.argument}\" is not in this server or doesn't exist. Try again!")
+
+        elif isinstance(error, commands.ChannelNotFound):
+            await ctx.send(f"Channel \"{error.argument}\" not found. Try again!")
+
+        elif isinstance(error, commands.BadArgument):
+            await ctx.send(str(error))
+
+        elif isinstance(error, commands.BadUnionArgument):
+            await ctx.send(str(error))
+
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            await ctx.send(f"Woah, This command is already in progress.", delete_after=5)
+
+        elif isinstance(error, commands.CommandOnCooldown):
+            time = ctx.command.get_cooldown_retry_after(ctx)
+            await ctx.send(f"Chill! This command is on cooldown for `{round(time)}` seconds.")
+
+        elif isinstance(error, RuntimeWarning):
+            return
+            
+        elif isinstance(error, commands.CommandInvokeError):
+            await ctx.send(f"```diff\n{error.original}\n\n- Looks like an error occured, pls consider reporting it on support server.\n```")
+            raise error
         else:
             raise error
             
 def setup(client):
-    client.add_cog(Errors(client))
+    client.add_cog(ErrorsCog(client))
