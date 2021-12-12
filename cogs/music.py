@@ -1,3 +1,5 @@
+from utils.pagination import Pagination
+
 import math
 import re
 import aiohttp
@@ -288,23 +290,49 @@ class Music(commands.Cog):
         if not player.queue:
             return await ctx.send('Nothing queued.')
 
-        items_per_page = 10
-        pages = math.ceil(len(player.queue) / items_per_page)
+        # items_per_page = 10
+        # pages = math.ceil(len(player.queue) / items_per_page)
 
-        start = (page - 1) * items_per_page
-        end = start + items_per_page
+        # start = (page - 1) * items_per_page
+        # end = start + items_per_page
 
-        queue_list = ''
-        for index, track in enumerate(player.queue[start:end], start=start):
-            queue_list += f'`{index + 1}.` [{track.title}]({track.uri})\n'
+        # queue_list = ''
+        # for index, track in enumerate(player.queue[start:end], start=start):
+        #     queue_list += f'`{index + 1}.` [{track.title}]({track.uri})\n'
 
-        embed = discord.Embed(
-            title=f"Queue Info | {len(player.queue)} Tracks",
-            description=f'{queue_list}',
-            colour=self.client.colors["og_blurple"]
-        )
-        embed.set_footer(text=f'Page {page}/{pages}')
-        await ctx.send(embed=embed)
+        # embed = discord.Embed(
+        #     title=f"Queue Info | {len(player.queue)} Tracks",
+        #     description=f'{queue_list}',
+        #     colour=self.client.colors["og_blurple"]
+        # )
+        # embed.set_footer(text=f'Page {page}/{pages}')
+
+        # I Know there is surely a better way to do this but Idfk it.
+        per_page = 10
+        pages = math.ceil(len(player.queue) / per_page)
+        page = 1
+        embeds = []
+        while page <= pages:
+            start = (page - 1) * per_page
+            end = start + per_page
+
+            queue_list = ''
+            for index, track in enumerate(player.queue[start:end], start=start):
+                queue_list += f'`{index + 1}.` [{track.title}]({track.uri})\n'
+
+            embed = discord.Embed(
+                title=f"Queue Info | {len(player.queue)} Tracks",
+                description=f'{queue_list}',
+                colour=self.client.colors["og_blurple"]
+            )
+            embed.set_footer(text=f'Page {page}/{pages}')
+            embeds.append(embed)
+            page += 1
+
+        if len(embeds) > 1:
+            await Pagination.paginate(self, ctx, embeds)
+        else:
+            await ctx.send(embed=embed[0])
 
     @commands.command(
         name="pause",
