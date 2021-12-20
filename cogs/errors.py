@@ -54,7 +54,8 @@ class ErrorsCog(commands.Cog):
             # await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
 
         elif isinstance(error, commands.NotOwner):
-            await ctx.send("Lol, You should be owner of the bot to do this.")
+            # await ctx.send("Lol, You should be owner of the bot to do this.")
+            pass
 
         elif isinstance(error, commands.UserNotFound):
             await ctx.send(f"User \"{error.argument}\" doesn't exist. Try again!")

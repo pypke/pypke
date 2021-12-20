@@ -36,7 +36,7 @@ class GiveawayHelper:
             end_embed = discord.Embed(
                 title=data['prize'],
                 description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: No one",
-                color=self.client.colors["yellow"]
+                color=self.client.colors["og_blurple"]
             )
             end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
             await msg.edit(embed=end_embed)
@@ -46,7 +46,7 @@ class GiveawayHelper:
         end_embed = discord.Embed(
             title=data['prize'],
             description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
-            color=self.client.colors["yellow"]
+            color=self.client.colors["og_blurple"]
         )
         end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
         try:
@@ -107,7 +107,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             title=f"{prize}",
             description=
             f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
-            color=self.client.colors["yellow"])
+            color=self.client.colors["og_blurple"])
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         await ctx.send(
             f"The Giveaway will be in {channel.mention} and will last till <t:{epoch_time}:f> !"
@@ -137,7 +137,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         embed = discord.Embed(
             title="Create Giveaway!",
             description="Let's start with this giveaway!\n`Answer these questions within 30 seconds!`",
-            color=self.client.colors["yellow"]
+            color=self.client.colors["og_blurple"]
         )
         ques_msg = await ctx.send(embed=embed)
         await asyncio.sleep(2)
@@ -153,7 +153,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             embed = discord.Embed(
                 title="Create Giveaway!",
                 description=question,
-                color=self.client.colors["yellow"]
+                color=self.client.colors["og_blurple"]
             )
             embeds.append(embed)
 
@@ -202,7 +202,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         embed = discord.Embed(
             title=f"{prize}",
             description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
-            color=self.client.colors["yellow"]
+            color=self.client.colors["og_blurple"]
         )
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         my_msg = await channel.send(embed=embed)
@@ -231,7 +231,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
         data = await self.client.giveaways.get_by_id(_id)
         if data:
-            return await ctx.send("This giveaway hasn't ended yet. If you want to end it use `#gend` instead.")
+            return await ctx.send(f"This giveaway hasn't ended yet. If you want to end it use `{ctx.prefix}gend` instead.")
 
         try:
             new_msg = await channel.fetch_message(_id)
