@@ -3,15 +3,16 @@ from utils.mongo import Document
 from utils.keep_alive import keep_alive
 
 # Other Imports
-import os, asyncio, random, topgg
+import os, asyncio, random, topgg, re
+import motor.motor_asyncio
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
-import motor.motor_asyncio
+from copy import deepcopy
 
 # Discord Imports
 import discord, dislash
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dislash import Button, ButtonStyle, ActionRow
 
 
@@ -23,46 +24,37 @@ cwd = str(cwd)
 owners = [624572769484668938]
 
 # Code To Get Prefix
-async def get_prefix(client, message):
+async def get_prefix(bot, message):
     """Gives the prefix for that guild.
 
     Args:
-        client (commands.Bot): The running bot instance.
+        bot (commands.Bot): The running bot instance.
         message (message): The context message.
 
     Returns:
         prefix: The prefix for that guild.
-    """    
+    """
     # If dm's
     if not message.guild:
-        return commands.when_mentioned_or(client.prefix)(client, message)
+        return bot.prefix
 
     try:
-        return commands.when_mentioned_or(client.prefixes[message.guild.id])(client, message)
+        bot.prefixes[message.guild.id]
     except KeyError:
         pass
 
     try:
-        data = await client.config.find(message.guild.id)
+        data = await bot.config.find(message.guild.id)
 
         # Make sure we have a useable prefix
         if not data or "prefix" not in data:
-            return commands.when_mentioned_or(client.prefix)(client, message)
-            
-        client.prefixes[message.guild.id] = data["prefix"]
-        return commands.when_mentioned_or(data["prefix"])(client, message)
+            return bot.prefix
+
+        bot.prefixes[message.guild.id] = data["prefix"]
+        return data["prefix"]
     except Exception:
-        client.prefixes[message.guild.id] = client.prefix
-        return commands.when_mentioned_or(client.prefix)(client, message)
-
-
-# Status Cycle
-async def status_task():
-    while not client.is_closed():
-        await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="@Pypke", type=discord.ActivityType.listening))
-        await asyncio.sleep(30)
-        await client.change_presence(status=discord.Status.idle, activity=discord.Activity(name="?help | ?invite", type=discord.ActivityType.watching))
-        await asyncio.sleep(30)
+        bot.prefixes[message.guild.id] = bot.prefix
+        return bot.prefix
 
 def random_color(color_list):
     return random.choice(color_list)
@@ -82,20 +74,21 @@ class PypkeBot(commands.Bot):
 
         super().remove_command("help")
 
-# Client Info
-client = PypkeBot()
-client.topgg = topgg.DBLClient(client, token=os.getenv("topgg"), autopost=True, post_shard_count=True)
-client.slash = dislash.InteractionClient(client, modify_send=True, show_warnings=True, sync_commands=True)
+# bot Info
+bot = PypkeBot()
+bot.topgg = topgg.DBLClient(bot, token=os.getenv("topgg"), autopost=True, post_shard_count=True)
+bot.slash = dislash.InteractionClient(bot, modify_send=True, show_warnings=True, sync_commands=True)
 
-client.launch_time = datetime.now()
-client.cwd = cwd
-client.version = "v1.7.6"
-client.muted_users = {}
-client.current_giveaways = {}
-client.prefix = "?"
-client.prefixes = {}
-client.color = 0x6495ED
-client.colors = {
+bot.launch_time = datetime.now()
+bot.cwd = cwd
+bot.version = "v1.7.6"
+bot.muted_users = {}
+bot.current_giveaways = {}
+bot.current_afks = {}
+bot.prefix = "?"
+bot.prefixes = {}
+bot.color = 0x6495ED
+bot.colors = {
     "white": 0xF7F8FF,
     "aqua": 0x00A6B4,
     "green": 0x2ECC71,
@@ -109,11 +102,12 @@ client.colors = {
     "new_blurple": 0x5865F2,
     "og_blurple": 0x7289da
 }
-client.color_list = [c for c in client.colors.values()]
-client.randcolor = random_color(client.color_list)
+bot.color_list = [c for c in bot.colors.values()]
+bot.randcolor = random_color(bot.color_list)
+bot.afk_allowed_channel = {}
 
 #Mongo DB Stuff
-client.connection_url = os.getenv('mongo')
+bot.connection_url = os.getenv('mongo')
 
 #Filter Words
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
@@ -123,61 +117,79 @@ if __name__ == "__main__":
     os.system("clear")
     for file in os.listdir(cwd + "/cogs"):
         if file.endswith(".py") and not file.startswith("_"):
-            client.load_extension(f"cogs.{file[:-3]}")
-    client.load_extension('jishaku')
-    # client.load_extension('slashcogs.mod')
+            bot.load_extension(f"cogs.{file[:-3]}")
+    bot.load_extension('jishaku')
+    # bot.load_extension('slashcogs.mod')
 
     # Database Connection
-    client.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(client.connection_url))
-    client.db = client.mongo["pypke"]
-    client.config = Document(client.db, "config") # For prefixes
-    client.mutes = Document(client.db, "mutes") # For muted users
-    client.blacklisted_users = Document(client.db, "blacklist") # For blacklisted users
-    client.giveaways = Document(client.db, "giveaways") # For Giveaways
-    client.afks = Document(client.db, "afks") # For afk users 
-    client.chatbot = Document(client.db, "chatbot") # For chatbot
-    client.remind = Document(client.db, "remind") # For remind command
+    bot.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(bot.connection_url))
+    bot.db = bot.mongo["pypke"]
+    bot.config = Document(bot.db, "config") # For prefixes
+    bot.mutes = Document(bot.db, "mutes") # For muted users
+    bot.blacklisted_users = Document(bot.db, "blacklist") # For blacklisted users
+    bot.giveaways = Document(bot.db, "giveaways") # For Giveaways
+    bot.afks = Document(bot.db, "afks") # For afk users
+    bot.chatbot = Document(bot.db, "chatbot") # For chatbot
+    bot.remind = Document(bot.db, "remind") # For remind command
 
-    print(f"\u001b[31m{len(client.muted_users)} Users Are Muted!!\u001b[0m")
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
 
-@client.event
-async def on_ready():
-    await client.wait_until_ready()
-    # Client Connection
-    os.system('clear')
-    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {client.user.name}\nId: {client.user.id}\nTotal Guilds: {len(client.guilds)}")
-    print("---------")
-    client.loop.create_task(status_task())
-
-        
-    # Muted Users
-    currentMutes = await client.mutes.get_all()
+@tasks.loop(seconds=30)
+async def update_db_cache(): # To update cache every 5 minutes
+    print("Caching DB")
+    # Current mutes
+    currentMutes = await bot.mutes.get_all()
     for mute in currentMutes:
-        client.muted_users[mute["_id"]] = mute
+        bot.muted_users[mute["_id"]] = mute
 
-    # Current Giveaways
-    currentGiveaways = await client.giveaways.get_all()
-    for ga in currentGiveaways:
-        client.current_giveaways[ga["_id"]] = ga 
-    
-@client.event
-async def on_member_join(member):
-    # More Updates Needed
-    pass
-    
-@client.event
-async def on_member_remove(member):
-    # More Updates Needed
-    pass
+    # Current giveaways
+    currentGiveaways = await bot.giveaways.get_all()
+    for giveaway in currentGiveaways:
+        bot.current_giveaways[giveaway["_id"]] = giveaway
 
-@client.event
-async def on_guild_join(guild):
-    # More Updates Needed
-    pass
-    
-@client.event
-async def on_message(message):  
+    currentAfks = await bot.afks.get_all()
+    for afk in currentAfks:
+        bot.current_afks[afk['_id']] = afk
+
+@tasks.loop(minutes=2)
+async def status_task():
+    print("Started activity")
+    status = [
+        {
+            "name": "@Pypke",
+            "type": discord.ActivityType.listening,
+        },
+        
+        {
+            "name": "?help | ?invite",
+            "type": discord.ActivityType.watching,
+        },
+
+        {
+            "name": len(bot.guilds),
+            "type": discord.ActivityType.watching,
+        }
+    ]
+    while not bot.is_closed():
+        random_status = random.choice(status)
+        await bot.change_presence(
+            status=discord.Status.idle,
+            activity=discord.Activity(name="?help | ?invite", type=discord.ActivityType.playing)
+        )
+
+@bot.event
+async def on_ready():
+    await bot.wait_until_ready()
+    # bot Connection
+    os.system('clear')
+    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}")
+    print("---------")
+    update_db_cache.start()
+    status_task.start()
+
+
+@bot.event
+async def on_message(message):
     """
     if not message.author.bot:
         if profanity.contains_profanity(message.content.lower()):
@@ -187,107 +199,83 @@ async def on_message(message):
     # Checks If Message Author Is A Bot
     if message.author.bot:
         return
-    
-    # If The Bot Is Mentioned Tell The Bot's Prefix
-    if client.user.mentioned_in(message):
-        prefix = await get_prefix(client, message)
+
+    # If the bot is mentioned tell the server prefix.
+    if re.fullmatch(rf"<@!?{bot.user.id}>", message.content):
+        prefix = await get_prefix(bot, message)
 
         embed = discord.Embed(
             title="Bot Mentioned",
             description=f"Prefix of the bot is `{prefix}`\nDo `{prefix}help` to view help on each command.",
-            colour=client.colors["og_blurple"]
+            colour=bot.colors["og_blurple"]
         )
 
         await message.channel.send(embed=embed, delete_after=5)
-    
-    # If User Has Set Afk Tell The Message Author That He/She Is Afk
-    afks = await client.afks.get_all()
-    for value in afks:
-        if str(value['_id']) in message.content.lower():
-            afk_user = message.guild.get_member(value['_id'])
-            afk_embed = discord.Embed(
-                title=f"{afk_user.name} Is Afk!",
-                color=afk_user.color,
-                timestamp=datetime.now()
-            )
-            if value['text'] is None:
-                afk_embed.description=discord.Embed.Empty
-            else:
-                afk_embed.description=f"**Status:** {value['text']}"
-            
-            afk_embed.set_footer(text="Don't Ping This User Pls!")
-            afk_embed.set_thumbnail(url=afk_user.avatar.url)
-            await message.channel.send(embed=afk_embed)
-        
-    # chat_guilds = await client.chatbot.get_all()
-    # # for guild in chat_guilds:
-    # if message.channel.id == 892071521634361345:
-    #     response = chatbot.get_response(message.content)
-    #     await message.reply(response, mention_author=False)
 
-    """
-    if "discord.gg" or "discord.com/invite" in message.content.lower():
-        if message.author.bot:
-            return
-        if message.author.id in owners:
-            return
-        if message.author.has_permissions(manage_guild=True):
-            return
-        else:
-            await message.delete()
-            await message.channel.send(f'Hey {message.author.mention} :rage: You cannot send discord links on this server!', delete_after=3)
 
-    if "tenor.com" or "giphy.com" in message.content.lower():
-        if message.author.bot:
-            return
-        if message.author.id in owners:
-            return
-        if message.author.has_permissions(manage_guild=True):
-            return
-        else:
-            await message.delete()
-            await message.channel.send(f'Hey {message.author.mention} :rage: You cannot send gifs!', delete_after=3)
-    """
+    afks = deepcopy(bot.current_afks)
+    for key, value in afks.items():
+        member = await message.guild.fetch_member(value['_id'])
+        if member.mentioned_in(message):
+            await message.channel.send(f"`{member.display_name}` is AFK: {value['status']} - <t:{round(datetime.timestamp(value['started_when']))}:R>")
 
-    # This Checks Whether The Message Author Is Blacklisted Or Not
-    users = await client.blacklisted_users.find(message.author.id)
+    try:
+        afk_data = bot.current_afks[message.author.id]
+    except KeyError:
+        afk_data = None
+    if afk_data:
+        try:
+            channels = bot.afk_allowed_channel[message.author.id]
+        except KeyError:
+            channels = []
+        if not message.channel.id in channels:
+            await bot.afks.delete(message.author.id)
+            await message.channel.send(f"Welcome back {message.author.mention}, I removed your AFK.")
+
+            try:
+                bot.current_afks.pop(message.author.id)
+            except KeyError:
+                pass
+
+    # This checks whether the user is blacklisted or not.
+    users = await bot.blacklisted_users.find(message.author.id)
     if users:
-        prefix = client.prefixes[message.guild.id]
+        prefix = bot.prefixes[message.guild.id]
         if message.content.startswith(f"{prefix}"):
             await message.channel.send("Hey, lol you did something bad you are banned from using this bot.", delete_after=3)
             return
         else:
             return
 
-    await client.process_commands(message)
+    await bot.process_commands(message)
 
 # <--- Commands --->
-# @client.slash_command(description="Check the ping of the bot")
+# @bot.slash_command(description="Check the ping of the bot")
 # async def ping(ctx):
-#     await ctx.respond(content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(client.latency * 1000)}ms`", ephemeral=True)
+#     await ctx.respond(content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(bot.latency * 1000)}ms`", ephemeral=True)
 
-# @client.slash_command(description="Get a link to invite this bot")
+# @bot.slash_command(description="Get a link to invite this bot")
 # async def invite(ctx):
 #     invite_btn = ActionRow(
 #             Button(
 #                 style=ButtonStyle.link,
 #                 label="Invite",
-#                 url= "https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
+#                 url= "https://discord.com/oauth2/authorize?bot_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
 #             ))
-#     embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=client.colors["og_blurple"], timestamp=datetime.now())
+#     embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=bot.colors["og_blurple"], timestamp=datetime.now())
 #     embed.set_footer(text="Bot by Mr.Natural#3549")
 
 #     await ctx.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
-    
-# @client.slash_command(description="Checks for how long the bot is up")
+
+# @bot.slash_command(description="Checks for how long the bot is up")
 # async def uptime(ctx):
-#     delta_uptime = datetime.now() - client.launch_time
+#     delta_uptime = datetime.now() - bot.launch_time
 #     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
 #     minutes, seconds = divmod(remainder, 60)
 #     days, hours = divmod(hours, 24)
 #     await ctx.respond(content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
 
-@client.command()
+@bot.command()
 @commands.is_owner()
 async def boosters(ctx):
     role = ctx.guild.premium_subscriber_role
@@ -302,7 +290,7 @@ async def boosters(ctx):
                     for i, member in enumerate(members)
                 )
             ),
-            colour=random.choice(client.color_list),
+            colour=random.choice(bot.color_list),
             timestamp=datetime.now()
         )
     embed.add_field(name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
@@ -312,4 +300,4 @@ async def boosters(ctx):
     await ctx.send(embed=embed)
 
 keep_alive()
-client.run(os.getenv('token'), reconnect=True)
+bot.run(os.getenv('token'), reconnect=True)

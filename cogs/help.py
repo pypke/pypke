@@ -99,8 +99,10 @@ class HelpCog(commands.Cog):
         """        
         commands = []       
         if hasattr(cmd, "walk_commands"):
+            subcommands = []
             for sub_cmd in cmd.walk_commands():
                 if not sub_cmd.hidden:
+                    subcommands.append(sub_cmd)
                     commands.append(f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
             
             # I Know there is surely a better way to do this but Idfk it.
@@ -114,9 +116,16 @@ class HelpCog(commands.Cog):
                 for command in commands[start:end]:
                     embed = discord.Embed(
                         title=self.get_syntax(cmd),
-                        description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" + "\n\n".join(commands[start:end]),
+                        description=cmd.description if cmd.description else 'No help provided',
                         color=self.client.colors["og_blurple"]
                     )
+                    for sub_cmd in subcommands[start:end]:
+                        embed.add_field(
+                            name=sub_cmd.qualified_name + " " + sub_cmd.signature,
+                            value=sub_cmd.description if sub_cmd.description else 'No help provided',
+                            inline=False
+                        )
+
                 embeds.append(embed)    
                 page += 1
 

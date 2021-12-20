@@ -24,7 +24,7 @@ class GiveawayHelper:
             await GiveawayHelper.remove_giveaway(self, data['_id'])
             print(f"Removed Deleted Giveaway. Id: {data['_id']}")
             return
-        
+
         users = await msg.reactions[0].users().flatten()
         users.pop(users.index(self.client.user))
 
@@ -32,18 +32,26 @@ class GiveawayHelper:
             winner = random.choice(users)
         except IndexError:
             await GiveawayHelper.remove_giveaway(self, _id)
-            return await channel.send("No one entered for the giveaway! So no winner.")
+            ended_time = round(epoch.now())
+            end_embed = discord.Embed(
+                title=data['prize'],
+                description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: No one",
+                color=self.client.colors["yellow"]
+            )
+            end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
+            await msg.edit(embed=end_embed)
+            return await msg.reply("No one entered for the giveaway!")
 
         ended_time = round(epoch.now())
         end_embed = discord.Embed(
             title=data['prize'],
             description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
-            color=self.client.colors["orange"]
+            color=self.client.colors["yellow"]
         )
         end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
         try:
             await msg.edit(embed=end_embed)
-            await msg.reply(f"Congratulations! {winner.mention} Has Won The `{data['prize']}`!")
+            await msg.reply(f"Congratulations! {winner.mention} has won `{data['prize']}`!")
         except discord.HTTPException:
             pass
 
@@ -57,7 +65,7 @@ class GiveawayHelper:
         except KeyError:
             pass
 
-        print(f"Removed Giveaway With Id: {_id}")
+        print(f"Removed Giveaway! Id: {_id}")
 
 class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     def __init__(self, client):
@@ -99,7 +107,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             title=f"{prize}",
             description=
             f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
-            color=self.client.colors["orange"])
+            color=self.client.colors["yellow"])
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         await ctx.send(
             f"The Giveaway will be in {channel.mention} and will last till <t:{epoch_time}:f> !"
@@ -127,10 +135,10 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gcreate_command(self, ctx):
         embed = discord.Embed(
-                                title="Create Giveaway!",
-                                description="Let's start with this giveaway!\n`Answer these questions within 30 seconds!`",
-                                color=self.client.colors["orange"]
-                            )
+            title="Create Giveaway!",
+            description="Let's start with this giveaway!\n`Answer these questions within 30 seconds!`",
+            color=self.client.colors["yellow"]
+        )
         ques_msg = await ctx.send(embed=embed)
         await asyncio.sleep(2)
 
@@ -145,7 +153,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             embed = discord.Embed(
                 title="Create Giveaway!",
                 description=question,
-                color=self.client.colors["orange"]
+                color=self.client.colors["yellow"]
             )
             embeds.append(embed)
 
@@ -193,9 +201,9 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         )
         embed = discord.Embed(
             title=f"{prize}",
-            description=
-            f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
-            color=self.client.colors["orange"])
+            description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
+            color=self.client.colors["yellow"]
+        )
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         my_msg = await channel.send(embed=embed)
 
@@ -247,7 +255,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def gend_command(self, ctx, message_id: int):
         _id = message_id
-        
+
         try:
             data = await self.client.giveaways.find(_id)
         except Exception:
@@ -257,7 +265,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         if data == None:
             await ctx.send("The message id is incorrect or the message is deleted.")
             return
-        
+
         await GiveawayHelper.roll_giveaway(self, _id)
 
     @commands.command(name="gdelete", description="Delete a ongoing giveaway.", aliases=['gcancel'])
@@ -278,7 +286,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             return
 
         await GiveawayHelper.remove_giveaway(self, _id)
-        await ctx.send("Deleted the giveaway!")   
+        await ctx.send("Deleted the giveaway!")
 
 def setup(client):
     client.add_cog(Giveaway(client))

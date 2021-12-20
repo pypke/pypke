@@ -60,10 +60,10 @@ class Utility(commands.Cog):
     async def purge_command(self, ctx, member: Optional[discord.User], amount: int = 1):
         def member_check(message):
             return not member and not message.pinned or message.author == member and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=member_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -85,10 +85,10 @@ class Utility(commands.Cog):
     async def purge_human(self, ctx, amount: int = 1):
         def human_check(message):
             return not message.author.bot and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=human_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -106,14 +106,14 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_bot(self, ctx, amount: int = 1):
         def bot_check(message):
             return message.author.bot and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=bot_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -131,14 +131,14 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_embed(self, ctx, amount: int = 1):
         def embed_check(message):
             return len(message.embeds) > 0 and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=embed_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -156,14 +156,14 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_files(self, ctx, amount: int = 1):
         def embed_check(message):
             return len(message.attachments) > 0 and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=embed_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -181,14 +181,14 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_mention(self, ctx, amount: int = 1):
         def mention_check(message):
             return len(message.mentions) or len(message.role_mentions) and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=mention_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -206,7 +206,7 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_contain(self, ctx, substr: str, amount: int = 1):
         def contain_check(message):
             return substr in message.content and not message.pinned
@@ -216,7 +216,7 @@ class Utility(commands.Cog):
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=contain_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -234,7 +234,7 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_reaction(self, ctx, amount: int = 1):
         def reaction_check(message):
             return not message.pinned
@@ -245,7 +245,7 @@ class Utility(commands.Cog):
             if len(message.reactions):
                 total_reactions += sum(r.count for r in message.reactions)
                 await message.clear_reactions()
-        
+
         if total_reactions < 1:
             return await ctx.send("No reaction was clear! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -263,16 +263,16 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_emoji(self, ctx, amount: int = 1):
         custom_emoji = re.compile(r"<a?:(.*?):(\d{17,21})>|[\u263a-\U0001f645]")
-                        
+
         def emoji_check(message):
             return custom_emoji.search(message.content) and not message.pinned
-        
+
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=emoji_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -290,15 +290,15 @@ class Utility(commands.Cog):
     @commands.bot_has_permissions(manage_messages=True)
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
-    @commands.max_concurrency(1, commands.BucketType.channel)    
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_after(self, ctx, message_id: int, amount: int = 1):
         def after_check(message):
             return not message.pinned
-        
+
         msg = ctx.channel.fetch_message(message_id)
         await ctx.message.delete()
         deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=after_check)
-        
+
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
         elif 0 < amount <= 1000:
@@ -341,7 +341,7 @@ class Utility(commands.Cog):
             # Try and except blocks to catch timeout and break
             def check(inter):
                 return inter.message.id == msg.id and inter.author.id == ctx.author.id
-                
+
             try:
                 inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
 
@@ -366,7 +366,7 @@ class Utility(commands.Cog):
                 break
 
     @commands.command(
-        name="slowmode", 
+        name="slowmode",
         description="Change the channels slowmode time.\nExample: `?slowmo 1h`\nPossible values:\n`0s, 5s, 10s, 15s, 30s, 1m, 2m, 5m, 10m, 15m, 30m, 1h, 2h, 6h`",
         aliases=["slowmo"]
     )
@@ -390,7 +390,7 @@ class Utility(commands.Cog):
         try:
             mail = discord.Embed(
                     title=f"Meow Mail Service",
-                    description=f"```txt\n{msg}\n```", 
+                    description=f"```txt\n{msg}\n```",
                     color=discord.Color.blurple(),
 
                  )
@@ -457,7 +457,7 @@ class Utility(commands.Cog):
 
         if not data:
             return await ctx.send("You've no reminder ongoing.")
-        
+
         await self.client.remind.delete(ctx.author.id)
         await ctx.reply("Cancelled reminder!")
 
@@ -482,12 +482,12 @@ class Utility(commands.Cog):
             roles = [role for role in ctx.author.roles]
             roles.pop(roles.index(ctx.guild.default_role))
             roles = sorted(roles, reverse=True)
-            
+
         else:
             roles = [role for role in member.roles]
             roles.pop(roles.index(ctx.guild.default_role))
             roles = sorted(roles, reverse=True)
-        
+
         """
         member.created_at.strftime("%a, %d, %B, %Y, %I, %M, %p UTC")
         member.joined_at.strftime("%a, %d, %B, %Y, %I, %M, %p UTC")
@@ -519,11 +519,11 @@ class Utility(commands.Cog):
     @user_command(name="User Info", guild_ids=["850732056790827020"])
     async def whois_message_command(self, ctx):
         member = ctx.target
-       
+
         roles = [role for role in member.roles]
         roles.pop(roles.index(ctx.guild.default_role))
         roles = sorted(roles, reverse=True)
-        
+
         """
         member.created_at.strftime("%a, %d, %B, %Y, %I, %M, %p UTC")
         member.joined_at.strftime("%a, %d, %B, %Y, %I, %M, %p UTC")
@@ -593,35 +593,72 @@ class Utility(commands.Cog):
                     "modlog_message": data["modlog_message"] if data["modlog_member"] else None
             }
             await self.client.config.upsert(new_data)
-            await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")        
+            await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")
 
-    @commands.command(
+    @commands.group(
         name='afk',
-        description='Set Your Afk To Let People Know What Are You Doing.'
+        description="Shows this message."
     )
     @commands.guild_only()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def afk(self, ctx, *, text: str=None):
-        if text == None:
-            await self.client.afks.upsert({"_id": ctx.author.id, "text": None})
-        else:
-            await self.client.afks.upsert({"_id": ctx.author.id, "text": text})           
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk(self, ctx):
+        if ctx.invoked_subcommand:
+            return 
             
-        await ctx.send("Your Afk Status Has Been Set.")
+        await ctx.invoke(self.client.get_command("help"), command_or_module="afk")
 
-    @commands.command(
-        name='afkremove',
-        description='Stop/Remove Your Afk',
-        aliases=['afkstop', 'afkr']
+    @afk.command(
+        name="set",
+        description="Set an AFK status shown when you're mentioned, and display in nickname."
     )
     @commands.guild_only()
-    async def afkremove(self, ctx):
-        data = await self.client.afks.get_by_id(ctx.author.id)
-        if not data:
-            await ctx.send("You Haven't Set Your Afk Status Yet.")
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk_set(self, ctx, *, status: Optional[str]):
+        if not status:
+            await self.client.afks.upsert({"_id": ctx.author.id, "status": "AFK", "started_when": datetime.now()})
         else:
-            await self.client.afks.delete(ctx.author.id)
-            await ctx.send("Your Afk Status Has Been Removed.")            
+            await self.client.afks.upsert({"_id": ctx.author.id, "status": status, "started_when": datetime.now()})
+
+        name = ctx.author.display_name
+        try:
+            await ctx.author.edit(nick=f"AFK | {name}")
+        except discord.HTTPException:
+            pass
+        await ctx.send(f"{ctx.author.mention} Status set: {status if status else 'AFK'}")
+
+    @afk.command(
+        name="ignore",
+        description="Use it in a channel to not end AFK when talking in that channel."
+    )
+    @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk_ignore(self, ctx, channel: Optional[discord.TextChannel]):
+        channel = channel or ctx.channel
+        self.client.afk_allowed_channel[ctx.author.id] = [channel.id]
+        await ctx.send(f"Added {channel.mention} to AFK ignored channels.")
+
+    @afk.command(
+        name="clear",
+        description="Remove the AFK status of a member. (Moderators only)"
+    )
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk_clear(self, ctx, member: discord.Member):
+        data = await self.client.afks.find(member.id)
+        if not data:
+            return await ctx.send("Member doesn't have an AFK status.")
+
+        await self.client.afks.delete(member.id)
+        await ctx.send(f"Removed AFK status for {member}.")
+
+        try:
+            self.client.current_afks.pop(member.id)
+        except KeyError:
+            pass
+
 
 def setup(client):
     client.add_cog(Utility(client))
