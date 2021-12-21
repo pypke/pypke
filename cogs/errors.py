@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 # from dislash import InteractionClient, ContextMenuInteraction, ApplicationCommandError
 
+
 class ErrorsCog(commands.Cog):
     def __init__(self, client):
         self.client = client
@@ -41,13 +42,15 @@ class ErrorsCog(commands.Cog):
             try:
                 await ctx.send(f"You are missing `{', '.join(error.missing_permissions)}` permission(s) to run this command.", delete_after=5)
                 await ctx.message.delete()
-            except Exception: pass
+            except Exception:
+                pass
 
         elif isinstance(error, commands.BotMissingPermissions):
             try:
                 await ctx.send(f"Bot doesn't have the required `{', '.join(error.missing_permissions)}` permission(s).", delete_after=5)
                 await ctx.message.delete()
-            except Exception: pass
+            except Exception:
+                pass
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f"`{error.param.name}` is a required argument that is missing.")
@@ -81,12 +84,13 @@ class ErrorsCog(commands.Cog):
 
         elif isinstance(error, RuntimeWarning):
             return
-            
+
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send(f"```diff\n{error.original}\n\n- Looks like an error occured, pls consider reporting it on support server.\n```")
             raise error
         else:
             raise error
-            
+
+
 def setup(client):
     client.add_cog(ErrorsCog(client))

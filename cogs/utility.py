@@ -1,19 +1,20 @@
 from utils import TimeConverter
 
-import asyncio, humanize, re
+import asyncio
+import humanize
+import re
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from typing import Optional, Union
-from copy import deepcopy
+from typing import Optional
 
 import discord
 from discord.ext import commands, tasks
-from discord.ext.commands import Greedy
 from dislash import ActionRow, Button, ButtonStyle, user_command
 
 
 class Utility(commands.Cog):
     """Commands to help you with various tasks."""
+
     def __init__(self, client):
         self.client = client
         self.remind_loop.start()
@@ -29,7 +30,8 @@ class Utility(commands.Cog):
             if remind['remindIn'] is None:
                 continue
 
-            endTime = remind['startedAt'] + relativedelta(seconds=remind['remindIn'])
+            endTime = remind['startedAt'] + \
+                relativedelta(seconds=remind['remindIn'])
             if currentTime >= endTime:
                 try:
                     guild = self.client.get_guild(remind['guildId'])
@@ -62,7 +64,7 @@ class Utility(commands.Cog):
             return not member and not message.pinned or message.author == member and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=member_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=member_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -87,7 +89,7 @@ class Utility(commands.Cog):
             return not message.author.bot and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=human_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=human_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -112,7 +114,7 @@ class Utility(commands.Cog):
             return message.author.bot and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=bot_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=bot_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -137,7 +139,7 @@ class Utility(commands.Cog):
             return len(message.embeds) > 0 and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=embed_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=embed_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -162,7 +164,7 @@ class Utility(commands.Cog):
             return len(message.attachments) > 0 and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=embed_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=embed_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -187,7 +189,7 @@ class Utility(commands.Cog):
             return len(message.mentions) or len(message.role_mentions) and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=mention_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=mention_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -215,7 +217,7 @@ class Utility(commands.Cog):
             await ctx.send("The substring length must be at least 3 characters.")
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=contain_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=contain_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -265,13 +267,14 @@ class Utility(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_emoji(self, ctx, amount: int = 1):
-        custom_emoji = re.compile(r"<a?:(.*?):(\d{17,21})>|[\u263a-\U0001f645]")
+        custom_emoji = re.compile(
+            r"<a?:(.*?):(\d{17,21})>|[\u263a-\U0001f645]")
 
         def emoji_check(message):
             return custom_emoji.search(message.content) and not message.pinned
 
         await ctx.message.delete()
-        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() -timedelta(days=14), check=emoji_check)
+        deleted = await ctx.channel.purge(limit=amount, after=datetime.utcnow() - timedelta(days=14), check=emoji_check)
 
         if len(deleted) < 1:
             return await ctx.send("No message was deleted! Make sure the messages aren't two weeks old.")
@@ -389,11 +392,11 @@ class Utility(commands.Cog):
     async def mail_command(self, ctx, user: discord.User, *, msg):
         try:
             mail = discord.Embed(
-                    title=f"Meow Mail Service",
-                    description=f"```txt\n{msg}\n```",
-                    color=discord.Color.blurple(),
+                title=f"Meow Mail Service",
+                description=f"```txt\n{msg}\n```",
+                color=discord.Color.blurple(),
 
-                 )
+            )
             mail.set_footer(text=f"Mail From {ctx.author.name}")
             await user.send(embed=mail)
             await ctx.send(f"Mailed {user} successfully!!")
@@ -416,7 +419,8 @@ class Utility(commands.Cog):
             data = None
 
         if data:
-            remindin = humanize.precisedelta(timedelta(seconds=data['time'], minimum_unit="minutes"))
+            remindin = humanize.precisedelta(
+                timedelta(seconds=data['time'], minimum_unit="minutes"))
             task = data['task']
             task = discord.utils.escape_mentions(task)
             return await ctx.reply(f"You will be reminded in {remindin} for **{task.lower()}**.")
@@ -497,11 +501,15 @@ class Utility(commands.Cog):
         joined_time = member.joined_at
         joined_time = round(joined_time.timestamp())
 
-        embed = discord.Embed(colour=member.color, timestamp=ctx.message.created_at)
+        embed = discord.Embed(colour=member.color,
+                              timestamp=ctx.message.created_at)
 
-        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
-        embed.set_author(name=member, icon_url=member.avatar.url if member.avatar else member.default_avatar.url)
-        embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
+        embed.set_footer(
+            text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
+        embed.set_author(
+            name=member, icon_url=member.avatar.url if member.avatar else member.default_avatar.url)
+        embed.set_thumbnail(
+            url=member.avatar.url if member.avatar else member.default_avatar.url)
 
         embed.add_field(
             name="__Information__",
@@ -533,11 +541,15 @@ class Utility(commands.Cog):
         joined_time = member.joined_at
         joined_time = round(joined_time.timestamp())
 
-        embed = discord.Embed(colour=member.top_role.color, timestamp=ctx.message.created_at)
+        embed = discord.Embed(colour=member.top_role.color,
+                              timestamp=ctx.message.created_at)
 
-        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
-        embed.set_author(name=member, icon_url=member.avatar.url if member.avatar else member.default_avatar.url)
-        embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
+        embed.set_footer(
+            text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
+        embed.set_author(
+            name=member, icon_url=member.avatar.url if member.avatar else member.default_avatar.url)
+        embed.set_thumbnail(
+            url=member.avatar.url if member.avatar else member.default_avatar.url)
 
         embed.add_field(
             name="__Information__",
@@ -575,22 +587,22 @@ class Utility(commands.Cog):
         if channel:
             data = await self.client.config.find(ctx.guild.id)
             new_data = {
-                    "_id": ctx.guild.id,
-                    "prefix": data["prefix"] or self.client.prefix,
-                    "modlog_mod": channel.id,
-                    "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                    "modlog_message": data["modlog_message"] if data["modlog_member"] else None
+                "_id": ctx.guild.id,
+                "prefix": data["prefix"] or self.client.prefix,
+                "modlog_mod": channel.id,
+                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
+                "modlog_message": data["modlog_message"] if data["modlog_member"] else None
             }
             await self.client.config.upsert(new_data)
             await ctx.send(f"{channel.mention} is now set as Modlog channel for moderation actions.")
         else:
             data = await self.client.config.find(ctx.guild.id)
             new_data = {
-                    "_id": ctx.guild.id,
-                    "prefix": data["prefix"] or self.client.prefix,
-                    "modlog_mod": None,
-                    "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                    "modlog_message": data["modlog_message"] if data["modlog_member"] else None
+                "_id": ctx.guild.id,
+                "prefix": data["prefix"] or self.client.prefix,
+                "modlog_mod": None,
+                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
+                "modlog_message": data["modlog_message"] if data["modlog_member"] else None
             }
             await self.client.config.upsert(new_data)
             await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")
@@ -604,8 +616,8 @@ class Utility(commands.Cog):
     @commands.cooldown(1, 10, commands.BucketType.user)
     async def afk(self, ctx):
         if ctx.invoked_subcommand:
-            return 
-            
+            return
+
         await ctx.invoke(self.client.get_command("help"), command_or_module="afk")
 
     @afk.command(

@@ -1,6 +1,8 @@
 from utils.time import TimeConverter
 
-import asyncio, random, epoch
+import asyncio
+import random
+import epoch
 from typing import Optional
 from copy import deepcopy
 from dateutil.relativedelta import relativedelta
@@ -8,7 +10,7 @@ from datetime import datetime
 
 import discord
 from discord.ext import commands, tasks
-from discord.ext.commands import Greedy
+
 
 class GiveawayHelper:
 
@@ -67,6 +69,7 @@ class GiveawayHelper:
 
         print(f"Removed Giveaway! Id: {_id}")
 
+
 class Giveaway(commands.Cog, description="Commands for giveaway creation."):
     def __init__(self, client):
         self.client = client
@@ -83,7 +86,8 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             if value['gaDuration'] is None:
                 continue
 
-            endTime = value['startedAt'] + relativedelta(seconds=value['gaDuration'])
+            endTime = value['startedAt'] + \
+                relativedelta(seconds=value['gaDuration'])
             if currentTime >= endTime:
                 await GiveawayHelper.roll_giveaway(self, value['_id'])
 
@@ -105,8 +109,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
         embed = discord.Embed(
             title=f"{prize}",
-            description=
-            f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
+            description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
             color=self.client.colors["og_blurple"])
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         await ctx.send(
@@ -287,6 +290,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
         await GiveawayHelper.remove_giveaway(self, _id)
         await ctx.send("Deleted the giveaway!")
+
 
 def setup(client):
     client.add_cog(Giveaway(client))

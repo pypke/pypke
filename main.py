@@ -3,17 +3,19 @@ from utils.mongo import Document
 from utils.keep_alive import keep_alive
 
 # Other Imports
-import os, asyncio, random, topgg, re
-import motor.motor_asyncio
+import os
+import asyncio
+import random
+import topgg
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
-from copy import deepcopy
+import motor.motor_asyncio
 
 # Discord Imports
-import discord, dislash
-from discord.ext import commands, tasks
-from dislash import Button, ButtonStyle, ActionRow
+import discord
+import dislash
+from discord.ext import commands
 
 
 # Path
@@ -24,7 +26,9 @@ cwd = str(cwd)
 owners = [624572769484668938]
 
 # Code To Get Prefix
-async def get_prefix(bot, message):
+
+
+async def get_prefix(client, message):
     """Gives the prefix for that guild.
 
     Args:
@@ -56,8 +60,10 @@ async def get_prefix(bot, message):
         bot.prefixes[message.guild.id] = bot.prefix
         return bot.prefix
 
+
 def random_color(color_list):
     return random.choice(color_list)
+
 
 class PypkeBot(commands.Bot):
     def __init__(self):
@@ -74,10 +80,13 @@ class PypkeBot(commands.Bot):
 
         super().remove_command("help")
 
-# bot Info
+
+# Bot Info
 bot = PypkeBot()
-bot.topgg = topgg.DBLClient(bot, token=os.getenv("topgg"), autopost=True, post_shard_count=True)
-bot.slash = dislash.InteractionClient(bot, modify_send=True, show_warnings=True, sync_commands=True)
+bot.topgg = topgg.DBLClient(bot, token=os.getenv(
+    "topgg"), autopost=True, post_shard_count=True)
+bot.slash = dislash.InteractionClient(
+    bot, modify_send=True, show_warnings=True, sync_commands=True)
 
 bot.launch_time = datetime.now()
 bot.cwd = cwd
@@ -106,10 +115,10 @@ bot.color_list = [c for c in bot.colors.values()]
 bot.randcolor = random_color(bot.color_list)
 bot.afk_allowed_channel = {}
 
-#Mongo DB Stuff
+# Mongo DB Stuff
 bot.connection_url = os.getenv('mongo')
 
-#Filter Words
+# Filter Words
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
 
 if __name__ == "__main__":
@@ -124,18 +133,20 @@ if __name__ == "__main__":
     # Database Connection
     bot.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(bot.connection_url))
     bot.db = bot.mongo["pypke"]
-    bot.config = Document(bot.db, "config") # For prefixes
-    bot.mutes = Document(bot.db, "mutes") # For muted users
-    bot.blacklisted_users = Document(bot.db, "blacklist") # For blacklisted users
-    bot.giveaways = Document(bot.db, "giveaways") # For Giveaways
-    bot.afks = Document(bot.db, "afks") # For afk users
-    bot.chatbot = Document(bot.db, "chatbot") # For chatbot
-    bot.remind = Document(bot.db, "remind") # For remind command
+    bot.config = Document(bot.db, "config")  # For prefixes
+    bot.mutes = Document(bot.db, "mutes")  # For muted users
+    bot.blacklisted_users = Document(
+        bot.db, "blacklist")  # For blacklisted users
+    bot.giveaways = Document(bot.db, "giveaways")  # For Giveaways
+    bot.afks = Document(bot.db, "afks")  # For afk users
+    bot.chatbot = Document(bot.db, "chatbot")  # For chatbot
+    bot.remind = Document(bot.db, "remind")  # For remind command
 
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
 
+
 @tasks.loop(seconds=30)
-async def update_db_cache(): # To update cache every 5 minutes
+async def update_db_cache():  # To update cache every 5 minutes
     print("Caching DB")
     # Current mutes
     currentMutes = await bot.mutes.get_all()
@@ -151,6 +162,7 @@ async def update_db_cache(): # To update cache every 5 minutes
     for afk in currentAfks:
         bot.current_afks[afk['_id']] = afk
 
+
 @tasks.loop(minutes=2)
 async def status_task():
     print("Started activity")
@@ -159,7 +171,7 @@ async def status_task():
             "name": "@Pypke",
             "type": discord.ActivityType.listening,
         },
-        
+
         {
             "name": "?help | ?invite",
             "type": discord.ActivityType.watching,
@@ -174,15 +186,18 @@ async def status_task():
         random_status = random.choice(status)
         await bot.change_presence(
             status=discord.Status.idle,
-            activity=discord.Activity(name="?help | ?invite", type=discord.ActivityType.playing)
+            activity=discord.Activity(
+                name="?help | ?invite", type=discord.ActivityType.playing)
         )
+
 
 @bot.event
 async def on_ready():
     await bot.wait_until_ready()
     # bot Connection
     os.system('clear')
-    print(f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}")
+    print(
+        f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}")
     print("---------")
     update_db_cache.start()
     status_task.start()
@@ -211,7 +226,6 @@ async def on_message(message):
         )
 
         await message.channel.send(embed=embed, delete_after=5)
-
 
     afks = deepcopy(bot.current_afks)
     for key, value in afks.items():
@@ -275,6 +289,7 @@ async def on_message(message):
 #     days, hours = divmod(hours, 24)
 #     await ctx.respond(content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
 
+
 @bot.command()
 @commands.is_owner()
 async def boosters(ctx):
@@ -283,19 +298,21 @@ async def boosters(ctx):
     if not members:
         return await ctx.send("Sad, No one is boosting this server.")
     embed = discord.Embed(
-            title=f"No. Of Booster: {len(members)}",
-            description=(
-                "\n".join(
-                    f"**{i+1}.** {member.display_name}"
-                    for i, member in enumerate(members)
-                )
-            ),
-            colour=random.choice(bot.color_list),
-            timestamp=datetime.now()
-        )
-    embed.add_field(name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
+        title=f"No. Of Booster: {len(members)}",
+        description=(
+            "\n".join(
+                f"**{i+1}.** {member.display_name}"
+                for i, member in enumerate(members)
+            )
+        ),
+        colour=random.choice(bot.color_list),
+        timestamp=datetime.now()
+    )
+    embed.add_field(
+        name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
     embed.set_author(name="Server Boosters")
-    embed.set_footer(text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+    embed.set_footer(
+        text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
 

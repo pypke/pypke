@@ -1,4 +1,9 @@
-import asyncpraw, requests, random, asyncio, aiohttp, akinator
+import asyncpraw
+import requests
+import random
+import asyncio
+import aiohttp
+import akinator
 from bs4 import BeautifulSoup as bs4
 from html import unescape
 from asyncprawcore import exceptions as prawexc
@@ -17,13 +22,13 @@ reddit = asyncpraw.Reddit(
     password="aman5368",
     user_agent="pythonpraw"
 )
-                    
+
 aki = Akinator()
+
 
 class Fun(commands.Cog, description="All the commands that you can have fun with."):
     def __init__(self, client):
         self.client = client
-
 
     @commands.command(
         name="coinflip",
@@ -44,21 +49,22 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             description="Can you specify is it a?",
             color=self.client.colors["purple"]
         )
-        embed.set_author(name="Akinator", icon_url="https://i.imgur.com/n6km6ch.png")
+        embed.set_author(
+            name="Akinator", icon_url="https://i.imgur.com/n6km6ch.png")
         embed.set_thumbnail(url="https://i.imgur.com/n6km6ch.png")
         guess = ActionRow()
         guess.add_button(
-                style=ButtonStyle.gray,
-                label='Character',
-                # disabled=True
+            style=ButtonStyle.gray,
+            label='Character',
+            # disabled=True
         )
         guess.add_button(
-                style=ButtonStyle.gray,
-                label='Animal'
+            style=ButtonStyle.gray,
+            label='Animal'
         )
         guess.add_button(
-                style=ButtonStyle.gray,
-                label='Object'
+            style=ButtonStyle.gray,
+            label='Object'
         )
         msg = await ctx.send(embed=embed, components=[guess])
 
@@ -87,7 +93,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     except Exception:
                         pass
 
-                    break     
+                    break
                 elif (inter.clicked_button.label == 'Character'):
                     question = await aki.start_game(child_mode=True)
                     try:
@@ -96,7 +102,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         pass
 
                     break
-                    
+
             except asyncio.TimeoutError:
                 await aki.close()
                 await msg.edit("Timeout cancelling!!")
@@ -144,10 +150,10 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             while True:
                 def check(inter):
                     return inter.message.id == msg.id and inter.author.id == ctx.author.id
-                    
+
                 try:
                     inter = await ctx.wait_for_button_click(check=check, timeout=30.0)
-                    
+
                     if (inter.clicked_button.label) == 'Yes':
                         question = await aki.answer('yes')
                     elif (inter.clicked_button.label) == 'No':
@@ -171,8 +177,10 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                             description=f"{aki.first_guess['description']}\n\n**Total Questions: **{int(aki.step) + 1}",
                             color=self.client.colors["purple"]
                         )
-                        embed.set_thumbnail(url='https://i.imgur.com/n6km6ch.png')
-                        embed.set_image(url=aki.first_guess['absolute_picture_path'])
+                        embed.set_thumbnail(
+                            url='https://i.imgur.com/n6km6ch.png')
+                        embed.set_image(
+                            url=aki.first_guess['absolute_picture_path'])
                         await inter.respond(type=7, embed=embed, components=[])
                         await aki.close()
                         break
@@ -214,7 +222,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     try:
                         await inter.respond(type=7, embed=embed, components=[choices1, choices2])
                     except Exception:
-                        await msg.edit(embed=embed, components=[choices1, choices2])          
+                        await msg.edit(embed=embed, components=[choices1, choices2])
                 except asyncio.TimeoutError:
                     await aki.close()
                     await msg.edit('Timeout, Try again!', components=[])
@@ -223,7 +231,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     await aki.close()
                     await msg.edit(components=[])
                     raise e
-                    break             
+                    break
 
     @commands.command(name='trivia', description='Answer difficult questions.')
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -232,14 +240,17 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             async with session.get('https://opentdb.com/api.php?amount=1') as r:
                 if 300 > r.status >= 200:
                     data = await r.json()
-                    choices = [] 
-                    incorrects = data['results'][0]['incorrect_answers'] # Three Incorrect Answers
-                    choices = choices + incorrects # added to choices list
-                
-                    answer = data['results'][0]['correct_answer'] # Correct Answer
-                    choices.append(answer) # added to choices list
+                    choices = []
+                    # Three Incorrect Answers
+                    incorrects = data['results'][0]['incorrect_answers']
+                    choices = choices + incorrects  # added to choices list
+
+                    # Correct Answer
+                    answer = data['results'][0]['correct_answer']
+                    choices.append(answer)  # added to choices list
                     if data['results'][0]['type'] != "boolean":
-                        random.shuffle(choices) # Shuffled The Answers If Multiple choice
+                        # Shuffled The Answers If Multiple choice
+                        random.shuffle(choices)
                     new_list = []
                     for choice in choices:
                         choice = unescape(choice)
@@ -259,14 +270,17 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         description=f"**{question}**\n`Answer this question within {round(timeout)}.`",
                         color=random.choice(self.client.color_list)
                     )
-                    embed.set_author(name=f'{ctx.author.name}\'s Trivia', icon_url=ctx.author.avatar.url)
-                    embed.add_field(name='Difficulty', value=f"`{data['results'][0]['difficulty'].capitalize()}`")
-                    embed.add_field(name='Category', value=f"`{data['results'][0]['category']}`")
+                    embed.set_author(
+                        name=f'{ctx.author.name}\'s Trivia', icon_url=ctx.author.avatar.url)
+                    embed.add_field(
+                        name='Difficulty', value=f"`{data['results'][0]['difficulty'].capitalize()}`")
+                    embed.add_field(
+                        name='Category', value=f"`{data['results'][0]['category']}`")
                     choicebtn = ActionRow()
                     for choice in choices:
                         choicebtn.add_button(
-                            label = choice,
-                            style = ButtonStyle.blurple
+                            label=choice,
+                            style=ButtonStyle.blurple
                         )
                     msg = await ctx.send(embed=embed, components=[choicebtn])
 
@@ -274,23 +288,23 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                      # Try and except blocks to catch timeout and break
                         def check(inter):
                             return inter.message.id == msg.id and inter.author.id == ctx.author.id
-                    
+
                         try:
                             inter = await ctx.wait_for_button_click(check=check, timeout=timeout)
-                            
+
                             if (inter.clicked_button.label == answer):
                                 new_btn = ActionRow()
                                 for choice in choices:
                                     if choice in incorrects:
                                         new_btn.add_button(
-                                            label = choice,
-                                            style = ButtonStyle.grey,
+                                            label=choice,
+                                            style=ButtonStyle.grey,
                                             disabled=True
                                         )
                                     else:
                                         new_btn.add_button(
-                                            label = answer,
-                                            style = ButtonStyle.green,
+                                            label=answer,
+                                            style=ButtonStyle.green,
                                             disabled=True
                                         )
                                 await inter.respond(type=7, content=f"Yes, The correct answer was `{answer}`! Well Done.", embed=embed, components=[new_btn])
@@ -300,20 +314,20 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                                 for choice in choices:
                                     if choice == inter.clicked_button.label:
                                         new_btn.add_button(
-                                            label = choice,
-                                            style = ButtonStyle.red,
+                                            label=choice,
+                                            style=ButtonStyle.red,
                                             disabled=True
                                         )
                                     elif choice in incorrects:
                                         new_btn.add_button(
-                                            label = choice,
-                                            style = ButtonStyle.grey,
+                                            label=choice,
+                                            style=ButtonStyle.grey,
                                             disabled=True
                                         )
                                     else:
                                         new_btn.add_button(
-                                            label = answer,
-                                            style = ButtonStyle.green,
+                                            label=answer,
+                                            style=ButtonStyle.green,
                                             disabled=True
                                         )
                                 await inter.respond(type=7, content=f"No dumbo, The correct answer was `{answer}`!", embed=embed, components=[new_btn])
@@ -324,14 +338,14 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                             for choice in choices:
                                 if choice in incorrects:
                                     new_btn.add_button(
-                                        label = choice,
-                                        style = ButtonStyle.grey,
+                                        label=choice,
+                                        style=ButtonStyle.grey,
                                         disabled=True
                                     )
                                 else:
                                     new_btn.add_button(
-                                        label = answer,
-                                        style = ButtonStyle.green,
+                                        label=answer,
+                                        style=ButtonStyle.green,
                                         disabled=True
                                     )
                             await msg.edit(content=f"Timeout.... Thought you wanted to play trivia, The correct answer was `{answer}`!", embed=embed, components=[new_btn])
@@ -343,7 +357,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         name="wouldyourather",
         description="Would you rather use this command or solve a quadratic equation?.",
         aliases=["wyr"]
-    )          
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def wyr_command(self, ctx):
         async with aiohttp.ClientSession() as session:
@@ -354,15 +368,19 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     choices = []
                     for choice in soup.find_all('span', {'class': 'option-text'}):
                         choices.append(choice.text)
-                        
-                    embed = discord.Embed(color=random.choice(self.client.color_list))
-                    embed.set_author(name='Would You Rather...', url='https://either.io', )
-                    embed.add_field(name='Either...', value=f':regional_indicator_a: {choices[0]}\n\uFEFF', inline=False)
-                    embed.add_field(name='Or...', value=f':regional_indicator_b: {choices[1]}', inline=False)
+
+                    embed = discord.Embed(
+                        color=random.choice(self.client.color_list))
+                    embed.set_author(name='Would You Rather...',
+                                     url='https://either.io', )
+                    embed.add_field(
+                        name='Either...', value=f':regional_indicator_a: {choices[0]}\n\uFEFF', inline=False)
+                    embed.add_field(
+                        name='Or...', value=f':regional_indicator_b: {choices[1]}', inline=False)
                     msg = await ctx.send(embed=embed)
                     await msg.add_reaction("🇦")
                     await msg.add_reaction("🇧")
-                    
+
     @commands.command(name="joke", description="This command sends a random joke.")
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def joke(self, ctx):
@@ -382,9 +400,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         msg = await ctx.send(embed=joke)
                         await asyncio.sleep(5)
                         joke.description = f"{data['setup']}\n{data['delivery']}"
-                        await msg.edit(embed=joke)               
+                        await msg.edit(embed=joke)
                 else:
-                    await ctx.send("Something is wrong. I can't find jokes for you right now, Try Later!")   
+                    await ctx.send("Something is wrong. I can't find jokes for you right now, Try Later!")
 
     @commands.command(name="pokedex", description="This command sends info about a pokemon.", aliases=['dex'])
     @commands.cooldown(1, 3, commands.BucketType.user)
@@ -394,7 +412,8 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                 f"You need to provide the pokemon name `{ctx.prefix}pokedex <pokemon-name>`"
             )
 
-        resp = requests.get(f"https://some-random-api.ml/pokedex?pokemon={pokemon}")
+        resp = requests.get(
+            f"https://some-random-api.ml/pokedex?pokemon={pokemon}")
         if 300 > resp.status_code >= 200:
             data = resp.json()
         else:
@@ -434,7 +453,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def wtp_command(self, ctx):
         headers = {
-        'Authorization': DAGPI_KEY
+            'Authorization': DAGPI_KEY
         }
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.get('https://api.dagpi.xyz/data/wtp') as r:
@@ -442,9 +461,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     data = await r.json()
                 else:
                     return await ctx.send("Can't seem to fetch who's that pokemon right now!")
-                
+
                 answer = data['Data']['name']
-                    
+
                 answer_img = data['answer']
                 question_img = data['question']
 
@@ -524,7 +543,8 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         random_sub = random.choice(all_subs)
 
         name = random_sub.title
-        description = random_sub.selftext if len(random_sub.selftext) < 2001 else ""
+        description = random_sub.selftext if len(
+            random_sub.selftext) < 2001 else ""
         url = random_sub.url
         vote = random_sub.score
         comments = random_sub.num_comments
@@ -537,7 +557,8 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             url=f"https://reddit.com{post}"
         )
         em.set_image(url=url)
-        em.set_footer(text=f"👍🏻 {vote} | 💬 {comments} | r/{subreddit.display_name}")
+        em.set_footer(
+            text=f"👍🏻 {vote} | 💬 {comments} | r/{subreddit.display_name}")
         await ctx.send(embed=em)
 
     @commands.command(
@@ -604,7 +625,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     async def dog(self, ctx, url=None):
         subreddit = await reddit.subreddit("dogpictures")
         all_subs = []
-        
+
         async for submission in subreddit.hot(limit=75):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
@@ -650,7 +671,8 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             value=f"{random.choice(responses)}",
             inline=False
         )
-        embed.set_footer(text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url)
+        embed.set_footer(
+            text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url)
         await ctx.send(embed=embed)
 
     @commands.command(
@@ -735,6 +757,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def hack(self, ctx, member: discord.Member):
         pass
+
 
 def setup(client):
     client.add_cog(Fun(client))

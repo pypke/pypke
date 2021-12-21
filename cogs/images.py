@@ -1,3 +1,4 @@
+import aiohttp
 from asyncdagpi import Client, ImageFeatures
 from typing import Optional
 
@@ -20,7 +21,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def pixelate_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.pixel(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -30,7 +32,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def mirror_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.mirror(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -40,7 +43,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def flip_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.flip(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -50,7 +54,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def colors_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.colors(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -60,7 +65,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def america_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.america(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -70,29 +76,32 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def communism_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.communism(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
         name="triggered",
-        description= "Allows you to get a triggered gif."
+        description="Allows you to get a triggered gif."
     )
     async def triggered_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.triggered(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
         name="expand",
-        description= "Animation that streches an image."
+        description="Animation that streches an image."
     )
     async def expand_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.expand(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
-        
+
     @commands.command(
         name="wasted",
         description="Allows you to get an image with GTA V Wasted screen"
@@ -100,9 +109,10 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def wasted_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.wasted(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
-        
+
     @commands.command(
         name="petpet",
         description="Petpet someone."
@@ -110,9 +120,10 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def petpet_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.petpet(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
-    
+
     @commands.command(
         name="bomb",
         description="Explosion."
@@ -120,7 +131,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def bomb_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.bomb(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -130,7 +142,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def invert_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.invert(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -140,7 +153,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def blur_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.blur(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -150,7 +164,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def delete_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.delete(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -160,7 +175,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def wanted_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.wanted(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -170,7 +186,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def burn_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.burn(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -180,7 +197,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def mosiac_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.mosiac(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -191,7 +209,8 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def sithlord_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.sith(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -199,29 +218,32 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
         description="Put an image behind bars."
     )
     async def jail_command(self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author        
+        member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.jail(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
         name="shatter",
         description="Shatters the image like your heart-"
     )
-    async def shatter_command (self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author        
+    async def shatter_command(self, ctx, member: Optional[discord.Member]):
+        member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.shatter(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
         name="gay",
         description="Raise the pride flag."
     )
-    async def gay_command (self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author        
+    async def gay_command(self, ctx, member: Optional[discord.Member]):
+        member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.gay(), member.avatar.url)
-        file = discord.File(fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
+        file = discord.File(
+            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
 
     @commands.command(
@@ -276,8 +298,9 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     #                     embed.add_field(name='RGB', value=f"{r}, {g}, {b}")
     #                     embed.add_field(name='HSL', value=f"{h}, {s}, {l}")
     #                     embed.set_image(url=f"https://serux.pro/rendercolour?hex={color}&height=100&width=225")
-                        
+
     #                     return await ctx.reply(embed=embed, mention_author=False)
+
 
 def setup(client):
     client.add_cog(Images(client))
