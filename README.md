@@ -1,5 +1,9 @@
 # pypke-bot
 
+![GitHub License](https://img.shields.io/github/license/pypke/pypke-bot?label=License&style=flat-square)
+![GitHub Issues](https://img.shields.io/github/issues/pypke/pypke-bot?label=Issues&style=flat-square)
+![GitHub Issues](https://img.shields.io/github/issues-pr/pypke/pypke-bot?label=Pull%20Requests&style=flat-square)
+
 Pypke is a fast multi-purpose discord bot which is also apparently a cat. With vast majority of commands (Moderation, Utility, Giveaway, Music, Images, Fun, Chatbot).
 
 ## Self-hosting
