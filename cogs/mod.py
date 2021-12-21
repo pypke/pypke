@@ -61,13 +61,9 @@ class Moderation(commands.Cog):
             await ctx.send(f"Unable To Kick {member}! Are You Sure That The Bot Has Higher Role Than {member} Or The Bot Isn't Missing Permissions!")
             return
 
-        try:
-            await member.send(f"You Have Been Kicked From {ctx.guild}, Reason " + reason)
-            await ctx.send(f"Kicked {member}!")
-        except:
-            await ctx.send(f"Kicked {member}!")
+        await ctx.send(f"Kicked {member}!")
 
-    @commands.command(name="ban", description="Bans a member whether or not the member is in the server.", aliases=["hackban"], cooldown_after_parsing=True)
+    @commands.command(name="ban", description="Bans a member whether or not the member is in the server.", aliases=["forceban", "hackban"], cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     async def ban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int], *, reason=None):
@@ -328,10 +324,13 @@ class Moderation(commands.Cog):
         except:
             pass
 
-    @commands.group(name="lock", description="Lock the channel it's used in to prevent everyone from speaking", invoke_without_command=True, pass_context=True)
+    @commands.group(name="lock", description="Lock the channel it's used in to prevent everyone from speaking", aliases=["lockdown"])
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def lock(self, ctx, channel: Optional[discord.TextChannel]):
+        if ctx.invoked_subcommand:
+            return
+
         channel = channel or ctx.channel
         if ctx.guild.default_role not in channel.overwrites:
             # This is the same as the elif except it handles agaisnt empty overwrites dicts
@@ -354,18 +353,21 @@ class Moderation(commands.Cog):
         elif channel.overwrites[ctx.guild.default_role].send_messages == False:
             await ctx.send("This Channel Is Already Locked!")
 
-    @commands.group(name="unlock", description="Unlock the channel it's used in to allow everyone from speaking", invoke_without_command=True, pass_context=True)
+    @commands.group(name="unlock", description="Unlock the channel it's used in to allow everyone from speaking", aliases=["unlockdown"])
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def unlock(self, ctx, channel: Optional[discord.TextChannel]):
+        if ctx.invoked_subcommand:
+            return
+
         channel = channel or ctx.channel
         if ctx.guild.default_role not in channel.overwrites:
-            await ctx.send("This Channel Is Not Locked!")
+            await ctx.send("This channel is not locked!")
         elif (
             channel.overwrites[ctx.guild.default_role].send_messages == True
             or channel.overwrites[ctx.guild.default_role].send_messages == None
         ):
-            await ctx.send("This Channel Is Not Locked!")
+            await ctx.send("This channel is not locked!")
         else:
             overwrites = channel.overwrites[ctx.guild.default_role]
             overwrites.send_messages = None

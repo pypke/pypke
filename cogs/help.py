@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 from utils.pagination import Pagination
 
 import discord
@@ -73,6 +74,7 @@ class HelpCog(commands.Cog):
             color=self.client.colors["og_blurple"]
         )
         commands = []
+
         for command in cog.get_commands():
             if not command.hidden:
                 commands.append(f"`{command.qualified_name}`")
@@ -97,8 +99,10 @@ class HelpCog(commands.Cog):
         """
         commands = []
         if hasattr(cmd, "walk_commands"):
+            subcommands = []
             for sub_cmd in cmd.walk_commands():
                 if not sub_cmd.hidden:
+                    subcommands.append(sub_cmd)
                     commands.append(
                         f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
 
@@ -113,10 +117,20 @@ class HelpCog(commands.Cog):
                 for command in commands[start:end]:
                     embed = discord.Embed(
                         title=self.get_syntax(cmd),
-                        description=f"{cmd.description if cmd.description else 'No help provided'}\n\n" +
-                        "\n\n".join(commands[start:end]),
+                        description=cmd.description if cmd.description else 'No help provided',
                         color=self.client.colors["og_blurple"]
                     )
+                    embed.set_author(
+                        name=f"Page {page}/{pages} ({len(commands) + 1} Commands)")
+                    embed.set_footer(
+                        text=f"Use \"?help command\" for more info on a command.")
+                    for sub_cmd in subcommands[start:end]:
+                        embed.add_field(
+                            name=sub_cmd.qualified_name + " " + sub_cmd.signature,
+                            value=sub_cmd.description if sub_cmd.description else 'No help provided',
+                            inline=False
+                        )
+
                 embeds.append(embed)
                 page += 1
 
@@ -131,10 +145,10 @@ class HelpCog(commands.Cog):
 
     @commands.command(name="help", description="wdym you need a help for help command? idiot", aliases=['commands'])
     @commands.guild_only()
-    async def help_command(self, ctx, *, command_or_module=None):
+    async def help_command(self, ctx, *, command_or_module: Optional[str]):
         if not command_or_module:
             cogs = [
-                "Moderation", "Utility", "Giveaway", "Music", "Fun", "Bot", "Misc"
+                "Moderation", "Utility", "Giveaway", "Music", "Images", "Fun", "Bot", "Misc"
             ]
 
             first = discord.Embed(
@@ -162,6 +176,14 @@ class HelpCog(commands.Cog):
 
             return await Pagination.paginate(self, ctx, pages)
 
+        modules_aliases = {
+            "mod": "moderation",
+            "utils": "utility",
+            "image": "images"
+        }
+        if command_or_module.lower() in modules_aliases:
+            command_or_module = modules_aliases[command_or_module]
+
         _entity = command_or_module.capitalize()
         entity_type = self.command_or_cog(_entity)
 
@@ -169,14 +191,16 @@ class HelpCog(commands.Cog):
             cog = self.client.get_cog(_entity)
             embed = self.cog_help(ctx, cog)
             if not embed:
-                return await ctx.send("That module doesn't exist wdym?")
+                return await ctx.send("That module doesn't exist.")
 
         elif entity_type == "command":
             command = self.client.get_command(_entity)
+            if command.hidden and ctx.author.id != 624572769484668938:
+                return await ctx.send(f"No command called \"{command_or_module.lower()}\" found.")
             embed = self.command_help(ctx, command)
 
             if not embed:
-                return
+                return await ctx.send(f"No command called \"{command_or_module.lower()}\" found.")
 
             if isinstance(embed, list):
                 if len(embed) > 1:
@@ -185,8 +209,7 @@ class HelpCog(commands.Cog):
                     embed = embed[0]
 
         else:
-            return
-
+            return await ctx.send(f"No command called \"{command_or_module.lower()}\" found.")
         await ctx.send(embed=embed)
 
     # @commands.command(name="help", description="wdym you need a help for help command? idiot", aliases=['commands'])

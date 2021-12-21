@@ -114,17 +114,6 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
         await ctx.send(file=file)
 
     @commands.command(
-        name="spin",
-        description="You spin me right round baby."
-    )
-    async def spin_command(self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author
-        img = await ImgClient.image_process(ImageFeatures.spin(), member.avatar.url)
-        file = discord.File(
-            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
-        await ctx.send(file=file)
-
-    @commands.command(
         name="petpet",
         description="Petpet someone."
     )
@@ -136,34 +125,12 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
         await ctx.send(file=file)
 
     @commands.command(
-        name="bonk",
-        description="Get bonked."
-    )
-    async def bonk_command(self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author
-        img = await ImgClient.image_process(ImageFeatures.bonk(), member.avatar.url)
-        file = discord.File(
-            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
-        await ctx.send(file=file)
-
-    @commands.command(
         name="bomb",
         description="Explosion."
     )
     async def bomb_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.bomb(), member.avatar.url)
-        file = discord.File(
-            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
-        await ctx.send(file=file)
-
-    @commands.command(
-        name="shake",
-        description="Shake it."
-    )
-    async def shake_command(self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author
-        img = await ImgClient.image_process(ImageFeatures.shake(), member.avatar.url)
         file = discord.File(
             fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)
@@ -197,17 +164,6 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
     async def delete_command(self, ctx, member: Optional[discord.Member]):
         member = member or ctx.author
         img = await ImgClient.image_process(ImageFeatures.delete(), member.avatar.url)
-        file = discord.File(
-            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
-        await ctx.send(file=file)
-
-    @commands.command(
-        name="lego",
-        description="Every group of pixels is a lego brick."
-    )
-    async def lego_command(self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author
-        img = await ImgClient.image_process(ImageFeatures.lego(), member.avatar.url)
         file = discord.File(
             fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
         await ctx.send(file=file)

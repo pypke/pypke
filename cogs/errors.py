@@ -1,4 +1,4 @@
-from thefuzz import fuzz
+# from thefuzz import fuzz
 
 import discord
 from discord.ext import commands
@@ -12,24 +12,25 @@ class ErrorsCog(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
-            cmd_list = self.client.all_commands
-            i = 0
-            msg = f"That's not a valid command! Do `{ctx.prefix}help` for the list of commands.\nDid you meant one of these?\n"
-            for cmd in cmd_list:
-                command = self.client.get_command(cmd)
-                if not command.hidden == True:
-                    ratio = fuzz.ratio(ctx.message.content, cmd)
-                    if ratio >= 59:
-                        i += 1
-                        msg = msg + f"**{i}.** `{cmd}`\n"
-                        if i >= 10:
-                            break
-                    else:
-                        continue
-            if i != 0:
-                await ctx.send(msg, delete_after=7)
-            else:
-                pass
+            # cmd_list = self.client.all_commands
+            # i = 0
+            # msg = f"That's not a valid command! Do `{ctx.prefix}help` for the list of commands.\nDid you meant one of these?\n"
+            # for cmd in cmd_list:
+            #     command = self.client.get_command(cmd)
+            #     if not command.hidden == True:
+            #         ratio = fuzz.ratio(ctx.message.content, cmd)
+            #         if ratio >= 59:
+            #             i += 1
+            #             msg = msg + f"**{i}.** `{cmd}`\n"
+            #             if i >= 10:
+            #                 break
+            #         else:
+            #             continue
+            # if i != 0:
+            #     await ctx.send(msg, delete_after=7)
+            # else:
+            #     pass
+            pass
 
         elif isinstance(error, commands.NoPrivateMessage):
             try:
@@ -56,7 +57,8 @@ class ErrorsCog(commands.Cog):
             # await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
 
         elif isinstance(error, commands.NotOwner):
-            await ctx.send("Lol, You should be owner of the bot to do this.")
+            # await ctx.send("Lol, You should be owner of the bot to do this.")
+            pass
 
         elif isinstance(error, commands.UserNotFound):
             await ctx.send(f"User \"{error.argument}\" doesn't exist. Try again!")
@@ -78,7 +80,7 @@ class ErrorsCog(commands.Cog):
 
         elif isinstance(error, commands.CommandOnCooldown):
             time = ctx.command.get_cooldown_retry_after(ctx)
-            await ctx.send(f"Chill! This command is on cooldown for `{round(time)}` seconds.")
+            await ctx.send(f"Chill! This command is on cooldown for `{round(error.retry_after)}` seconds.")
 
         elif isinstance(error, RuntimeWarning):
             return

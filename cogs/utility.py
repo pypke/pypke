@@ -607,33 +607,69 @@ class Utility(commands.Cog):
             await self.client.config.upsert(new_data)
             await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")
 
-    @commands.command(
+    @commands.group(
         name='afk',
-        description='Set Your Afk To Let People Know What Are You Doing.'
+        description="Shows this message."
     )
     @commands.guild_only()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def afk(self, ctx, *, text: str = None):
-        if text == None:
-            await self.client.afks.upsert({"_id": ctx.author.id, "text": None})
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk(self, ctx):
+        if ctx.invoked_subcommand:
+            return
+
+        await ctx.invoke(self.client.get_command("help"), command_or_module="afk")
+
+    @afk.command(
+        name="set",
+        description="Set an AFK status shown when you're mentioned, and display in nickname."
+    )
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk_set(self, ctx, *, status: Optional[str]):
+        if not status:
+            await self.client.afks.upsert({"_id": ctx.author.id, "status": "AFK", "started_when": datetime.now()})
         else:
-            await self.client.afks.upsert({"_id": ctx.author.id, "text": text})
+            await self.client.afks.upsert({"_id": ctx.author.id, "status": status, "started_when": datetime.now()})
 
-        await ctx.send("Your Afk Status Has Been Set.")
+        name = ctx.author.display_name
+        try:
+            await ctx.author.edit(nick=f"AFK | {name}")
+        except discord.HTTPException:
+            pass
+        await ctx.send(f"{ctx.author.mention} Status set: {status if status else 'AFK'}")
 
-    @commands.command(
-        name='afkremove',
-        description='Stop/Remove Your Afk',
-        aliases=['afkstop', 'afkr']
+    @afk.command(
+        name="ignore",
+        description="Use it in a channel to not end AFK when talking in that channel."
     )
     @commands.guild_only()
-    async def afkremove(self, ctx):
-        data = await self.client.afks.get_by_id(ctx.author.id)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk_ignore(self, ctx, channel: Optional[discord.TextChannel]):
+        channel = channel or ctx.channel
+        self.client.afk_allowed_channel[ctx.author.id] = [channel.id]
+        await ctx.send(f"Added {channel.mention} to AFK ignored channels.")
+
+    @afk.command(
+        name="clear",
+        description="Remove the AFK status of a member. (Moderators only)"
+    )
+    @commands.guild_only()
+    @commands.bot_has_permissions(manage_nicknames=True)
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    async def afk_clear(self, ctx, member: discord.Member):
+        data = await self.client.afks.find(member.id)
         if not data:
-            await ctx.send("You Haven't Set Your Afk Status Yet.")
-        else:
-            await self.client.afks.delete(ctx.author.id)
-            await ctx.send("Your Afk Status Has Been Removed.")
+            return await ctx.send("Member doesn't have an AFK status.")
+
+        await self.client.afks.delete(member.id)
+        await ctx.send(f"Removed AFK status for {member}.")
+
+        try:
+            self.client.current_afks.pop(member.id)
+        except KeyError:
+            pass
 
 
 def setup(client):
