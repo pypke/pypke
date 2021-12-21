@@ -3,19 +3,20 @@ from utils.mongo import Document
 from utils.keep_alive import keep_alive
 
 # Other Imports
+import re
 import os
-import asyncio
 import random
 import topgg
+import motor.motor_asyncio
+from copy import deepcopy
 from pathlib import Path
 from datetime import datetime
 from better_profanity import profanity
-import motor.motor_asyncio
 
 # Discord Imports
 import discord
 import dislash
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 
 # Path
