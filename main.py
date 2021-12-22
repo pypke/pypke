@@ -7,6 +7,7 @@ import re
 import os
 import random
 import topgg
+import logging
 import motor.motor_asyncio
 from copy import deepcopy
 from pathlib import Path
@@ -144,6 +145,14 @@ if __name__ == "__main__":
     bot.remind = Document(bot.db, "remind")  # For remind command
 
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
+
+    logging.basicConfig(
+        level=logging.INFO,
+        filename="data/errors.log",
+        format='%(asctime)s %(levelname)s: %(message)s',
+        datefmt="%H:%M:%S"
+    )
+    bot.logger = logging.getLogger("pypke-bot")
 
 
 @tasks.loop(seconds=30)

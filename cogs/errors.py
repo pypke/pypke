@@ -1,22 +1,25 @@
 # from thefuzz import fuzz
+import logging
+import random
+import string
 
 import discord
 from discord.ext import commands
-# from dislash import InteractionClient, ContextMenuInteraction, ApplicationCommandError
+# from dislash import Interactionbot, ContextMenuInteraction, ApplicationCommandError
 
 
 class ErrorsCog(commands.Cog):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
-            # cmd_list = self.client.all_commands
+            # cmd_list = self.bot.all_commands
             # i = 0
             # msg = f"That's not a valid command! Do `{ctx.prefix}help` for the list of commands.\nDid you meant one of these?\n"
             # for cmd in cmd_list:
-            #     command = self.client.get_command(cmd)
+            #     command = self.bot.get_command(cmd)
             #     if not command.hidden == True:
             #         ratio = fuzz.ratio(ctx.message.content, cmd)
             #         if ratio >= 59:
@@ -54,7 +57,7 @@ class ErrorsCog(commands.Cog):
 
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(f"`{error.param.name}` is a required argument that is missing.")
-            # await ctx.invoke(self.client.get_command("help"), command_or_module=ctx.command.qualified_name)
+            # await ctx.invoke(self.bot.get_command("help"), command_or_module=ctx.command.qualified_name)
 
         elif isinstance(error, commands.NotOwner):
             # await ctx.send("Lol, You should be owner of the bot to do this.")
@@ -79,18 +82,16 @@ class ErrorsCog(commands.Cog):
             await ctx.send(f"Woah, This command is already in progress.", delete_after=5)
 
         elif isinstance(error, commands.CommandOnCooldown):
-            time = ctx.command.get_cooldown_retry_after(ctx)
             await ctx.send(f"Chill! This command is on cooldown for `{round(error.retry_after)}` seconds.")
 
-        elif isinstance(error, RuntimeWarning):
-            return
-
         elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send(f"```diff\n{error.original}\n\n- Looks like an error occured, pls consider reporting it on support server.\n```")
-            raise error
-        else:
+            error_key = "".join(
+                random.choices(string.ascii_lowercase + string.digits, k=10)
+            )
+            await ctx.send(f"```diff\n- Looks like an error occured, pls consider reporting it on support server.\n+ Key: {error_key}\n```")
+            self.bot.logger.log(logging.ERROR, f"[{error_key}]{str(error)}")
             raise error
 
 
-def setup(client):
-    client.add_cog(ErrorsCog(client))
+def setup(bot):
+    bot.add_cog(ErrorsCog(bot))
