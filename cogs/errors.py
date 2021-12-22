@@ -88,8 +88,12 @@ class ErrorsCog(commands.Cog):
             error_key = "".join(
                 random.choices(string.ascii_lowercase + string.digits, k=10)
             )
-            await ctx.send(f"```diff\n- Looks like an error occured, pls consider reporting it on support server.\n+ Key: {error_key}\n```")
-            self.bot.logger.log(logging.ERROR, f"[{error_key}]{str(error)}")
+            embed = discord.Embed(
+                description=f"Looks like an error occured, pls consider reporting it on the [support server](https://dsc.gg/pypke-support).\nId: {error_key}",
+                color=self.bot.colors["red"]
+            )
+            await ctx.send(embed=embed)
+            self.bot.logger.log(logging.ERROR, f"[Id: {error_key}] {str(error)}")
             raise error
 
 

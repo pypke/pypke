@@ -86,7 +86,7 @@ class PypkeBot(commands.Bot):
 # Bot Info
 bot = PypkeBot()
 bot.topgg = topgg.DBLClient(bot, token=os.getenv(
-    "topgg"), autopost=True, post_shard_count=True)
+    "topgg"), autopost=True)
 bot.slash = dislash.InteractionClient(
     bot, modify_send=True, show_warnings=True, sync_commands=True)
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         filename="data/errors.log",
-        format='%(asctime)s %(levelname)s: %(message)s',
+        format='%(asctime)s %(ip)s %(levelname)s: %(message)s',
         datefmt="%H:%M:%S"
     )
     bot.logger = logging.getLogger("pypke-bot")
