@@ -11,7 +11,7 @@ from discord.ext import commands
 class ErrorsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
+        
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
@@ -89,13 +89,15 @@ class ErrorsCog(commands.Cog):
                 random.choices(string.ascii_lowercase + string.digits, k=10)
             )
             embed = discord.Embed(
-                description=f"Looks like an error occured, pls consider reporting it on the [support server](https://dsc.gg/pypke-support).\nId: {error_key}",
+                title="Error occured",
+                description=f"Looks like an error occured, pls consider reporting the error ID to the developers on the [support server](https://dsc.gg/pypke-support).",
+                timestamp=discord.utils.utcnow(),
                 color=self.bot.colors["red"]
             )
+            embed.add_field(name="Error Type", value=error.__class__.__name__)
+            embed.add_field(name="Error ID", value=f"`{error_key}`")
             await ctx.send(embed=embed)
-            self.bot.logger.log(logging.ERROR, f"[Id: {error_key}] {str(error)}")
-            raise error
-
+            self.bot.logger.log(logging.ERROR, f"[Id: {error_key}] {ctx.command.qualified_name} -> {str(error)}")
 
 def setup(bot):
     bot.add_cog(ErrorsCog(bot))

@@ -149,7 +149,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         filename="data/errors.log",
-        format='%(asctime)s %(ip)s %(levelname)s: %(message)s',
+        format='%(asctime)s %(levelname)s: %(message)s',
         datefmt="%H:%M:%S"
     )
     bot.logger = logging.getLogger("pypke-bot")
