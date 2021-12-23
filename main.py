@@ -155,7 +155,7 @@ if __name__ == "__main__":
     bot.logger = logging.getLogger("pypke-bot")
 
 
-@tasks.loop(minutes=1)
+@tasks.loop(seconds=30)
 async def update_db_cache():  # To update cache every 5 minutes
     # Current mutes
     currentMutes = await bot.mutes.get_all()
@@ -172,33 +172,6 @@ async def update_db_cache():  # To update cache every 5 minutes
         bot.current_afks[afk['_id']] = afk
 
 
-@tasks.loop(minutes=2)
-async def status_task():
-    status = [
-        {
-            "name": "@Pypke",
-            "type": discord.ActivityType.listening,
-        },
-
-        {
-            "name": "?help | ?invite",
-            "type": discord.ActivityType.watching,
-        },
-
-        {
-            "name": len(bot.guilds),
-            "type": discord.ActivityType.watching,
-        }
-    ]
-    while not bot.is_closed():
-        random_status = random.choice(status)
-        await bot.change_presence(
-            status=discord.Status.idle,
-            activity=discord.Activity(
-                name="?help | ?invite", type=discord.ActivityType.playing)
-        )
-
-
 @bot.event
 async def on_ready():
     await bot.wait_until_ready()
@@ -208,8 +181,11 @@ async def on_ready():
         f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}")
     print("---------")
     update_db_cache.start()
-    status_task.start()
-
+    await bot.change_presence(
+            status=discord.Status.idle,
+            activity=discord.Activity(
+                name="?help | ?invite", type=discord.ActivityType.playing)
+        )
 
 @bot.event
 async def on_message(message):
@@ -252,6 +228,8 @@ async def on_message(message):
             channels = []
         if not message.channel.id in channels:
             await bot.afks.delete(message.author.id)
+            if "AFK | " in message.author.display_name:
+                await message.author.edit(nick=message.author.display_name[6:])
             await message.channel.send(f"Welcome back {message.author.mention}, I removed your AFK.")
 
             try:
