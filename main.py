@@ -5,8 +5,9 @@ from utils.keep_alive import keep_alive
 # Other Imports
 import re
 import os
-import random
 import topgg
+import random
+import asyncio
 import logging
 import motor.motor_asyncio
 from copy import deepcopy
@@ -62,10 +63,27 @@ async def get_prefix(client, message):
         bot.prefixes[message.guild.id] = bot.prefix
         return bot.prefix
 
+# Status Cycle
+async def status_task():
+    while not bot.is_closed():
+        await bot.change_presence(
+            status=discord.Status.idle,
+            activity=discord.Activity(
+                name="@Pypke",
+                type=discord.ActivityType.listening
+        ))
+        await asyncio.sleep(30)
+        await bot.change_presence(
+            status=discord.Status.idle,
+            activity=discord.Activity(
+                name="?help | ?invite",
+                type=discord.ActivityType.playing
+        ))
+        await asyncio.sleep(30)
+
 
 def random_color(color_list):
     return random.choice(color_list)
-
 
 class PypkeBot(commands.Bot):
     def __init__(self):
@@ -181,11 +199,7 @@ async def on_ready():
         f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}")
     print("---------")
     update_db_cache.start()
-    await bot.change_presence(
-            status=discord.Status.idle,
-            activity=discord.Activity(
-                name="?help | ?invite", type=discord.ActivityType.playing)
-        )
+    bot.loop.create_task(status_task())
 
 @bot.event
 async def on_message(message):
