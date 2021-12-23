@@ -131,7 +131,7 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
                     origin = data["origin"]
                 except KeyError:
                     origin = ""
-                    
+
                 embed = discord.Embed(
                     title=f"{word.title()} {phonetic}",
                     description=f"{origin.capitalize()}",
@@ -174,7 +174,10 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
             description=f"**Query:** {query}\n**Results:** Click The Button Below To Open", color=self.client.color,
             timestamp=datetime.now()
         )
-        google.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar.url)
+        google.set_footer(
+            text=f"Requested by {ctx.author}",
+            icon_url=ctx.author.avatar.url
+        )
         await ctx.send(embed=google, components=[google_btn])
 
     @commands.command(name="unix", description="Get unix timestamp to copy as of current time or future.", aliases=["epoch"])

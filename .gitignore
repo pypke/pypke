@@ -3,6 +3,7 @@ discord/
 examples/
 slashcogs/
 dislash/
+bot.py
 *.webm
 *.lock
 *.toml
