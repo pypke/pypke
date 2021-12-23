@@ -11,7 +11,7 @@ from discord.ext import commands
 class ErrorsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
@@ -96,8 +96,9 @@ class ErrorsCog(commands.Cog):
             )
             embed.add_field(name="Error Type", value=error.__class__.__name__)
             embed.add_field(name="Error ID", value=f"`{error_key}`")
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, delete_after=30)
             self.bot.logger.log(logging.ERROR, f"[Id: {error_key}] {ctx.command.qualified_name} -> {str(error)}")
+            raise error
 
 def setup(bot):
     bot.add_cog(ErrorsCog(bot))

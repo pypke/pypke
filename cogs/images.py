@@ -191,17 +191,6 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
         await ctx.send(file=file)
 
     @commands.command(
-        name="mosiac",
-        description="Turn an image into a roman mosiac."
-    )
-    async def mosiac_command(self, ctx, member: Optional[discord.Member]):
-        member = member or ctx.author
-        img = await ImgClient.image_process(ImageFeatures.mosiac(), member.avatar.url)
-        file = discord.File(
-            fp=img.image, filename=f"{ctx.command.qualified_name}.{img.format}")
-        await ctx.send(file=file)
-
-    @commands.command(
         name="sithlord",
         description="Put an image on the Laughs in Sithlord meme.",
         aliases=["sith"]
