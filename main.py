@@ -63,7 +63,7 @@ async def get_prefix(client, message):
         bot.prefixes[message.guild.id] = bot.prefix
         return bot.prefix
 
-# Status Cycle
+
 async def status_task():
     while not bot.is_closed():
         await bot.change_presence(
@@ -71,23 +71,19 @@ async def status_task():
             activity=discord.Activity(
                 name="@Pypke",
                 type=discord.ActivityType.listening
-        ))
+            ))
         await asyncio.sleep(30)
         await bot.change_presence(
             status=discord.Status.idle,
             activity=discord.Activity(
                 name="?help | ?invite",
                 type=discord.ActivityType.playing
-        ))
+            ))
         await asyncio.sleep(30)
 
 
-def random_color(color_list):
-    return random.choice(color_list)
-
 class PypkeBot(commands.Bot):
     def __init__(self):
-        self.__version__ = "v1.7.6"
         super().__init__(
             command_prefix=get_prefix,
             description="A Multi-purpose discord bot and apparently a cat!",
@@ -100,13 +96,57 @@ class PypkeBot(commands.Bot):
 
         super().remove_command("help")
 
+        self.__version__ = "v1.7.6"
+        self.color = 0x7289DA
+        self.colors = {
+            "white": 0xF7F8FF,
+            "aqua": 0x00A6B4,
+            "green": 0x2ECC71,
+            "blue": 0x00B6F7,
+            "cyan": 0x6EFACC,
+            "purple": 0x9B58AF,
+            "pink": 0xFF8AB9,
+            "yellow": 0xF1C40F,
+            "orange": 0xF7770F,
+            "red": 0xF60030,
+            "new_blurple": 0x5865F2,
+            "og_blurple": 0x7289DA
+        }
+        self.color_list = [c for c in self.colors.values()]
+
+    @property
+    def random_color(self):
+        return random.choice(self.color_list)
+
+    @property
+    def text_channels(self):
+        channels = 0
+        for guild in self.guilds:
+            channels += len(guild.text_channels)
+
+        return channels
+
+    @property
+    def voice_channels(self):
+        channels = 0
+        for guild in self.guilds:
+            channels += len(guild.voice_channels)
+
+        return channels
+
+    @property
+    def stage_channels(self):
+        channels = 0
+        for guild in self.guilds:
+            channels += len(guild.stage_channels)
+
+        return channels
+
 
 # Bot Info
 bot = PypkeBot()
-bot.topgg = topgg.DBLClient(bot, token=os.getenv(
-    "topgg"), autopost=True)
-bot.slash = dislash.InteractionClient(
-    bot, modify_send=True, show_warnings=True, sync_commands=True)
+bot.topgg = topgg.DBLClient(bot, token=os.getenv("topgg"), autopost=True)
+bot.slash = dislash.InteractionClient(bot, modify_send=True)
 
 bot.launch_time = datetime.now()
 bot.cwd = cwd
@@ -116,23 +156,6 @@ bot.current_giveaways = {}
 bot.current_afks = {}
 bot.prefix = "?"
 bot.prefixes = {}
-bot.color = 0x6495ED
-bot.colors = {
-    "white": 0xF7F8FF,
-    "aqua": 0x00A6B4,
-    "green": 0x2ECC71,
-    "blue": 0x00B6F7,
-    "cyan": 0x6EFACC,
-    "purple": 0x9B58AF,
-    "pink": 0xFF8AB9,
-    "yellow": 0xF1C40F,
-    "orange": 0xF7770F,
-    "red": 0xF60030,
-    "new_blurple": 0x5865F2,
-    "og_blurple": 0x7289da
-}
-bot.color_list = [c for c in bot.colors.values()]
-bot.randcolor = random_color(bot.color_list)
 bot.afk_allowed_channel = {}
 
 # Mongo DB Stuff
@@ -200,6 +223,7 @@ async def on_ready():
     print("---------")
     update_db_cache.start()
     bot.loop.create_task(status_task())
+
 
 @bot.event
 async def on_message(message):
