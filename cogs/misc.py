@@ -48,6 +48,7 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
                     pass
 
     @commands.group(name="chatbot", description="Configure chatbot in this server.", invoke_without_command=True)
+    @commands.has_permissions(manage_guild=True)
     async def chatbot_command(self, ctx, channel: discord.TextChannel):
         data = {
             '_id': ctx.guild.id,
@@ -57,6 +58,7 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
         await ctx.send(f"ChatBot will now function in {channel.mention}, To stop it use `{ctx.prefix}chatbot stop`")
 
     @chatbot_command.command(name="stop", description="Stop chatbot in this server.")
+    @commands.has_permissions(manage_guild=True)
     async def chatbot_stop(self, ctx):
         data = await self.client.chatbot.find(ctx.guild.id)
         if not data:
@@ -109,6 +111,45 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
                 else:
                     await ctx.send("Location not found!")
 
+    @commands.command(name="define", description="Get the definition of a word.")
+    async def define_command(self, ctx, *, word):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"https://api.dictionaryapi.dev/api/v2/entries/en/{quote_plus(word)}") as r:
+                if not 300 > r.status >= 200:
+                    return await ctx.send(f"Can't find the definition of \"{word}\". If it is a word like 'snow ball' try writing it without space.")
+
+                data = await r.json()
+                data = data[0]
+
+                word = data["word"]
+                phonetic = data["phonetic"]
+                try: origin = data["origin"]
+                except KeyError: origin = ""
+                embed = discord.Embed(
+                    title=f"{word.capitalize()} [{phonetic}]",
+                    description=f"{origin.capitalize()}",
+                    color=self.client.colors["og_blurple"]
+                )
+                for meaning in data["meanings"]:
+                    value = f"**Definition:** {meaning['definitions'][0]['definition']}\n"
+                    try:
+                        if meaning['definitions'][0]['example']:
+                            value += f"**Example:** {meaning['definitions'][0]['example']}\n"
+                    except KeyError:
+                        pass
+                    if meaning['definitions'][0]['synonyms']:
+                        value += f"**Synonyms:** {', '.join(meaning['definitions'][0]['synonyms'][:5])}\n"
+                    if meaning['definitions'][0]['antonyms']:
+                        value += f"**Antonyms:** {', '.join(meaning['definitions'][0]['antonyms'][:5])}\n"
+
+                    embed.add_field(
+                        name=meaning["partOfSpeech"].capitalize(),
+                        value=value
+                    )
+                    value = ""
+
+                await ctx.send(embed=embed)
+
     @commands.command(name="google", description="Search something on google")
     async def google_command(self, ctx, query: str):
         link = quote_plus(query)
@@ -121,26 +162,38 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
                 url=url
             )
         )
-        google = discord.Embed(title="Google Search Results",
-                               description=f"**Query:** {query}\n**Results:** Click The Button Below To Open", color=self.client.color, timestamp=datetime.now())
-        google.set_footer(
-            text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar.url)
+        google = discord.Embed(
+            title="Google Search Results",
+            description=f"**Query:** {query}\n**Results:** Click The Button Below To Open", color=self.client.color,
+            timestamp=datetime.now()
+        )
+        google.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar.url)
         await ctx.send(embed=google, components=[google_btn])
 
     @commands.command(name="unix", description="Get unix timestamp to copy as of current time or future.", aliases=["epoch"])
-    async def unix_command(self, ctx, *, value: TimeConverter = None):
+    async def unix_command(self, ctx, *, value: Optional[TimeConverter]):
         if value == None:
             epoch_time = round(datetime.timestamp())
         else:
             epoch_time = datetime.timestamp()
             epoch_time = round(epoch_time + value)
 
-        embed = discord.Embed(title="Timestamp", description="\uFEFF",
-                              color=self.client.colors["orange"], timestamp=datetime.now())
-        embed.add_field(name="Timestamp Example",
-                        value=f"<t:{epoch_time}:f>\n", inline=False)
-        embed.add_field(name="Timestamp Copy",
-                        value=f"`<t:{epoch_time}:f>`\n", inline=False)
+        embed = discord.Embed(
+            title="Timestamp",
+            description="\uFEFF",
+            color=self.client.colors["orange"],
+            timestamp=datetime.now()
+        )
+        embed.add_field(
+            name="Timestamp Example",
+            value=f"<t:{epoch_time}:f>\n",
+            inline=False
+        )
+        embed.add_field(
+            name="Timestamp Copy",
+            value=f"`<t:{epoch_time}:f>`\n",
+            inline=False
+        )
         await ctx.send(embed=embed)
 
     @message_command(name="Translate", guild_ids=["850732056790827020"])

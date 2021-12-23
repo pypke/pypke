@@ -155,9 +155,8 @@ if __name__ == "__main__":
     bot.logger = logging.getLogger("pypke-bot")
 
 
-@tasks.loop(seconds=30)
+@tasks.loop(minutes=1)
 async def update_db_cache():  # To update cache every 5 minutes
-    print("Caching DB")
     # Current mutes
     currentMutes = await bot.mutes.get_all()
     for mute in currentMutes:
@@ -175,7 +174,6 @@ async def update_db_cache():  # To update cache every 5 minutes
 
 @tasks.loop(minutes=2)
 async def status_task():
-    print("Started activity")
     status = [
         {
             "name": "@Pypke",
