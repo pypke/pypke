@@ -122,11 +122,18 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
                 data = data[0]
 
                 word = data["word"]
-                phonetic = data["phonetic"]
-                try: origin = data["origin"]
-                except KeyError: origin = ""
+                try:
+                    phonetic = f'{data["phonetic"]}'
+                except KeyError:
+                    phonetic = ""
+
+                try:
+                    origin = data["origin"]
+                except KeyError:
+                    origin = ""
+                    
                 embed = discord.Embed(
-                    title=f"{word.capitalize()} [{phonetic}]",
+                    title=f"{word.title()} {phonetic}",
                     description=f"{origin.capitalize()}",
                     color=self.client.colors["og_blurple"]
                 )
