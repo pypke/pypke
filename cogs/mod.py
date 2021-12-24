@@ -55,6 +55,24 @@ class Moderation(commands.Cog):
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     async def kick_command(self, ctx, member: discord.Member, *, reason="No Reason Provided"):
+        if not reason:
+            reason = f"No reason provided. ({ctx.author})"
+        else:
+            reason = reason + f" {ctx.author} (ID: {ctx.author.id})"
+
+        if member in ctx.guild.members:
+            if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
+                return await ctx.send(f"Can't kick {member.display_name} because you don't have higher role.")
+
+            if ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
+                return await ctx.send(f"Can't kick {member.display_name} because you both has similar role hierarchy.")
+
+            if ctx.guild.me.top_role.position < member.top_role.position:
+                return await ctx.send(f"Can't kick {member.display_name} because the member has higher role than the bot.")
+
+            if ctx.guild.me.top_role.position == member.top_role.position:
+                return await ctx.send(f"Can't kick {member.display_name} because the member has similar role hierarchy as the bot.")
+
         try:
             await member.kick(reason=reason)
         except Exception:
@@ -68,9 +86,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def ban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int], *, reason=None):
         if not reason:
-            reason = f"No Reason Provided By {ctx.author}"
+            reason = f"No reason provided. ({ctx.author})"
         else:
-            reason = reason + f" (Banned by {ctx.author})"
+            reason = reason + f" {ctx.author} (ID: {ctx.author.id})"
 
         if not delete_days:
             delete_days = 0
@@ -95,7 +113,7 @@ class Moderation(commands.Cog):
             try:
                 await ctx.guild.ban(user=member, delete_message_days=delete_days, reason=reason)
             except discord.HTTPException:
-                await ctx.send(f"Unable to ban {member.id}")
+                await ctx.send(f"Unable to ban {member}")
                 return
 
         await ctx.send(f"Banned {member}.")
@@ -105,9 +123,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def unban_command(self, ctx, member: discord.User, *, reason=None):
         if not reason:
-            reason = f"No Reason Provided By {ctx.author}"
+            reason = f"No reason provided. ({ctx.author})"
         else:
-            reason = reason + f" (Unbanned by {ctx.author})"
+            reason = reason + f" {ctx.author} (ID: {ctx.author.id})"
 
         banned_users = await ctx.guild.bans()
 
@@ -165,7 +183,7 @@ class Moderation(commands.Cog):
     @commands.has_permissions(ban_members=True)
     async def softban_command(self, ctx, member: Union[discord.Member, discord.User], delete_days: Optional[int] = 2, *, reason: Optional[str]):
         if not reason:
-            reason = f"No Reason Provided By {ctx.author}"
+            reason = f"No reason provided. ({ctx.author})"
         else:
             reason = reason + f" (Soft-Banned by {ctx.author})"
 
@@ -339,7 +357,7 @@ class Moderation(commands.Cog):
                 self.client.user: discord.PermissionOverwrite(
                     send_messages=True)
             }
-            await channel.edit(overwrites=overwrites, reason=f"Channel Locked By {ctx.author}")
+            await channel.edit(overwrites=overwrites, reason=f"Channel locked by {ctx.author}")
             await ctx.send(f":lock: Locked!! {channel.mention}")
         elif (
             channel.overwrites[ctx.guild.default_role].send_messages == True
@@ -347,13 +365,13 @@ class Moderation(commands.Cog):
         ):
             overwrites = channel.overwrites[ctx.guild.default_role]
             overwrites.send_messages = False
-            await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites, reason=f"Channel Locked By {ctx.author}")
+            await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites, reason=f"Channel locked by {ctx.author}")
             await ctx.send(f":lock: Locked!! {channel.mention}")
 
         elif channel.overwrites[ctx.guild.default_role].send_messages == False:
-            await ctx.send("This Channel Is Already Locked!")
+            await ctx.send("This channel is already locked!")
 
-    @commands.group(name="unlock", description="Unlock the channel it's used in to allow everyone from speaking", aliases=["unlockdown"])
+    @commands.group(name="unlock", description="Unlock the channel it's used to allow everyone to speak.", aliases=["unlockdown"])
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def unlock(self, ctx, channel: Optional[discord.TextChannel]):
@@ -371,32 +389,36 @@ class Moderation(commands.Cog):
         else:
             overwrites = channel.overwrites[ctx.guild.default_role]
             overwrites.send_messages = None
-            await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites, reason=f"Channel Unlocked By {ctx.author}")
+            await channel.set_permissions(ctx.guild.default_role, overwrite=overwrites, reason=f"Channel Unlocked by {ctx.author}")
             await ctx.send(f":unlock: Unlocked!! {channel.mention}")
 
-    @lock.command(name="server", description="Locks the whole server preventing @ everyone from speaking.")
+    @lock.command(name="server", description="Locks the whole server preventing everyone from speaking.")
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def lock_server(self, ctx):
         role = ctx.guild.default_role
         permissions = discord.Permissions()
-        permissions.update(send_messages=False, read_messages=True, connect=True,
-                           speak=True, read_message_history=True, use_external_emojis=True)
+        permissions.update(
+            send_messages=False, read_messages=True, connect=True, speak=True,
+            read_message_history=True, use_external_emojis=True, add_reactions=False
+        )
         await role.edit(reason=f"Server Lockdown By {ctx.author}", permissions=permissions)
         try:
             await ctx.send(f":lock: Server Locked!!")
         except:
             pass
 
-    @unlock.command(name="server", description="Reverts send messages for @ everyone back to normal")
+    @unlock.command(name="server", description="Reverts send messages for everyone back to normal")
     @commands.guild_only()
     @commands.has_permissions(manage_channels=True)
     async def unlock_server(self, ctx):
         role = ctx.guild.default_role
         permissions = discord.Permissions()
-        permissions.update(send_messages=True, read_messages=True, connect=True, speak=True,
-                           read_message_history=True, use_external_emojis=True, add_reactions=True)
-        await role.edit(reason=f"Server Unlocked By {ctx.author}", permissions=permissions)
+        permissions.update(
+            send_messages=True, read_messages=True, connect=True, speak=True,
+            read_message_history=True, use_external_emojis=True, add_reactions=True
+        )
+        await role.edit(reason=f"Server Unlocked by {ctx.author}", permissions=permissions)
         try:
             await ctx.send(f":unlock: Server Unlocked!!")
         except:
