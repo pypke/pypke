@@ -38,3 +38,25 @@ class TimeConverter(commands.Converter):
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")
         return round(time)
+
+
+class TimeHumanizer:
+    def __init__(self, *, time):
+        if time <= 0:
+            raise commands.BadArgument(f"Time cannot be negative.")
+
+        minutes, seconds = divmod(time, 60)
+        hours, minutes = divmod(minutes, 60)
+        days, hours = divmod(hours, 24)
+        duration = ""
+
+        if days:
+            duration = duration + f"{days} day(s) "
+        if hours:
+            duration = duration + f"{hours} hour(s) "
+        if minutes:
+            duration = duration + f"{minutes} minute(s) "
+        if seconds:
+            duration = duration + f"{seconds} second(s) "
+
+        return duration
