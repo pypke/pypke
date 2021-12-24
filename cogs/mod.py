@@ -1,8 +1,9 @@
 import asyncio
+import humanize
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 from datetime import datetime
-from utils.time import TimeConverter
+from utils.time import TimeConverter, TimeHumanizer
 from typing import Optional, Union
 
 import discord
@@ -341,6 +342,41 @@ class Moderation(commands.Cog):
             await modlogs.send(embed=embed)
         except:
             pass
+
+    @commands.command(name="timeout", description="Timeouts the user. Works better than mute.")
+    @commands.guild_only()
+    @commands.has_permissions(moderate_members=True)
+    async def timeout(self, ctx, member: discord.Member, *, time: TimeConverter):
+        if time > 2419200:
+            return await ctx.send("Time cannot be greater than 28 days.")
+
+        if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
+            return await ctx.send(f"Can't timeout {member.display_name} because you don't have higher role.")
+        elif ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
+            return await ctx.send(f"Can't timeout {member.display_name} because you both has similar role hierarchy.")
+        elif ctx.guild.me.top_role.position < member.top_role.position:
+            return await ctx.send(f"Can't timeout {member.display_name} because the member has higher role than the bot.")
+        elif ctx.guild.me.top_role.position == member.top_role.position:
+            return await ctx.send(f"Can't timeout {member.display_name} because the member has similar role hierarchy as the bot.")
+
+        await member.timeout(duration=time, reason=f"Timeout by {ctx.author} (ID: {ctx.author.id})")
+        await ctx.send(f"Timed out {member.display_name} for {TimeHumanizer(time=time)}.")
+
+    @commands.command(name="untimeout", description="Remove timeout from the user.")
+    @commands.guild_only()
+    @commands.has_permissions(moderate_members=True)
+    async def untimeout(self, ctx, member: discord.Member, *, reason: Optional[str]):
+        if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
+            return await ctx.send(f"Can't untimeout {member.display_name} because you don't have higher role.")
+        elif ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
+            return await ctx.send(f"Can't untimeout {member.display_name} because you both has similar role hierarchy.")
+        elif ctx.guild.me.top_role.position < member.top_role.position:
+            return await ctx.send(f"Can't untimeout {member.display_name} because the member has higher role than the bot.")
+        elif ctx.guild.me.top_role.position == member.top_role.position:
+            return await ctx.send(f"Can't untimeout {member.display_name} because the member has similar role hierarchy as the bot.")
+
+        await member.timeout(duration=None, reason=f"{reason} {ctx.author} (ID: {ctx.author.id})")
+        await ctx.send(f"Untimed out {member.display_name}.")
 
     @commands.group(name="lock", description="Lock the channel it's used in to prevent everyone from speaking", aliases=["lockdown"])
     @commands.guild_only()
