@@ -1,5 +1,4 @@
 import asyncio
-import humanize
 from dateutil.relativedelta import relativedelta
 from copy import deepcopy
 from datetime import datetime
@@ -40,7 +39,7 @@ class Moderation(commands.Cog):
                 role = discord.utils.get(guild.roles, name="Muted")
                 if role in offender.roles:
                     await offender.remove_roles(role)
-                    print(f"Unmuted: {offender.display_name}")
+                    print(f"Unmuted: {offender}")
 
                 await self.client.mutes.delete(offender.id)
                 try:
@@ -63,16 +62,16 @@ class Moderation(commands.Cog):
 
         if member in ctx.guild.members:
             if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
-                return await ctx.send(f"Can't kick {member.display_name} because you don't have higher role.")
+                return await ctx.send(f"Can't kick {member} because you don't have higher role.")
 
             if ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
-                return await ctx.send(f"Can't kick {member.display_name} because you both has similar role hierarchy.")
+                return await ctx.send(f"Can't kick {member} because you both has similar role hierarchy.")
 
             if ctx.guild.me.top_role.position < member.top_role.position:
-                return await ctx.send(f"Can't kick {member.display_name} because the member has higher role than the bot.")
+                return await ctx.send(f"Can't kick {member} because the member has higher role than the bot.")
 
             if ctx.guild.me.top_role.position == member.top_role.position:
-                return await ctx.send(f"Can't kick {member.display_name} because the member has similar role hierarchy as the bot.")
+                return await ctx.send(f"Can't kick {member} because the member has similar role hierarchy as the bot.")
 
         try:
             await member.kick(reason=reason)
@@ -98,16 +97,16 @@ class Moderation(commands.Cog):
 
         if member in ctx.guild.members:
             if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
-                return await ctx.send(f"Can't ban {member.display_name} because you don't have higher role.")
+                return await ctx.send(f"Can't ban {member} because you don't have higher role.")
 
             if ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
-                return await ctx.send(f"Can't ban {member.display_name} because you both has similar role hierarchy.")
+                return await ctx.send(f"Can't ban {member} because you both has similar role hierarchy.")
 
             if ctx.guild.me.top_role.position < member.top_role.position:
-                return await ctx.send(f"Can't ban {member.display_name} because the member has higher role than the bot.")
+                return await ctx.send(f"Can't ban {member} because the member has higher role than the bot.")
 
             if ctx.guild.me.top_role.position == member.top_role.position:
-                return await ctx.send(f"Can't ban {member.display_name} because the member has similar role hierarchy as the bot.")
+                return await ctx.send(f"Can't ban {member} because the member has similar role hierarchy as the bot.")
 
             await member.ban(delete_message_days=delete_days, reason=reason)
         else:
@@ -122,7 +121,7 @@ class Moderation(commands.Cog):
     @commands.command(name="unban", description="Unban banned user from this server.", cooldown_after_parsing=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    async def unban_command(self, ctx, member: discord.User, *, reason=None):
+    async def unban_command(self, ctx, member: discord.User, *, reason: Optional[str]):
         if not reason:
             reason = f"No reason provided. ({ctx.author})"
         else:
@@ -157,27 +156,27 @@ class Moderation(commands.Cog):
 
             if member in ctx.guild.members:
                 if ctx.author.top_role.position < member.top_role.position:
-                    return await ctx.send(f"Can't ban {member.display_name}. (You need to be higher in the role hierarchy.)")
+                    return await ctx.send(f"Can't ban {member}. (You need to be higher in the role hierarchy.)")
 
                 if ctx.author.top_role.position == member.top_role.position:
-                    return await ctx.send(f"Can't ban {member.display_name} because you both has similar role hierarchy.")
+                    return await ctx.send(f"Can't ban {member} because you both has similar role hierarchy.")
 
                 if ctx.guild.me.top_role.position < member.top_role.position:
-                    return await ctx.send(f"Can't ban {member.display_name} because the member has higher role than the bot.")
+                    return await ctx.send(f"Can't ban {member} because the member has higher role than the bot.")
 
                 if ctx.guild.me.top_role.position == member.top_role.position:
-                    return await ctx.send(f"Can't ban {member.display_name} because the member has similar role hierarchy as the bot.")
+                    return await ctx.send(f"Can't ban {member} because the member has similar role hierarchy as the bot.")
 
                 await member.ban(delete_message_days=delete_days, reason=reason)
-                await ctx.send(f"Banned {member.display_name}.")
+                await ctx.send(f"Banned {member}.")
 
             else:
                 try:
                     await ctx.guild.ban(user=member, delete_message_days=delete_days, reason=reason)
-                    await ctx.send(f"Banned {member.display_name}.")
+                    await ctx.send(f"Banned {member}.")
 
                 except discord.HTTPException:
-                    await ctx.send(f"Unable to ban {member.display_name}.")
+                    await ctx.send(f"Unable to ban {member}.")
 
     @commands.command(name="softban", description="Softban a member to clear all his/her messages. Bans a user then instantly unbans them.", cooldown_after_parsing=True)
     @commands.guild_only()
@@ -193,16 +192,16 @@ class Moderation(commands.Cog):
 
         if member in ctx.guild.members:
             if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
-                return await ctx.send(f"Can't ban {member.display_name} because you don't have higher role.")
+                return await ctx.send(f"Can't ban {member} because you don't have higher role.")
 
             if ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
-                return await ctx.send(f"Can't ban {member.display_name} because you both has similar role hierarchy.")
+                return await ctx.send(f"Can't ban {member} because you both has similar role hierarchy.")
 
             if ctx.guild.me.top_role.position < member.top_role.position:
-                return await ctx.send(f"Can't ban {member.display_name} because the member has higher role than the bot.")
+                return await ctx.send(f"Can't ban {member} because the member has higher role than the bot.")
 
             if ctx.guild.me.top_role.position == member.top_role.position:
-                return await ctx.send(f"Can't ban {member.display_name} because the member has similar role hierarchy as the bot.")
+                return await ctx.send(f"Can't ban {member} because the member has similar role hierarchy as the bot.")
 
             await member.ban(delete_message_days=delete_days, reason=reason)
         else:
@@ -249,7 +248,7 @@ class Moderation(commands.Cog):
             pass
 
         if not time:
-            await ctx.send(f"{member.display_name} Was Muted")
+            await ctx.send(f"{member} Was Muted")
             modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
             embed = discord.Embed(
                 title="Muted",
@@ -302,7 +301,7 @@ class Moderation(commands.Cog):
 
             if role in member.roles:
                 await member.remove_roles(role)
-                await ctx.send(f"{member.display_name} Was Unmuted ")
+                await ctx.send(f"{member} Was Unmuted ")
 
             await self.client.mutes.delete(member.id)
             try:
@@ -343,40 +342,40 @@ class Moderation(commands.Cog):
         except:
             pass
 
-    @commands.command(name="timeout", description="Timeouts the user. Works better than mute.")
-    @commands.guild_only()
-    @commands.has_permissions(moderate_members=True)
-    async def timeout(self, ctx, member: discord.Member, *, time: TimeConverter):
-        if time > 2419200:
-            return await ctx.send("Time cannot be greater than 28 days.")
+    # @commands.command(name="timeout", description="Timeouts the user. Works better than mute.", cooldown_after_parsing=True)
+    # @commands.guild_only()
+    # @commands.has_permissions(moderate_members=True)
+    # async def timeout(self, ctx, member: discord.Member, *, time: TimeConverter):
+    #     if time > 2419200:
+    #         return await ctx.send("Time cannot be greater than 28 days.")
 
-        if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
-            return await ctx.send(f"Can't timeout {member.display_name} because you don't have higher role.")
-        elif ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
-            return await ctx.send(f"Can't timeout {member.display_name} because you both has similar role hierarchy.")
-        elif ctx.guild.me.top_role.position < member.top_role.position:
-            return await ctx.send(f"Can't timeout {member.display_name} because the member has higher role than the bot.")
-        elif ctx.guild.me.top_role.position == member.top_role.position:
-            return await ctx.send(f"Can't timeout {member.display_name} because the member has similar role hierarchy as the bot.")
+    #     if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
+    #         return await ctx.send(f"Can't timeout {member} because you don't have higher role.")
+    #     elif ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
+    #         return await ctx.send(f"Can't timeout {member} because you both has similar role hierarchy.")
+    #     elif ctx.guild.me.top_role.position < member.top_role.position:
+    #         return await ctx.send(f"Can't timeout {member} because the member has higher role than the bot.")
+    #     elif ctx.guild.me.top_role.position == member.top_role.position:
+    #         return await ctx.send(f"Can't timeout {member} because the member has similar role hierarchy as the bot.")
 
-        await member.timeout(duration=time, reason=f"Timeout by {ctx.author} (ID: {ctx.author.id})")
-        await ctx.send(f"Timed out {member.display_name} for {TimeHumanizer(time=time)}.")
+    #     await member.timeout(duration=time, reason=f"Timeout by {ctx.author} (ID: {ctx.author.id})")
+    #     await ctx.send(f"Timed out {member}` for {TimeHumanizer.convert(self, time=time)}.")
 
-    @commands.command(name="untimeout", description="Remove timeout from the user.")
-    @commands.guild_only()
-    @commands.has_permissions(moderate_members=True)
-    async def untimeout(self, ctx, member: discord.Member, *, reason: Optional[str]):
-        if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
-            return await ctx.send(f"Can't untimeout {member.display_name} because you don't have higher role.")
-        elif ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
-            return await ctx.send(f"Can't untimeout {member.display_name} because you both has similar role hierarchy.")
-        elif ctx.guild.me.top_role.position < member.top_role.position:
-            return await ctx.send(f"Can't untimeout {member.display_name} because the member has higher role than the bot.")
-        elif ctx.guild.me.top_role.position == member.top_role.position:
-            return await ctx.send(f"Can't untimeout {member.display_name} because the member has similar role hierarchy as the bot.")
+    # @commands.command(name="untimeout", description="Remove timeout from the user.", cooldown_after_parsing=True)
+    # @commands.guild_only()
+    # @commands.has_permissions(moderate_members=True)
+    # async def untimeout(self, ctx, member: discord.Member, *, reason: Optional[str]):
+    #     if ctx.author.top_role.position < member.top_role.position and member in ctx.guild.members:
+    #         return await ctx.send(f"Can't untimeout {member} because you don't have higher role.")
+    #     elif ctx.author.top_role.position == member.top_role.position and member in ctx.guild.members:
+    #         return await ctx.send(f"Can't untimeout {member} because you both has similar role hierarchy.")
+    #     elif ctx.guild.me.top_role.position < member.top_role.position:
+    #         return await ctx.send(f"Can't untimeout {member} because the member has higher role than the bot.")
+    #     elif ctx.guild.me.top_role.position == member.top_role.position:
+    #         return await ctx.send(f"Can't untimeout {member} because the member has similar role hierarchy as the bot.")
 
-        await member.timeout(duration=None, reason=f"{reason} {ctx.author} (ID: {ctx.author.id})")
-        await ctx.send(f"Untimed out {member.display_name}.")
+    #     await member.timeout(duration=None, reason=f"{reason} {ctx.author} (ID: {ctx.author.id})")
+    #     await ctx.send(f"Untimed out {member}.")
 
     @commands.group(name="lock", description="Lock the channel it's used in to prevent everyone from speaking", aliases=["lockdown"])
     @commands.guild_only()

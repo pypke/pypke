@@ -41,7 +41,7 @@ class TimeConverter(commands.Converter):
 
 
 class TimeHumanizer:
-    def __init__(self, *, time):
+    def convert(self, *, time):
         if time <= 0:
             raise commands.BadArgument(f"Time cannot be negative.")
 

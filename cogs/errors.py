@@ -92,7 +92,7 @@ class ErrorsCog(commands.Cog):
                 title="Error occured",
                 description=f"Looks like an error occured, pls consider reporting the error ID to the developers on the [support server](https://dsc.gg/pypke-support).",
                 timestamp=discord.utils.utcnow(),
-                color=self.bot.colors["red"]
+                color=self.bot.colors["og_blurple"]
             )
             embed.add_field(name="Error Type", value=error.__class__.__name__)
             embed.add_field(name="Error ID", value=f"`{error_key}`")
