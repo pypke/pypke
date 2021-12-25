@@ -16,36 +16,45 @@ WEATHER_KEY = "073a1838197e477bb83141102213110"
 class Misc(commands.Cog, description="Commands that do not belong to any module."):
     def __init__(self, client):
         self.client = client
+        self.chatbot_cache = {}
 
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.bot:
             return
 
-        # if not message.guild:
-        #     return
-
-        chatbot_channels = await self.client.chatbot.get_all()
-        data = await self.client.config.find(message.guild.id)
-        if not data or "prefix" not in data:
-            prefix = "#"
+        try:
+            channel = self.chatbot_cache[message.guild.id]
+        except KeyError:
+            pass
         else:
-            prefix = data["prefix"]
+            chatbot_channels = await self.client.chatbot.get_all()
+            for channel in chatbot_channels:
+                self.chatbot_cache[int(channel['_id'])] = int(
+                    channel['channel'])
+
+        try:
+            prefix = self.client.prefixes[message.guild.id]
+        except KeyError:
+            pass
+        else:
+            prefix = self.client.prefix
 
         if message.content.lower().startswith(f"{prefix}"):
             return
-        msg = quote_plus(message.content.lower())
-        for channel in chatbot_channels:
-            if int(channel['channel']) == message.channel.id:
-                try:
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(f'http://api.brainshop.ai/get?bid=160282&key=ymIz1TEF0CNxURTu&uid={message.author.id}&msg={msg}') as r:
-                            if 300 > r.status >= 200:
-                                data = await r.json()
-                                response = data['cnt']
-                                await message.reply(response, mention_author=False)
-                except discord.HTTPException:
-                    pass
+
+        channel = self.chatbot_cache[message.guild.id]
+        if message.channel.id == channel:
+            msg = quote_plus(message.content.lower())
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f'http://api.brainshop.ai/get?bid=160282&key=ymIz1TEF0CNxURTu&uid={message.author.id}&msg={msg}') as r:
+                        if 300 > r.status >= 200:
+                            data = await r.json()
+                            response = data['cnt']
+                            await message.reply(response, mention_author=False)
+            except discord.HTTPException:
+                pass
 
     @commands.group(name="chatbot", description="Configure chatbot in this server.", invoke_without_command=True)
     @commands.has_permissions(manage_guild=True)
