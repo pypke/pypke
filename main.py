@@ -97,6 +97,8 @@ class PypkeBot(commands.Bot):
         super().remove_command("help")
 
         self.__version__ = "v1.7.6"
+        self.launch_time = datetime.now()
+
         self.color = 0x7289DA
         self.colors = {
             "white": 0xF7F8FF,
@@ -117,6 +119,12 @@ class PypkeBot(commands.Bot):
     @property
     def random_color(self):
         return random.choice(self.color_list)
+
+    @property
+    def uptime(self):
+        delta = datetime.now() - self.launch_time
+        uptime = int(delta.total_seconds())
+        return uptime
 
     @property
     def text_channels(self):
@@ -148,7 +156,6 @@ bot = PypkeBot()
 bot.topgg = topgg.DBLClient(bot, token=os.getenv("topgg"), autopost=True)
 bot.slash = dislash.InteractionClient(bot, modify_send=True)
 
-bot.launch_time = datetime.now()
 bot.cwd = cwd
 bot.version = "v1.7.6"
 bot.muted_users = {}
