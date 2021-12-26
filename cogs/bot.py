@@ -1,7 +1,10 @@
+from utils.time import TimeHumanizer
+
 import platform
 from datetime import datetime
 from psutil import Process, cpu_percent
 from os import getpid
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -12,57 +15,65 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(aliases=['pong'], slash_command=True)
+    @commands.command(
+        name="ping",
+        description="Check the bot's ping.",
+        aliases=['pong']
+    )
     async def ping(self, ctx):
-        await ctx.send(f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(self.client.latency * 1000)}ms`")
+        await ctx.send(f":ping_pong: Pong! \nBot latency is `{round(self.client.latency * 1000)}ms`.")
 
-    @commands.command(slash_command=True)
+    @commands.command(
+        name="uptime",
+        description="Check the bot's uptime."
+    )
     async def uptime(self, ctx):
-        delta_uptime = datetime.now() - self.client.launch_time
-        time = int(delta_uptime.total_seconds())
-
-        # Converting Time Back To Readble Letters
-        minutes, seconds = divmod(time, 60)
-        hours, minutes = divmod(minutes, 60)
-        days, hours = divmod(hours, 24)
-        duration = ""
-        if days != 0:
-            duration = duration + f"{days} days "
-        if hours != 0:
-            duration = duration + f"{hours} hrs "
-        if minutes != 0:
-            duration = duration + f"{minutes} mins "
-        if seconds != 0:
-            duration = duration + f"{seconds} secs "
+        uptime = self.client.uptime
+        duration = TimeHumanizer.convert(self, time=uptime)
         await ctx.send(f"I'm up since {duration}.")
 
-    @commands.command(slash_command=True)
+    @commands.command(
+        name="stats",
+        description="See the bot statistics."
+    )
     async def stats(self, ctx):
         pythonVersion = platform.python_version()
         dpyVersion = discord.__version__
         serverCount = len(self.client.guilds)
         memberCount = len(set(self.client.get_all_members()))
-        memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204/1204/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
+        memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
         cpuPercent = cpu_percent()
+        uptime = TimeHumanizer.convert(self, self.client.uptime)
+        text_channels = self.client.text_channels
+        voice_channels = self.client.voice_channels
+        stage_channels = self.client.stage_channels
 
         embed = discord.Embed(
-            title=f"{self.client.user.name} Stats",
-            description="\uFEFF",
+            description=f"Ping: `{round(self.client.latency * 1000)} ms`\nUptime: {uptime}",
             colour=0x2f3136,
             timestamp=ctx.message.created_at
         )
-        embed.add_field(name="Bot Version:", value=f"`{self.client.version}`")
-        embed.add_field(name="Python Version:", value=f"`{pythonVersion}`")
-        embed.add_field(name="Discord.py Version", value=f"`{dpyVersion}`")
-        embed.add_field(name="Total Servers:", value=f"{serverCount} Servers")
-        embed.add_field(name="Total Users:", value=f"{memberCount} Users")
-        embed.add_field(name="Memory Used:", value=f"{memoryUsed}")
-        embed.add_field(name="CPU Usage:", value=f"{cpuPercent}%")
-        embed.add_field(name="Bot Developers:", value="<@624572769484668938>")
+        embed.set_thumbnail(url=self.client.user.avatar.url)
+        embed.set_footer(text=f"Made by Mr.Natural#3549")
+        embed.set_author(
+            name=f"{self.client.user.name} Stats",
+            icon_url=self.client.user.avatar.url
+        )
 
-        embed.set_footer(text=f"Mr.Natural#3549 | {self.client.user.name}")
-        embed.set_author(name=self.client.user.name,
-                         icon_url=self.client.user.avatar.url)
+        embed.add_field(
+            name="Version Info:",
+            value=f"`Bot Version {self.client.version}`\nPython version {pythonVersion}\nDpy Version {dpyVersion}",
+            inline=False
+        )
+        embed.add_field(
+            name="Counters:",
+            value=f"{serverCount} Servers | {memberCount} Users\n" +
+            f"{text_channels} | {voice_channels} | {stage_channels}"
+        )
+        embed.add_field(
+            name="System Info:",
+            value=f"Memory: {memoryUsed} \nCPU usage: {cpuPercent}%"
+        )
 
         await ctx.send(embed=embed)
 
@@ -149,23 +160,16 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
 
     @commands.command(
         name="prefix",
-        aliases=["changeprefix", "setprefix"],
+        description="Set a custom prefix.",
+        aliases=["changeprefix", "setprefix"]
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
-    async def prefix(self, ctx, *, prefix=None):
+    async def prefix(self, ctx, *, prefix: Optional[str]):
+        if not prefix:
+            return await ctx.send(f"My current prefix for this server is `{ctx.prefix}`. Use `{ctx.prefix}prefix <prefix>` to change it")
 
-        data = await self.client.config.find(ctx.guild.id)
-        if not data or "prefix" not in data:
-            current_prefix = "#"
-        else:
-            current_prefix = data["prefix"]
-
-        if prefix == None:
-            return await ctx.send(f"My current prefix for this server is `{current_prefix}`. Use `{current_prefix}prefix <prefix>` to change it")
-
-        self.client.prefixes[ctx.guild.id] = prefix
         await self.client.config.upsert(
             {
                 "_id": ctx.guild.id,
@@ -175,42 +179,34 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
                 # "modlog_message": data["modlog_message"] if data["modlog_member"] else None
             }
         )
+        self.client.prefixes[ctx.guild.id] = prefix
         await ctx.send(f"The guild prefix is changed to `{prefix}`. Use `{prefix}prefix [prefix]` to change it again!")
 
     @commands.command(
         name='resetprefix',
-        aliases=['deleteprefix'],
+        description="Reset the server prefix.",
+        aliases=['deleteprefix']
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(1, 5, commands.BucketType.guild)
     async def resetprefix(self, ctx):
-        data = await self.client.config.find(ctx.guild.id)
+        await self.client.config.delete(ctx.guild.id)
+        await ctx.send(f"The prefix is reset to `{self.client.prefix}`")
 
-        try:
-            data = {
-                "_id": ctx.guild.id,
-                "prefix": self.client.prefix,
-                "modlog_mod": data["modlog_mod"] or None,
-                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                "modlog_message": data["modlog_message"] if data["modlog_member"] else None
-            }
-            await self.client.config.update(data)
-            await ctx.send("This guilds prefix is reset back to the default `#`")
-        except Exception:
-            pass
-
-    @commands.command(name="feedback", description="Send feedback to the developer's server.", aliases=["report"], slash_command=True)
+    @commands.command(
+        name="feedback",
+        description="Send feedback to the developer's server.",
+        aliases=["report"]
+    )
     @commands.guild_only()
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def feedback_command(self, ctx, *, message):
-        """Send feedback to the developer's server."""
-
         channel = await self.client.fetch_channel(911854839074537513)
         embed = discord.Embed(
             title=f"Feedback from {ctx.author}",
             description=message,
-            color=ctx.author.color,
+            color=self.client.colors["og_blurple"],
             timestamp=datetime.now()
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)

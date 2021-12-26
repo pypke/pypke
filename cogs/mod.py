@@ -359,7 +359,7 @@ class Moderation(commands.Cog):
     #         return await ctx.send(f"Can't timeout {member} because the member has similar role hierarchy as the bot.")
 
     #     await member.timeout(duration=time, reason=f"Timeout by {ctx.author} (ID: {ctx.author.id})")
-    #     await ctx.send(f"Timed out {member}` for {TimeHumanizer.convert(self, time=time)}.")
+    #     await ctx.send(f"Timed out {member}` for {TimeHumanizert(time)}.")
 
     # @commands.command(name="untimeout", description="Remove timeout from the user.", cooldown_after_parsing=True)
     # @commands.guild_only()

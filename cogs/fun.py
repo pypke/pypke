@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup as bs4
 from html import unescape
 from asyncprawcore import exceptions as prawexc
 from akinator.async_aki import Akinator
+from typing import Optional
 
 import discord
 from discord.ext import commands
@@ -30,6 +31,47 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     def __init__(self, client):
         self.client = client
 
+    async def rps_winner(self, player1_choice, player2_choice: Optional[str]):
+        choices = ["rock", "paper", "scissors"]
+
+        if not player2_choice:
+            player2_choice = random.choice(choices)
+
+        if player2_choice == player1_choice:
+            return "Draw"
+
+        if player2_choice == "rock" and player1_choice == "scissors":
+            return "P2"
+        elif player2_choice == "paper" and player1_choice == "rock":
+            return "P2"
+        elif player2_choice == "scissors" and player1_choice == "paper":
+            return "P2"
+        else:
+            return "P1"
+        
+    async def make_move(self, ctx, msg, player):
+        while True:
+            def check(inter):
+                return inter.message.id == msg.id
+
+            try:
+                inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
+
+                if inter.author.id != player.id:
+                    await inter.respond("This is not your turn.", ephemeral=True)
+                else:
+                    await inter.respond(type=6)
+                    return inter.clicked_button.custom_id
+
+            except asyncio.TimeoutError:
+                embed = discord.Embed(
+                    title="Rock Paper Scissors",
+                    description="You took so long.",
+                    color=self.client.colors["og_blurple"]
+                )
+                await msg.edit(f"{player.mention}, Game Over!", embed=embed, components=[])
+                break
+
     @commands.command(
         name="coinflip",
         description="Flips a coin.",
@@ -39,6 +81,109 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     async def coinflip_command(self, ctx):
         sides = ["Heads", "Tails"]
         await ctx.send(f"It landed on {random.choice(sides)}!!")
+
+    @commands.command(
+        name="rps",
+        description="Play rock paper scissors with friends or with the bot."
+    )
+    @commands.max_concurrency(1, commands.BucketType.user)
+    async def rps_command(self, ctx, member: Optional[discord.Member], rounds: Optional[int] = 1):
+        rock = self.client.get_emoji(924544402595135538)
+        paper = self.client.get_emoji(924544488590962718)
+        scissors = self.client.get_emoji(924544545096626176)
+
+        rps_btns = ActionRow(
+            Button(
+                style=ButtonStyle.gray,
+                label="Rock",
+                emoji=rock,
+                custom_id="rock"
+            ),
+            Button(
+                style=ButtonStyle.gray,
+                label="Paper",
+                emoji=paper,
+                custom_id="paper"
+            ),
+            Button(
+                style=ButtonStyle.gray,
+                label="Scissors",
+                emoji=scissors,
+                custom_id="scissors"
+            )
+        )
+        embed = discord.Embed(
+            title="Rock Paper Scissors",
+            description="Choose your move",
+            color=self.client.colors["og_blurple"]
+        )
+        i = 1
+        player1_points = 0
+        player2_points = 0
+        while i <= rounds:
+            if member:
+                player1 = random.choice(member, ctx.author)
+                player2 = ctx.author if player1 == member else member
+
+                msg = await ctx.send(f"{player1.mention}'s Turn", embed=embed, components=[rps_btns])
+                player1_move = await self.make_move(ctx, msg, player1)
+
+                if not player1_move:
+                    return
+                
+                msg = await msg.edit(f"{player2.mention}'s Turn", embed=embed, components=[rps_btns])
+                player2_move = await self.make_move(ctx, msg, player2)              
+                
+                winner = await self.rps_winner(player1_move, player2_move)
+                if winner == "Draw":
+                    pass
+                elif winner == "P2":
+                    player2_points += 1
+                elif winner == "P1":
+                    player1_points += 1
+                    
+                i += 1
+                
+            else: # if there is no player 2
+                player1 = ctx.author
+
+                msg = await ctx.send(f"{player1.mention}'s Turn", embed=embed, components=[rps_btns])
+                player1_move = await self.make_move(ctx, msg, player1)
+
+                if not player1_move:
+                    return
+
+                winner = await self.rps_winner(player1_move)
+                if winner == "Draw":
+                    pass
+                elif winner == "P2":
+                    player2_points += 1
+                elif winner == "P1":
+                    player1_points += 1
+
+                i += 1
+            
+        if player1_points == player2_points:
+            embed = discord.Embed(
+                title="Rock Paper Scissors",
+                description=f"{player1.mention}: `{player1_points} points`\n{player2.mention}: `{player2_points} points`\n\nResulted Draw!",
+                color=self.client.colors["og_blurple"]
+            )
+            await ctx.send(embed=embed)
+        elif player1_points > player2_points:
+            embed = discord.Embed(
+                title="Rock Paper Scissors",
+                description=f"{player1.mention}: `{player1_points} points`\n{player2.mention}: `{player2_points} points`\n\n{player1.mention} Wins!",
+                color=self.client.colors["og_blurple"]
+            )
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title="Rock Paper Scissors",
+                description=f"{player1.mention}: `{player1_points} points`\n{player2.mention}: `{player2_points} points`\n\n{player2.mention} Wins!",
+                color=self.client.colors["og_blurple"]
+            )
+            await ctx.send(embed=embed)
 
     @commands.command(name='akinator', aliases=['aki'], description='Akinator guesses about object/animal/character.', hidden=True)
     @commands.bot_has_permissions(read_messages=True, read_message_history=True)

@@ -46,14 +46,14 @@ async def get_prefix(client, message):
         return bot.prefix
 
     try:
-        bot.prefixes[message.guild.id]
+        return bot.prefixes[message.guild.id]
     except KeyError:
         pass
 
     try:
         data = await bot.config.find(message.guild.id)
 
-        # Make sure we have a useable prefix
+        # Make sure we have a usable prefix
         if not data or "prefix" not in data:
             return bot.prefix
 
