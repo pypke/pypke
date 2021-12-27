@@ -31,12 +31,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     def __init__(self, client):
         self.client = client
 
-    async def rps_winner(self, player1_choice, player2_choice: Optional[str]):
-        choices = ["rock", "paper", "scissors"]
-
-        if not player2_choice:
-            player2_choice = random.choice(choices)
-
+    async def rps_winner(self, player1_choice, player2_choice):
         if player2_choice == player1_choice:
             return "Draw"
 
@@ -84,31 +79,35 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
     @commands.command(
         name="rps",
-        description="Play rock paper scissors with friends or with the bot."
+        description="Play rock paper scissors with friends or with me.",
     )
+    @commands.cooldown(1, 8, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.user)
     async def rps_command(self, ctx, member: Optional[discord.Member], rounds: Optional[int] = 1):
-        rock = self.client.get_emoji(924544402595135538)
-        paper = self.client.get_emoji(924544488590962718)
-        scissors = self.client.get_emoji(924544545096626176)
+        if rounds > 11:
+            return await ctx.send(f"Yo, maximum rounds is capped at 11. Cause {rounds} would be too much :P")
+        if member.bot:
+            return await ctx.send(f"You can't play with other bots. Use `{ctx.prefix}rps [rounds]` to play with me.")
+        if ctx.author.id == member.id:
+            return await ctx.send(f"Lol, you can't play with yourself.")
 
         rps_btns = ActionRow(
             Button(
                 style=ButtonStyle.gray,
                 label="Rock",
-                emoji=rock,
+                emoji="<:rock:924544402595135538>",
                 custom_id="rock"
             ),
             Button(
                 style=ButtonStyle.gray,
                 label="Paper",
-                emoji=paper,
+                emoji="<:paper:924544488590962718>",
                 custom_id="paper"
             ),
             Button(
                 style=ButtonStyle.gray,
                 label="Scissors",
-                emoji=scissors,
+                emoji="<:scissors:924544545096626176>",
                 custom_id="scissors"
             )
         )
@@ -117,73 +116,95 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             description="Choose your move",
             color=self.client.colors["og_blurple"]
         )
+        msg = await ctx.send(f"Starting", embed=embed, components=[rps_btns])
+
         i = 1
         player1_points = 0
         player2_points = 0
+        draws = 0
+
+        if member:
+            player1 = random.choice([member, ctx.author])
+            player2 = ctx.author if player1 == member else member
+        else:
+            player1 = ctx.author
+            player2 = self.client.user
+
         while i <= rounds:
             if member:
-                player1 = random.choice(member, ctx.author)
-                player2 = ctx.author if player1 == member else member
-
-                msg = await ctx.send(f"{player1.mention}'s Turn", embed=embed, components=[rps_btns])
+                await msg.edit(f"{player1.mention}'s Turn | `Round {i}`", embed=embed, components=[rps_btns])
                 player1_move = await self.make_move(ctx, msg, player1)
 
                 if not player1_move:
                     return
                 
-                msg = await msg.edit(f"{player2.mention}'s Turn", embed=embed, components=[rps_btns])
-                player2_move = await self.make_move(ctx, msg, player2)              
+                await msg.edit(f"{player2.mention}'s Turn | `Round {i}`", embed=embed, components=[rps_btns])
+                player2_move = await self.make_move(ctx, msg, player2)
                 
                 winner = await self.rps_winner(player1_move, player2_move)
                 if winner == "Draw":
-                    pass
+                    draws += 1
+                    point_given_to = None
                 elif winner == "P2":
                     player2_points += 1
+                    point_given_to = player2.name
                 elif winner == "P1":
                     player1_points += 1
-                    
+                    point_given_to = player1.name
+                
+                if point_given_to:
+                    await ctx.send(
+                        f"`{player1.name}` chose {player1_move} & `{player2.name}` chose {player2_move}!\n+1 point to `{point_given_to}`!",
+                        delete_after=12
+                    )
+                else:
+                    await ctx.send(f"Draw between `{player1.name}` & `{player2.name}`!", delete_after=10)
                 i += 1
                 
             else: # if there is no player 2
-                player1 = ctx.author
-
-                msg = await ctx.send(f"{player1.mention}'s Turn", embed=embed, components=[rps_btns])
+                await msg.edit(f"{player1.mention}'s Turn | `Round {i}`", embed=embed, components=[rps_btns])
                 player1_move = await self.make_move(ctx, msg, player1)
 
                 if not player1_move:
-                    return
-
-                winner = await self.rps_winner(player1_move)
+                    return 
+                
+                choices = ["rock", "paper", "scissors"]
+                player2_move = random.choice(choices)
+                
+                winner = await self.rps_winner(player1_move, player2_move)
                 if winner == "Draw":
-                    pass
+                    draws += 1
+                    point_given_to = None
                 elif winner == "P2":
                     player2_points += 1
+                    point_given_to = player2.name
                 elif winner == "P1":
                     player1_points += 1
+                    point_given_to = player1.name
 
+                if point_given_to:
+                    await ctx.send(
+                        f"`{player1.name}` chose {player1_move} & `{player2.name}` chose {player2_move}!\n+1 point to `{point_given_to}`!",
+                        delete_after=12
+                    )
+                else:
+                    await ctx.send(f"Draw between `{player1.name}` & `{player2.name}`!", delete_after=10)
                 i += 1
-            
+        
         if player1_points == player2_points:
             embed = discord.Embed(
-                title="Rock Paper Scissors",
-                description=f"{player1.mention}: `{player1_points} points`\n{player2.mention}: `{player2_points} points`\n\nResulted Draw!",
+                title="Draw!",
+                description=f"{player1.name}: `{player1_points} points`\n{player2.name}: `{player2_points} points`\nDraws: `{draws}`",
                 color=self.client.colors["og_blurple"]
             )
-            await ctx.send(embed=embed)
-        elif player1_points > player2_points:
-            embed = discord.Embed(
-                title="Rock Paper Scissors",
-                description=f"{player1.mention}: `{player1_points} points`\n{player2.mention}: `{player2_points} points`\n\n{player1.mention} Wins!",
-                color=self.client.colors["og_blurple"]
-            )
-            await ctx.send(embed=embed)
+            await msg.edit(content=None, embed=embed)
         else:
             embed = discord.Embed(
-                title="Rock Paper Scissors",
-                description=f"{player1.mention}: `{player1_points} points`\n{player2.mention}: `{player2_points} points`\n\n{player2.mention} Wins!",
+                title=f"{player1.name if player1_points > player2_points else player2.name} Wins!",
+                description=f"{player1.name}: `{player1_points} points`\n{player2.name}: `{player2_points} points`\nDraws: `{draws}`",
                 color=self.client.colors["og_blurple"]
             )
-            await ctx.send(embed=embed)
+            await msg.edit(content=None, embed=embed)
 
     @commands.command(name='akinator', aliases=['aki'], description='Akinator guesses about object/animal/character.', hidden=True)
     @commands.bot_has_permissions(read_messages=True, read_message_history=True)
