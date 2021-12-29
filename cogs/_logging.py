@@ -23,12 +23,12 @@ class LoggingCog(commands.Cog, description="This cog handles the logging of vari
     @commands.Cog.listener()
     async def on_member_ban(self, guild, member):
         async for entry in guild.audit_logs(action=discord.AuditLogAction.ban, limit=1):
-            print('{0.user} banned {0.target}'.format(entry))
+            print("{0.user} banned {0.target}".format(entry))
             embed = discord.Embed(
                 title="ban",
                 description=f"**Offender:** {entry.target} **│** {entry.target.mention}\n**Responsible Moderator:** {entry.user}\n**Reason:** {entry.reason if entry.reason else 'No Reason Provided'}",
                 color=discord.Color.red(),
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             logs = get_log(guild)
             await logs.send(embed=embed)
@@ -36,12 +36,12 @@ class LoggingCog(commands.Cog, description="This cog handles the logging of vari
     @commands.Cog.listener()
     async def on_member_unban(self, guild, member):
         async for entry in guild.audit_logs(action=discord.AuditLogAction.unban, limit=1):
-            print('{0.user} Unbanned {0.target}'.format(entry))
+            print("{0.user} Unbanned {0.target}".format(entry))
             embed = discord.Embed(
                 title="unban",
                 description=f"**Offender:** {entry.target} **│** {entry.target.mention}\n**Responsible Moderator:** {entry.user}\n**Reason:** {entry.reason if entry.reason else 'No Reason Provided'}",
                 color=discord.Color.green(),
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             logs = get_log(guild)
             await logs.send(embed=embed)

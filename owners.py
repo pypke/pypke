@@ -52,13 +52,13 @@ class Owners(commands.Cog):
             guild_id = guild.id
             guild_owner_name = guild.owner
             index += 1
-            desc = desc + \
-                f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nMembers:{len(guild.members)}\nOwner: {guild_owner_name}\n\n"
+            desc = (
+                desc
+                + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nMembers:{len(guild.members)}\nOwner: {guild_owner_name}\n\n"
+            )
             if index >= 5:
                 embed = discord.Embed(
-                    title="Pypke Guilds",
-                    description=desc,
-                    color=0x2f3136
+                    title="Pypke Guilds", description=desc, color=0x2F3136
                 )
                 embeds.append(embed)
                 index = 0

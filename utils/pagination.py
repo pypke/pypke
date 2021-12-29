@@ -20,13 +20,13 @@ class Pagination:
                 emoji="⏮",
                 custom_id="first",
                 style=ButtonStyle.grey,
-                disabled=True if current_page == 0 else False
+                disabled=True if current_page == 0 else False,
             ),
             Button(
                 emoji="◀",
                 custom_id="back",
                 style=ButtonStyle.grey,
-                disabled=True if current_page == 0 else False
+                disabled=True if current_page == 0 else False,
             ),
             # Button(
             #         emoji="⏹",
@@ -44,7 +44,8 @@ class Pagination:
                 custom_id="last",
                 style=ButtonStyle.grey,
                 # disabled = True if current_page == -1 else False
-            ))
+            ),
+        )
         help_msg = await ctx.send(embed=embeds[current_page], components=[page_btn])
         while True:
             # Try and except blocks to catch timeout and break
@@ -53,20 +54,23 @@ class Pagination:
                 #     await inter.respond("You can't control this pagination!", ephemeral=True)
                 #     return False
 
-                return inter.message.id == help_msg.id and inter.author.id == ctx.author.id
+                return (
+                    inter.message.id == help_msg.id
+                    and inter.author.id == ctx.author.id
+                )
 
             try:
                 inter = await ctx.wait_for_button_click(check=check, timeout=30.0)
 
-                if (inter.clicked_button.custom_id.lower() == "back"):
+                if inter.clicked_button.custom_id.lower() == "back":
                     current_page -= 1
-                elif (inter.clicked_button.custom_id.lower() == "next"):
+                elif inter.clicked_button.custom_id.lower() == "next":
                     current_page += 1
-                elif (inter.clicked_button.custom_id.lower() == "first"):
+                elif inter.clicked_button.custom_id.lower() == "first":
                     current_page = 0
-                elif (inter.clicked_button.custom_id.lower() == "last"):
+                elif inter.clicked_button.custom_id.lower() == "last":
                     current_page = -1
-                elif (inter.clicked_button.custom_id.lower() == "stop"):
+                elif inter.clicked_button.custom_id.lower() == "stop":
                     await help_msg.edit(components=[])
                     break
 
@@ -81,13 +85,13 @@ class Pagination:
                         emoji="⏮",
                         custom_id="first",
                         style=ButtonStyle.grey,
-                        disabled=True if current_page == 0 else False
+                        disabled=True if current_page == 0 else False,
                     ),
                     Button(
                         emoji="◀",
                         custom_id="back",
                         style=ButtonStyle.grey,
-                        disabled=True if current_page == 0 else False
+                        disabled=True if current_page == 0 else False,
                     ),
                     # Button(
                     #         emoji="⏹",
@@ -98,17 +102,18 @@ class Pagination:
                         emoji="▶",
                         custom_id="next",
                         style=ButtonStyle.grey,
-                        disabled=True if current_page == len(
-                            embeds) - 1 else False
+                        disabled=True if current_page == len(embeds) - 1 else False,
                     ),
                     Button(
                         emoji="⏭",
                         custom_id="last",
                         style=ButtonStyle.grey,
-                        disabled=True if current_page == len(
-                            embeds) - 1 else False
-                    ))
-                await inter.reply(type=7, embed=embeds[current_page], components=[page_btn])
+                        disabled=True if current_page == len(embeds) - 1 else False,
+                    ),
+                )
+                await inter.reply(
+                    type=7, embed=embeds[current_page], components=[page_btn]
+                )
 
             except asyncio.TimeoutError:
                 disabled_btn = ActionRow(
@@ -116,13 +121,13 @@ class Pagination:
                         emoji="⏮",
                         custom_id="first",
                         style=ButtonStyle.grey,
-                        disabled=True
+                        disabled=True,
                     ),
                     Button(
                         emoji="◀",
                         custom_id="back",
                         style=ButtonStyle.grey,
-                        disabled=True
+                        disabled=True,
                     ),
                     # Button(
                     #         emoji="⏹",
@@ -133,14 +138,15 @@ class Pagination:
                         emoji="▶",
                         custom_id="next",
                         style=ButtonStyle.grey,
-                        disabled=True
+                        disabled=True,
                     ),
                     Button(
                         emoji="⏭",
                         custom_id="last",
                         style=ButtonStyle.grey,
-                        disabled=True
-                    ))
+                        disabled=True,
+                    ),
+                )
                 await help_msg.edit(components=[disabled_btn])
                 break
             except Exception:

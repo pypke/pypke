@@ -13,17 +13,16 @@ from discord.ext import commands, tasks
 
 
 class GiveawayHelper:
-
     async def roll_giveaway(self, _id):
         data = await self.client.giveaways.find(_id)
 
         try:
-            guild = self.client.get_guild(data['guildId'])
-            channel = guild.get_channel(data['channelId'])
-            msg = await channel.fetch_message(data['_id'])
+            guild = self.client.get_guild(data["guildId"])
+            channel = guild.get_channel(data["channelId"])
+            msg = await channel.fetch_message(data["_id"])
 
         except discord.HTTPException:
-            await GiveawayHelper.remove_giveaway(self, data['_id'])
+            await GiveawayHelper.remove_giveaway(self, data["_id"])
             print(f"Removed Deleted Giveaway. Id: {data['_id']}")
             return
 
@@ -36,9 +35,9 @@ class GiveawayHelper:
             await GiveawayHelper.remove_giveaway(self, _id)
             ended_time = round(epoch.now())
             end_embed = discord.Embed(
-                title=data['prize'],
+                title=data["prize"],
                 description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: No one",
-                color=self.client.colors["og_blurple"]
+                color=self.client.colors["og_blurple"],
             )
             end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
             await msg.edit(embed=end_embed)
@@ -46,9 +45,9 @@ class GiveawayHelper:
 
         ended_time = round(epoch.now())
         end_embed = discord.Embed(
-            title=data['prize'],
+            title=data["prize"],
             description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
-            color=self.client.colors["og_blurple"]
+            color=self.client.colors["og_blurple"],
         )
         end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
         try:
@@ -57,7 +56,7 @@ class GiveawayHelper:
         except discord.HTTPException:
             pass
 
-        await GiveawayHelper.remove_giveaway(self, data['_id'])
+        await GiveawayHelper.remove_giveaway(self, data["_id"])
 
     async def remove_giveaway(self, _id):
         await self.client.giveaways.delete(_id)
@@ -83,13 +82,12 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         currentTime = datetime.now()
         current_giveaways = deepcopy(self.client.current_giveaways)
         for key, value in current_giveaways.items():
-            if value['gaDuration'] is None:
+            if value["gaDuration"] is None:
                 continue
 
-            endTime = value['startedAt'] + \
-                relativedelta(seconds=value['gaDuration'])
+            endTime = value["startedAt"] + relativedelta(seconds=value["gaDuration"])
             if currentTime >= endTime:
-                await GiveawayHelper.roll_giveaway(self, value['_id'])
+                await GiveawayHelper.roll_giveaway(self, value["_id"])
 
     @check_current_giveaways.before_loop
     async def before_check_current_giveaways(self):
@@ -97,12 +95,19 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
     @commands.command(
         name="gstart",
-        description="Create a giveaway quickly!\nTime should be in \"69m 420s\"\n\n**Example:**\n`#gstart \"1h 1m 10s\" The prize`"
+        description='Create a giveaway quickly!\nTime should be in "69m 420s"\n\n**Example:**\n`#gstart "1h 1m 10s" The prize`',
     )
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)
-    async def gstart_command(self, ctx, time: TimeConverter, channel: Optional[discord.TextChannel], *, prize: str):
+    async def gstart_command(
+        self,
+        ctx,
+        time: TimeConverter,
+        channel: Optional[discord.TextChannel],
+        *,
+        prize: str,
+    ):
         etime = round(epoch.now())
         epoch_time = etime + time
         channel = channel or ctx.channel
@@ -110,7 +115,8 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         embed = discord.Embed(
             title=f"{prize}",
             description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
-            color=self.client.colors["og_blurple"])
+            color=self.client.colors["og_blurple"],
+        )
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         await ctx.send(
             f"The Giveaway will be in {channel.mention} and will last till <t:{epoch_time}:f> !"
@@ -118,15 +124,15 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         my_msg = await channel.send(embed=embed)
 
         data = {
-            '_id': my_msg.id,
-            'startedAt': datetime.now(),
-            'gaDuration': time or None,
-            'prize': prize,
-            'channelId': ctx.channel.id,
-            'guildId': ctx.guild.id
+            "_id": my_msg.id,
+            "startedAt": datetime.now(),
+            "gaDuration": time or None,
+            "prize": prize,
+            "channelId": ctx.channel.id,
+            "guildId": ctx.guild.id,
         }
         await self.client.giveaways.upsert(data)
-        await my_msg.add_reaction('🎉')
+        await my_msg.add_reaction("🎉")
 
         if time < 300:
             await asyncio.sleep(time)
@@ -140,15 +146,15 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         embed = discord.Embed(
             title="Create Giveaway!",
             description="Let's start with this giveaway!\n`Answer these questions within 30 seconds!`",
-            color=self.client.colors["og_blurple"]
+            color=self.client.colors["og_blurple"],
         )
         ques_msg = await ctx.send(embed=embed)
         await asyncio.sleep(2)
 
         questions = [
             f"**Which channel should the giveaway be hosted?**\ni.e. {ctx.channel.mention}",
-            f"**What should be the duration of the giveaway?** `(s|m|h|d)`\ni.e. \"1h 30m\"",
-            f"**What is the prize of the giveaway?**"
+            f'**What should be the duration of the giveaway?** `(s|m|h|d)`\ni.e. "1h 30m"',
+            f"**What is the prize of the giveaway?**",
         ]
 
         embeds = []
@@ -156,7 +162,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             embed = discord.Embed(
                 title="Create Giveaway!",
                 description=question,
-                color=self.client.colors["og_blurple"]
+                color=self.client.colors["og_blurple"],
             )
             embeds.append(embed)
 
@@ -169,9 +175,9 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
             await ques_msg.edit(embed=embed)
 
             try:
-                msg = await self.client.wait_for('message', timeout=30.0, check=check)
+                msg = await self.client.wait_for("message", timeout=30.0, check=check)
             except asyncio.TimeoutError:
-                await ctx.send('Time\'s Up, please be quicker next time!')
+                await ctx.send("Time's Up, please be quicker next time!")
                 return
             else:
                 answers.append(msg.content)
@@ -205,21 +211,21 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         embed = discord.Embed(
             title=f"{prize}",
             description=f"React With 🎉 To Enter!\nEnds: <t:{epoch_time}:R> (<t:{epoch_time}:f>)\nHosted By {ctx.author.name}",
-            color=self.client.colors["og_blurple"]
+            color=self.client.colors["og_blurple"],
         )
         embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
         my_msg = await channel.send(embed=embed)
 
         data = {
-            '_id': my_msg.id,
-            'startedAt': datetime.now(),
-            'gaDuration': time or None,
-            'prize': prize,
-            'channelId': ctx.channel.id,
-            'guildId': ctx.guild.id
+            "_id": my_msg.id,
+            "startedAt": datetime.now(),
+            "gaDuration": time or None,
+            "prize": prize,
+            "channelId": ctx.channel.id,
+            "guildId": ctx.guild.id,
         }
         await self.client.giveaways.upsert(data)
-        await my_msg.add_reaction('🎉')
+        await my_msg.add_reaction("🎉")
 
         if time < 300:
             await asyncio.sleep(time)
@@ -234,7 +240,9 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
         data = await self.client.giveaways.get_by_id(_id)
         if data:
-            return await ctx.send(f"This giveaway hasn't ended yet. If you want to end it use `{ctx.prefix}gend` instead.")
+            return await ctx.send(
+                f"This giveaway hasn't ended yet. If you want to end it use `{ctx.prefix}gend` instead."
+            )
 
         try:
             new_msg = await channel.fetch_message(_id)
@@ -271,7 +279,9 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
 
         await GiveawayHelper.roll_giveaway(self, _id)
 
-    @commands.command(name="gdelete", description="Delete a ongoing giveaway.", aliases=['gcancel'])
+    @commands.command(
+        name="gdelete", description="Delete a ongoing giveaway.", aliases=["gcancel"]
+    )
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.cooldown(1, 10, commands.BucketType.guild)

@@ -71,7 +71,7 @@ class HelpCog(commands.Cog):
         embed = discord.Embed(
             title=cog.qualified_name + " Module",
             description=f"{cog.description if cog.description else ''}\n\n`{ctx.prefix}help <command>` for extended information on a command.\n",
-            color=self.client.colors["og_blurple"]
+            color=self.client.colors["og_blurple"],
         )
         commands = []
 
@@ -82,7 +82,7 @@ class HelpCog(commands.Cog):
         embed.add_field(
             name="Commands",
             value=", ".join(command for command in commands),
-            inline=False
+            inline=False,
         )
 
         return embed
@@ -104,7 +104,8 @@ class HelpCog(commands.Cog):
                 if not sub_cmd.hidden:
                     subcommands.append(sub_cmd)
                     commands.append(
-                        f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}")
+                        f"`{sub_cmd.qualified_name} {sub_cmd.signature}`\n{sub_cmd.description if sub_cmd.description else 'No help provided'}"
+                    )
 
             # I Know there is surely a better way to do this but Idfk it.
             per_page = 3
@@ -117,18 +118,20 @@ class HelpCog(commands.Cog):
                 for command in commands[start:end]:
                     embed = discord.Embed(
                         title=self.get_syntax(cmd),
-                        description=cmd.description if cmd.description else 'No help provided',
-                        color=self.client.colors["og_blurple"]
+                        description=cmd.description if cmd.description else "No help provided",
+                        color=self.client.colors["og_blurple"],
                     )
                     embed.set_author(
-                        name=f"Page {page}/{pages} ({len(commands) + 1} Commands)")
-                    embed.set_footer(
-                        text=f"Use \"?help command\" for more info on a command.")
+                        name=f"Page {page}/{pages} ({len(commands) + 1} Commands)"
+                    )
+                    embed.set_footer(text=f'Use "?help command" for more info on a command.')
                     for sub_cmd in subcommands[start:end]:
                         embed.add_field(
                             name=sub_cmd.qualified_name + " " + sub_cmd.signature,
-                            value=sub_cmd.description if sub_cmd.description else 'No help provided',
-                            inline=False
+                            value=sub_cmd.description
+                            if sub_cmd.description
+                            else "No help provided",
+                            inline=False,
                         )
 
                 embeds.append(embed)
@@ -139,32 +142,44 @@ class HelpCog(commands.Cog):
         embed = discord.Embed(
             title=self.get_syntax(cmd),
             description=cmd.description if cmd.description else "No help provided",
-            color=self.client.colors["og_blurple"]
+            color=self.client.colors["og_blurple"],
         )
         return embed
 
-    @commands.command(name="help", description="wdym you need a help for help command? idiot", aliases=['commands'])
+    @commands.command(
+        name="help",
+        description="wdym you need a help for help command? idiot",
+        aliases=["commands"],
+    )
     @commands.guild_only()
     async def help_command(self, ctx, *, command_or_module: Optional[str]):
         if not command_or_module:
             cogs = [
-                "Moderation", "Utility", "Giveaway", "Music", "Images", "Fun", "Bot", "Misc"
+                "Moderation",
+                "Utility",
+                "Giveaway",
+                "Music",
+                "Images",
+                "Fun",
+                "Bot",
+                "Misc",
             ]
 
             first = discord.Embed(
                 description=f"Use `{ctx.prefix}help <command|module>` for more info.",
-                color=self.client.colors["og_blurple"]
+                color=self.client.colors["og_blurple"],
             )
-            first.set_author(name=self.client.user.name +
-                             " Help", url='https://docs.pypke.tk')
+            first.set_author(name=self.client.user.name + " Help", url="https://docs.pypke.tk")
             first.set_thumbnail(url=self.client.user.avatar.url)
             first.add_field(
-                name="Info", value=f"Server Prefix: `{ctx.prefix}`\nTotal Commands: `{len(self.client.all_commands)}`")
+                name="Info",
+                value=f"Server Prefix: `{ctx.prefix}`\nTotal Commands: `{len(self.client.all_commands)}`",
+            )
             first.add_field(
                 name="Links",
                 value="[Invite Me](https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands)\n"
-                      "[Vote Here](https://top.gg/bot/823051772045819905)\n"
-                      "[Documentation](https://docs.pypke.tk)\n"
+                "[Vote Here](https://top.gg/bot/823051772045819905)\n"
+                "[Documentation](https://docs.pypke.tk)\n",
             )
 
             pages = [first]
@@ -176,11 +191,7 @@ class HelpCog(commands.Cog):
 
             return await Pagination.paginate(self, ctx, pages)
 
-        modules_aliases = {
-            "mod": "moderation",
-            "utils": "utility",
-            "image": "images"
-        }
+        modules_aliases = {"mod": "moderation", "utils": "utility", "image": "images"}
         if command_or_module.lower() in modules_aliases:
             command_or_module = modules_aliases[command_or_module]
 
@@ -196,11 +207,15 @@ class HelpCog(commands.Cog):
         elif entity_type == "command":
             command = self.client.get_command(_entity)
             if command.hidden and ctx.author.id != 624572769484668938:
-                return await ctx.send(f"No command called \"{command_or_module.lower()}\" found.")
+                return await ctx.send(
+                    f'No command called "{command_or_module.lower()}" found.'
+                )
             embed = self.command_help(ctx, command)
 
             if not embed:
-                return await ctx.send(f"No command called \"{command_or_module.lower()}\" found.")
+                return await ctx.send(
+                    f'No command called "{command_or_module.lower()}" found.'
+                )
 
             if isinstance(embed, list):
                 if len(embed) > 1:
@@ -209,7 +224,7 @@ class HelpCog(commands.Cog):
                     embed = embed[0]
 
         else:
-            return await ctx.send(f"No command called \"{command_or_module.lower()}\" found.")
+            return await ctx.send(f'No command called "{command_or_module.lower()}" found.')
         await ctx.send(embed=embed)
 
     # @commands.command(name="help", description="wdym you need a help for help command? idiot", aliases=['commands'])

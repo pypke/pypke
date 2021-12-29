@@ -12,6 +12,7 @@ class TimeConverter(commands.Converter):
     Attributes:
       - convert: The converter itself.
     """
+
     async def convert(self, ctx, argument):
         """Converts the value i.e. "1h 32m" to secs.
 
@@ -34,7 +35,8 @@ class TimeConverter(commands.Converter):
                 time += time_dict[value] * float(key)
             except KeyError:
                 raise commands.BadArgument(
-                    f"{value} is an invalid time key! s|m|h|d are valid arguments")
+                    f"{value} is an invalid time key! s|m|h|d are valid arguments"
+                )
             except ValueError:
                 raise commands.BadArgument(f"{key} is not a number!")
         return round(time)
@@ -49,6 +51,7 @@ class TimeHumanizer:
     Raises:
         commands.BadArgument: If time is negative.
     """
+
     __slots__ = ("value",)
 
     def __init__(self, value: int):

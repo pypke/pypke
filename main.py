@@ -69,16 +69,16 @@ async def status_task():
         await bot.change_presence(
             status=discord.Status.idle,
             activity=discord.Activity(
-                name="@Pypke",
-                type=discord.ActivityType.listening
-            ))
+                name="@Pypke", type=discord.ActivityType.listening
+            ),
+        )
         await asyncio.sleep(30)
         await bot.change_presence(
             status=discord.Status.idle,
             activity=discord.Activity(
-                name="?help | ?invite",
-                type=discord.ActivityType.playing
-            ))
+                name="?help | ?invite", type=discord.ActivityType.playing
+            ),
+        )
         await asyncio.sleep(30)
 
 
@@ -91,7 +91,7 @@ class PypkeBot(commands.Bot):
             case_insensitive=True,
             owner_ids=owners,
             intents=discord.Intents.all(),
-            slash_command_guilds=[850732056790827020]
+            slash_command_guilds=[850732056790827020],
         )
 
         super().remove_command("help")
@@ -112,7 +112,7 @@ class PypkeBot(commands.Bot):
             "orange": 0xF7770F,
             "red": 0xF60030,
             "new_blurple": 0x5865F2,
-            "og_blurple": 0x7289DA
+            "og_blurple": 0x7289DA,
         }
         self.color_list = [c for c in self.colors.values()]
 
@@ -166,7 +166,7 @@ bot.prefixes = {}
 bot.afk_allowed_channel = {}
 
 # Mongo DB Stuff
-MONGO_URL = os.getenv('mongo')
+MONGO_URL = os.getenv("mongo")
 
 # Filter Words
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     for file in os.listdir(cwd + "/cogs"):
         if file.endswith(".py") and not file.startswith("_"):
             bot.load_extension(f"cogs.{file[:-3]}")
-    bot.load_extension('jishaku')
+    bot.load_extension("jishaku")
     # bot.load_extension('slashcogs.mod')
 
     # Database Connection
@@ -185,8 +185,7 @@ if __name__ == "__main__":
     bot.db = bot.mongo["pypke"]
     bot.config = Document(bot.db, "config")  # For prefixes
     bot.mutes = Document(bot.db, "mutes")  # For muted users
-    bot.blacklisted_users = Document(
-        bot.db, "blacklist")  # For blacklisted users
+    bot.blacklisted_users = Document(bot.db, "blacklist")  # For blacklisted users
     bot.giveaways = Document(bot.db, "giveaways")  # For Giveaways
     bot.afks = Document(bot.db, "afks")  # For afk users
     bot.chatbot = Document(bot.db, "chatbot")  # For chatbot
@@ -197,8 +196,8 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
         filename="data/errors.log",
-        format='%(asctime)s %(levelname)s: %(message)s',
-        datefmt="%H:%M:%S"
+        format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+        datefmt="%H:%M:%S",
     )
     bot.logger = logging.getLogger("pypke-bot")
 
@@ -217,16 +216,17 @@ async def update_db_cache():  # To update cache every 5 minutes
 
     currentAfks = await bot.afks.get_all()
     for afk in currentAfks:
-        bot.current_afks[afk['_id']] = afk
+        bot.current_afks[afk["_id"]] = afk
 
 
 @bot.event
 async def on_ready():
     await bot.wait_until_ready()
     # bot Connection
-    os.system('clear')
+    os.system("clear")
     print(
-        f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}")
+        f"\u001b[32mSuccessfully Logged In As:\u001b[0m\nName: {bot.user.name}\nId: {bot.user.id}\nTotal Guilds: {len(bot.guilds)}"
+    )
     print("---------")
     update_db_cache.start()
     bot.loop.create_task(status_task())
@@ -251,16 +251,18 @@ async def on_message(message):
         embed = discord.Embed(
             title="Bot Mentioned",
             description=f"Prefix of the bot is `{prefix}`\nDo `{prefix}help` to view help on each command.",
-            colour=bot.colors["og_blurple"]
+            colour=bot.colors["og_blurple"],
         )
 
         await message.channel.send(embed=embed, delete_after=5)
 
     afks = deepcopy(bot.current_afks)
     for key, value in afks.items():
-        member = await message.guild.fetch_member(value['_id'])
+        member = await message.guild.fetch_member(value["_id"])
         if member.mentioned_in(message):
-            await message.channel.send(f"`{member.display_name}` is AFK: {value['status']} - <t:{round(datetime.timestamp(value['started_when']))}:R>")
+            await message.channel.send(
+                f"`{member.display_name}` is AFK: {value['status']} - <t:{round(datetime.timestamp(value['started_when']))}:R>"
+            )
 
     try:
         afk_data = bot.current_afks[message.author.id]
@@ -275,7 +277,9 @@ async def on_message(message):
             await bot.afks.delete(message.author.id)
             if "AFK | " in message.author.display_name:
                 await message.author.edit(nick=message.author.display_name[6:])
-            await message.channel.send(f"Welcome back {message.author.mention}, I removed your AFK.")
+            await message.channel.send(
+                f"Welcome back {message.author.mention}, I removed your AFK."
+            )
 
             try:
                 bot.current_afks.pop(message.author.id)
@@ -287,12 +291,16 @@ async def on_message(message):
     if users:
         prefix = bot.prefixes[message.guild.id]
         if message.content.startswith(f"{prefix}"):
-            await message.channel.send("Hey, lol you did something bad you are banned from using this bot.", delete_after=3)
+            await message.channel.send(
+                "Hey, lol you did something bad you are banned from using this bot.",
+                delete_after=3,
+            )
             return
         else:
             return
 
     await bot.process_commands(message)
+
 
 # <--- Commands --->
 # @bot.slash_command(description="Check the ping of the bot")
@@ -332,20 +340,24 @@ async def boosters(ctx):
         title=f"No. Of Booster: {len(members)}",
         description=(
             "\n".join(
-                f"**{i+1}.** {member.display_name}"
-                for i, member in enumerate(members)
+                f"**{i+1}.** {member.display_name}" for i, member in enumerate(members)
             )
         ),
         colour=random.choice(bot.color_list),
-        timestamp=datetime.now()
+        timestamp=datetime.now(),
     )
     embed.add_field(
-        name="\uFEFF", value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:")
+        name="\uFEFF",
+        value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:",
+    )
     embed.set_author(name="Server Boosters")
     embed.set_footer(
-        text=f"Requested by {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+        text=f"Requested by {ctx.author.display_name}",
+        icon_url=ctx.author.avatar.url,
+    )
     embed.set_thumbnail(url=ctx.guild.icon_url)
     await ctx.send(embed=embed)
 
+
 keep_alive()
-bot.run(os.getenv('token'), reconnect=True)
+bot.run(os.getenv("token"), reconnect=True)
