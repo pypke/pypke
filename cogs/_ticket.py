@@ -3,7 +3,7 @@ from typing import Optional
 
 import discord
 from discord import commands, tasks
-from dislash import ActionRow, Button, ButtonStyle
+from dislash import ActionRow, ButtonStyle
 
 # Under Devlopment
 
@@ -157,7 +157,7 @@ class Ticket(commands.Cog, hidden=True):
         pass
         questions = [
             f"Mention the channel like {ctx.channel.mention} for ticket panel creation.",
-            f"Mention the support role for tickets."
+            f"Mention the support role for tickets. Reply `None` to for no role."
             f"Give the category id to create tickets in. Reply `None` to create ticket at top of every channel."
         ]
         embeds = []
@@ -230,8 +230,8 @@ class Ticket(commands.Cog, hidden=True):
             "ticket_no": 0000,
             "msg_id": msg.id,
             "channel_id": channel_id,
-            "role_id": role_id or None,
-            "category_id": category_id or None
+            "role_id": role.id or None,
+            "category_id": category.id or None
         }
         await self.bot.ticket_config.upsert(ticket_setup_data)
         await ctx.send(embed=discord.Embed(
