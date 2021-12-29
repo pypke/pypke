@@ -166,7 +166,7 @@ bot.prefixes = {}
 bot.afk_allowed_channel = {}
 
 # Mongo DB Stuff
-bot.connection_url = os.getenv('mongo')
+MONGO_URL = os.getenv('mongo')
 
 # Filter Words
 profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # bot.load_extension('slashcogs.mod')
 
     # Database Connection
-    bot.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(bot.connection_url))
+    bot.mongo = motor.motor_asyncio.AsyncIOMotorClient(str(MONGO_URL))
     bot.db = bot.mongo["pypke"]
     bot.config = Document(bot.db, "config")  # For prefixes
     bot.mutes = Document(bot.db, "mutes")  # For muted users
