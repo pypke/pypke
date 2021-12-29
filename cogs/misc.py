@@ -26,17 +26,14 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
         try:
             channel = self.chatbot_cache[message.guild.id]
         except KeyError:
-            pass
-        else:
             chatbot_channels = await self.client.chatbot.get_all()
             for channel in chatbot_channels:
-                self.chatbot_cache[int(channel['_id'])] = int(
-                    channel['channel'])
+                self.chatbot_cache[int(channel['_id'])] = int(channel['channel'])
 
         try:
             prefix = self.client.prefixes[message.guild.id]
         except KeyError:
-            pass
+            prefix = self.client.prefix
         else:
             prefix = self.client.prefix
 

@@ -29,7 +29,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     )
     async def uptime(self, ctx):
         uptime = self.client.uptime
-        duration = TimeHumanizer.convert(self, time=uptime)
+        duration = TimeHumanizer(uptime).value
         await ctx.send(f"I'm up since {duration}.")
 
     @commands.command(
@@ -41,15 +41,15 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         dpyVersion = discord.__version__
         serverCount = len(self.client.guilds)
         memberCount = len(set(self.client.get_all_members()))
-        memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
+        memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204/1204/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
         cpuPercent = cpu_percent()
-        uptime = TimeHumanizer.convert(self, self.client.uptime)
+        uptime = TimeHumanizer(self.client.uptime).value
         text_channels = self.client.text_channels
         voice_channels = self.client.voice_channels
         stage_channels = self.client.stage_channels
 
         embed = discord.Embed(
-            description=f"Ping: `{round(self.client.latency * 1000)} ms`\nUptime: {uptime}",
+            description=f"**Ping** `{round(self.client.latency * 1000)} ms`\n**Uptime** `{uptime}`",
             colour=0x2f3136,
             timestamp=ctx.message.created_at
         )
@@ -62,17 +62,17 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
 
         embed.add_field(
             name="Version Info:",
-            value=f"`Bot Version {self.client.version}`\nPython version {pythonVersion}\nDpy Version {dpyVersion}",
+            value=f"Bot Version `{self.client.version}`\nPython version `{pythonVersion}`\nDpy Version `{dpyVersion}`",
             inline=False
         )
         embed.add_field(
             name="Counters:",
             value=f"{serverCount} Servers | {memberCount} Users\n" +
-            f"{text_channels} | {voice_channels} | {stage_channels}"
+            f"<:text_channel:924929739754446870> `{text_channels}` **|** <:voice_channel:924929804833288223> `{voice_channels}` **|** `{stage_channels}`"
         )
         embed.add_field(
             name="System Info:",
-            value=f"Memory: {memoryUsed} \nCPU usage: {cpuPercent}%"
+            value=f"Memory: `{memoryUsed}` \nCPU usage: `{cpuPercent}%`"
         )
 
         await ctx.send(embed=embed)
