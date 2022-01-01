@@ -158,9 +158,7 @@ class Ticket(commands.Cog):
                 f"Ok {inter.author.mention}, This ticket will be deleted in 10 seconds."
             )
             await asyncio.sleep(10)
-            await self.active_tickets.delete(
-                {"created_by": inter.author.id, "guild_id": inter.guild.id}
-            )
+            await self.bot.active_tickets.delete(inter.channel.id)
             await inter.channel.delete(
                 reason=f"Ticket deleted by {inter.author} (ID: {inter.author.id})"
             )
@@ -169,7 +167,9 @@ class Ticket(commands.Cog):
             transcript = await chat_exporter.export(inter.channel)
 
             if transcript is None:
-                return
+                return await inter.channel.send(
+                    "Something is wrong are you sure this channel isn't empty?"
+                )
 
             file = discord.File(
                 io.BytesIO(transcript.encode()),
