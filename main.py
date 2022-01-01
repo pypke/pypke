@@ -190,14 +190,15 @@ if __name__ == "__main__":
     bot.afks = Document(bot.db, "afks")  # For afk users
     bot.chatbot = Document(bot.db, "chatbot")  # For chatbot
     bot.remind = Document(bot.db, "remind")  # For remind command
+    bot.ticket_config = Document(bot.db, "ticket_config")
+    bot.active_tickets = Document(bot.db, "active_tickets")
 
     print("\u001b[34mInitialized Database\u001b[0m\n--------")
 
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.ERROR,
         filename="data/errors.log",
         format="%(asctime)s %(name)s %(levelname)s: %(message)s",
-        datefmt="%H:%M:%S",
     )
     bot.logger = logging.getLogger("pypke-bot")
 

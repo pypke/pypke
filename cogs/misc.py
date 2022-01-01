@@ -40,7 +40,11 @@ class Misc(commands.Cog, description="Commands that do not belong to any module.
         if message.content.lower().startswith(f"{prefix}"):
             return
 
-        channel = self.chatbot_cache[message.guild.id]
+        try:
+            channel = self.chatbot_cache[message.guild.id]
+        except KeyError:
+            return
+
         if message.channel.id == channel:
             msg = quote_plus(message.content.lower())
             try:
