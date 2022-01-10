@@ -64,12 +64,12 @@ class TimeHumanizer:
         duration = ""
 
         if days:
-            duration = duration + f"{days} day(s) "
+            duration = duration + f"{days}d "
         if hours:
-            duration = duration + f"{hours} hour(s) "
+            duration = duration + f"{hours}h "
         if minutes:
-            duration = duration + f"{minutes} minute(s) "
+            duration = duration + f"{minutes}m "
         if seconds:
-            duration = duration + f"{seconds} second(s) "
+            duration = duration + f"{seconds}s "
 
         self.value: str = duration
