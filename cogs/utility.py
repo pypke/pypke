@@ -1,7 +1,6 @@
-from utils import TimeConverter
+from utils import TimeConverter, TimeHumanizer
 
 import asyncio
-import humanize
 import re
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -42,7 +41,9 @@ class Utility(commands.Cog):
 
                 task = remind["task"]
                 try:
-                    await msg.reply(f"{msg.author.mention}! Reminder for `{task.lower()}`.")
+                    await msg.reply(
+                        f"{msg.author.mention}! Reminder for `{task.lower()}`."
+                    )
                 except discord.HTTPException:
                     pass
 
@@ -95,7 +96,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="human",
-        description="Clear amount of messages by a human\nIgnores pinned messages.",
+        description="Clear amount of messages by a human",
         aliases=["humans"],
     )
     @commands.guild_only()
@@ -109,7 +110,9 @@ class Utility(commands.Cog):
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(
-            limit=amount, after=datetime.utcnow() - timedelta(days=14), check=human_check
+            limit=amount,
+            after=datetime.utcnow() - timedelta(days=14),
+            check=human_check,
         )
 
         if len(deleted) < 1:
@@ -128,7 +131,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="bot",
-        description="Removes a bot user's messages.\nIgnores pinned messages.",
+        description="Removes a bot user's messages.",
         aliases=["bots"],
     )
     @commands.guild_only()
@@ -161,7 +164,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="embed",
-        description="Removes messages with embed.\nIgnores pinned messages.",
+        description="Removes messages with embed.",
         aliases=["embeds"],
     )
     @commands.guild_only()
@@ -175,7 +178,9 @@ class Utility(commands.Cog):
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(
-            limit=amount, after=datetime.utcnow() - timedelta(days=14), check=embed_check
+            limit=amount,
+            after=datetime.utcnow() - timedelta(days=14),
+            check=embed_check,
         )
 
         if len(deleted) < 1:
@@ -194,7 +199,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="attachments",
-        description="Removes messages with attachments.\nIgnores pinned messages.",
+        description="Removes messages with attachments.",
         aliases=["files", "file"],
     )
     @commands.guild_only()
@@ -203,12 +208,14 @@ class Utility(commands.Cog):
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_files(self, ctx, amount: int = 1):
-        def embed_check(message):
+        def attch_check(message):
             return len(message.attachments) > 0 and not message.pinned
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(
-            limit=amount, after=datetime.utcnow() - timedelta(days=14), check=embed_check
+            limit=amount,
+            after=datetime.utcnow() - timedelta(days=14),
+            check=attch_check,
         )
 
         if len(deleted) < 1:
@@ -227,7 +234,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="mention",
-        description="Removes messages with mentions in it.\nIgnores pinned messages.",
+        description="Removes messages with mentions in it.",
         aliases=["mentions"],
     )
     @commands.guild_only()
@@ -237,7 +244,11 @@ class Utility(commands.Cog):
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def purge_mention(self, ctx, amount: int = 1):
         def mention_check(message):
-            return len(message.mentions) or len(message.role_mentions) and not message.pinned
+            return (
+                len(message.mentions)
+                or len(message.role_mentions)
+                and not message.pinned
+            )
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(
@@ -262,7 +273,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="contains",
-        description="Removes messages with substr in it.\nIgnores pinned messages.",
+        description="Removes all messages containing a substring.\nThe substring must be at least 3 characters long.",
         aliases=["has"],
     )
     @commands.guild_only()
@@ -270,7 +281,7 @@ class Utility(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     @commands.cooldown(1, 3, commands.BucketType.user)
     @commands.max_concurrency(1, commands.BucketType.channel)
-    async def purge_contain(self, ctx, substr: str, amount: int = 1):
+    async def purge_contain(self, ctx, amount: Optional[int], substr: str):
         def contain_check(message):
             return substr in message.content and not message.pinned
 
@@ -300,7 +311,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="reaction",
-        description="Removes reactions in from a message.\nIgnores pinned messages.",
+        description="Removes reactions in from a message.",
         aliases=["reactions"],
     )
     @commands.guild_only()
@@ -335,7 +346,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="emoji",
-        description="Removes messages with emojis in it.\nIgnores pinned messages.",
+        description="Removes messages with emojis in it.",
         aliases=["emojis"],
     )
     @commands.guild_only()
@@ -351,7 +362,9 @@ class Utility(commands.Cog):
 
         await ctx.message.delete()
         deleted = await ctx.channel.purge(
-            limit=amount, after=datetime.utcnow() - timedelta(days=14), check=emoji_check
+            limit=amount,
+            after=datetime.utcnow() - timedelta(days=14),
+            check=emoji_check,
         )
 
         if len(deleted) < 1:
@@ -370,7 +383,7 @@ class Utility(commands.Cog):
 
     @purge_command.command(
         name="after",
-        description="Removes messages after the specified message.\nIgnores pinned messages.",
+        description="Removes messages after the specified message.",
         hidden=True,
     )
     @commands.guild_only()
@@ -382,10 +395,12 @@ class Utility(commands.Cog):
         def after_check(message):
             return not message.pinned
 
-        msg = ctx.channel.fetch_message(message_id)
+        msg = ctx.channel.get_message(message_id)
         await ctx.message.delete()
         deleted = await ctx.channel.purge(
-            limit=amount, after=datetime.utcnow() - timedelta(days=14), check=after_check
+            limit=amount,
+            after=(datetime.utcnow() - timedelta(days=14) and msg),
+            check=after_check,
         )
 
         if len(deleted) < 1:
@@ -483,7 +498,9 @@ class Utility(commands.Cog):
             slowmode = 21600
 
         await channel.edit(slowmode_delay=slowmode)
-        await ctx.send(f"Set channel slowmode to {channel.slowmode_delay} secs.")
+        await ctx.send(
+            f"Set channel slowmode to {TimeHumanizer(channel.slowmode_delay).value}."
+        )
 
     @commands.command(
         name="mail",
@@ -522,9 +539,7 @@ class Utility(commands.Cog):
             data = None
 
         if data:
-            remindin = humanize.precisedelta(
-                timedelta(seconds=data["time"], minimum_unit="minutes")
-            )
+            remindin = TimeHumanizer(data["time"]).value
             task = data["task"]
             task = discord.utils.escape_mentions(task)
             return await ctx.reply(
@@ -616,7 +631,9 @@ class Utility(commands.Cog):
 
         embed = discord.Embed(colour=member.color, timestamp=ctx.message.created_at)
 
-        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
+        embed.set_footer(
+            text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url
+        )
         embed.set_author(
             name=member,
             icon_url=member.avatar.url if member.avatar else member.default_avatar.url,
@@ -655,9 +672,13 @@ class Utility(commands.Cog):
         joined_time = member.joined_at
         joined_time = round(joined_time.timestamp())
 
-        embed = discord.Embed(colour=member.top_role.color, timestamp=ctx.message.created_at)
+        embed = discord.Embed(
+            colour=member.top_role.color, timestamp=ctx.message.created_at
+        )
 
-        embed.set_footer(text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url)
+        embed.set_footer(
+            text=f"Requested by: {ctx.author}", icon_url=ctx.author.avatar.url
+        )
         embed.set_author(
             name=member,
             icon_url=member.avatar.url if member.avatar else member.default_avatar.url,
@@ -705,8 +726,12 @@ class Utility(commands.Cog):
                 "_id": ctx.guild.id,
                 "prefix": data["prefix"] or self.client.prefix,
                 "modlog_mod": channel.id,
-                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                "modlog_message": data["modlog_message"] if data["modlog_member"] else None,
+                "modlog_member": data["modlog_member"]
+                if data["modlog_member"]
+                else None,
+                "modlog_message": data["modlog_message"]
+                if data["modlog_member"]
+                else None,
             }
             await self.client.config.upsert(new_data)
             await ctx.send(
@@ -718,8 +743,12 @@ class Utility(commands.Cog):
                 "_id": ctx.guild.id,
                 "prefix": data["prefix"] or self.client.prefix,
                 "modlog_mod": None,
-                "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                "modlog_message": data["modlog_message"] if data["modlog_member"] else None,
+                "modlog_member": data["modlog_member"]
+                if data["modlog_member"]
+                else None,
+                "modlog_message": data["modlog_message"]
+                if data["modlog_member"]
+                else None,
             }
             await self.client.config.upsert(new_data)
             await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")
@@ -756,7 +785,9 @@ class Utility(commands.Cog):
             await ctx.author.edit(nick=f"AFK | {name}")
         except discord.HTTPException:
             pass
-        await ctx.send(f"{ctx.author.mention} Status set: {status if status else 'AFK'}")
+        await ctx.send(
+            f"{ctx.author.mention} Status set: {status if status else 'AFK'}"
+        )
 
     @afk.command(
         name="ignore",
