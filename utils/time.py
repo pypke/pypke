@@ -44,32 +44,38 @@ class TimeConverter(commands.Converter):
 
 class TimeHumanizer:
     """Converts seconds to human-readable format.
-
     Args:
         value (int): The value to convert
 
     Raises:
         commands.BadArgument: If time is negative.
     """
-
-    __slots__ = ("value",)
-
     def __init__(self, value: int):
         if value <= 0:
             raise commands.BadArgument(f"Time cannot be negative.")
-
+        
+        duration = ""
+        
         minutes, seconds = divmod(value, 60)
         hours, minutes = divmod(minutes, 60)
         days, hours = divmod(hours, 24)
-        duration = ""
-
-        if days:
-            duration = duration + f"{days}d "
-        if hours:
-            duration = duration + f"{hours}h "
-        if minutes:
-            duration = duration + f"{minutes}m "
-        if seconds:
-            duration = duration + f"{seconds}s "
-
-        self.value: str = duration
+        months, days = divmod(days, 30)
+        
+        duration += f"{months} months, " if months > 0 else ""
+        duration += f"{days} days, " if days > 0 else ""
+        duration += f"{hours} hours, " if hours > 0 else ""
+        duration += f"{minutes} minutes, " if minutes > 0 else ""
+        duration += f"{seconds} seconds" if seconds > 0 else ""
+        duration = duration.strip(", ")
+        if months == 1:
+            duration = duration.replace("months", "month")
+        if days == 1:
+            duration = duration.replace("days", "day")
+        if hours == 1:
+            duration = duration.replace("hours", "hour")
+        if minutes == 1:
+            duration = duration.replace("minutes", "minute")
+        if seconds == 1:
+            duration = duration.replace("seconds", "second")
+        
+        self = duration

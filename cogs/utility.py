@@ -499,7 +499,7 @@ class Utility(commands.Cog):
 
         await channel.edit(slowmode_delay=slowmode)
         await ctx.send(
-            f"Set channel slowmode to {TimeHumanizer(channel.slowmode_delay).value}."
+            f"Set channel slowmode to {TimeHumanizer(channel.slowmode_delay)}."
         )
 
     @commands.command(
@@ -539,7 +539,7 @@ class Utility(commands.Cog):
             data = None
 
         if data:
-            remindin = TimeHumanizer(data["time"]).value
+            remindin = TimeHumanizer(data["time"])
             task = data["task"]
             task = discord.utils.escape_mentions(task)
             return await ctx.reply(

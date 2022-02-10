@@ -24,7 +24,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     @commands.command(name="uptime", description="Check the bot's uptime.")
     async def uptime(self, ctx):
         uptime = self.client.uptime
-        duration = TimeHumanizer(uptime).value
+        duration = TimeHumanizer(uptime)
         await ctx.send(f"I'm up since {duration}.")
 
     @commands.command(name="stats", description="See the bot statistics.")
@@ -35,7 +35,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         memberCount = len(set(self.client.get_all_members()))
         memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204/1204/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
         cpuPercent = cpu_percent()
-        uptime = TimeHumanizer(self.client.uptime).value
+        uptime = TimeHumanizer(self.client.uptime)
         text_channels = self.client.text_channels
         voice_channels = self.client.voice_channels
         stage_channels = self.client.stage_channels
