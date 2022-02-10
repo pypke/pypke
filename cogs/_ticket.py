@@ -350,7 +350,7 @@ class Ticket(commands.Cog):
             )
         )
 
-    @commands.command(
+    @ticket.command(
         name="destroy", description="Destroys the ticket panel for this server."
     )
     @commands.guild_only()
@@ -365,7 +365,7 @@ class Ticket(commands.Cog):
         await self.bot.ticket_config.delete(ctx.guild.id)
         await ctx.reply("Destroyed the ticket panel, you can now safely delete the message.")
 
-    @commands.command(name="add", description="Add a member to the current active ticket.")
+    @ticket.command(name="add", description="Add a member to the current active ticket.")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     async def ticket_add(
@@ -388,7 +388,7 @@ class Ticket(commands.Cog):
         )
         await ctx.send("Done!")
 
-    @commands.command(
+    @ticket.command(
         name="remove",
         description="Remove a member from the current active ticket.",
         aliases=["rm"],
@@ -412,7 +412,7 @@ class Ticket(commands.Cog):
         await channel.edit(overwrites=overwrites)
         await ctx.send("Done!")
 
-    @commands.command(
+    @ticket.command(
         name="setting",
         description="Set some settings for tickets. Provide the index parameter to toggle on",
         aliases=["config", "settings"],
