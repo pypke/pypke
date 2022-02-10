@@ -25,7 +25,14 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     async def uptime(self, ctx):
         uptime = self.client.uptime
         duration = TimeHumanizer(uptime)
-        await ctx.send(f"I'm up since {duration}.")
+        embed = discord.Embed(
+            color=self.client.colors["green"],
+            title="Uptime",
+            description=f"{duration}",
+            timestamp=self.client.launch_time,
+        )
+        embed.set_footer(text="Last restarted at")
+        await ctx.send(embed=embed)
 
     @commands.command(name="stats", description="See the bot statistics.")
     async def stats(self, ctx):
