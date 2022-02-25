@@ -722,7 +722,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                 "The subreddit you are requesting is NSFW. So, This channel needs to be marked NSFW."
             )
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 if submission.over_18 and not ctx.channel.is_nsfw():
                     pass
@@ -756,7 +756,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         )
         all_subs = []
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -784,7 +784,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         subreddit = await reddit.subreddit("catpictures")
         all_subs = []
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -803,7 +803,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         subreddit = await reddit.subreddit("dogpictures")
         all_subs = []
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
