@@ -13,7 +13,7 @@ from dislash import ActionRow, Button, ButtonStyle
 
 class Bot(commands.Cog, description="Commands for bot setup & support."):
     def __init__(self, client):
-        self.client = client
+        self.client: commands.Bot = client
 
     @commands.command(name="ping", description="Check the bot's ping.", aliases=["pong"])
     async def ping(self, ctx):
@@ -23,8 +23,8 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
 
     @commands.command(name="uptime", description="Check the bot's uptime.")
     async def uptime(self, ctx):
-        uptime = self.client.uptime
-        duration = TimeHumanizer(uptime)
+        seconds = self.client.uptime
+        duration = TimeHumanizer(seconds)
         embed = discord.Embed(
             color=self.client.colors["green"],
             title="Uptime",
@@ -48,7 +48,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         stage_channels = self.client.stage_channels
 
         embed = discord.Embed(
-            description=f"**Ping** `{round(self.client.latency * 1000)} ms`\n**Uptime** `{uptime}`",
+            description=f"**Ping** `{round(self.client.latency * 1000)}ms`\n**Uptime** `{uptime}`",
             colour=0x2F3136,
             timestamp=ctx.message.created_at,
         )

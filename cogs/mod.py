@@ -492,7 +492,7 @@ class Moderation(commands.Cog):
         await member.timeout_for(
             duration=duration, reason=f"Timeout by {ctx.author} (ID: {ctx.author.id})"
         )
-        await ctx.send(f"Timed out {member}` for {TimeHumanizer(duration_)}.")
+        await ctx.send(f"Timed out `{member}` for {TimeHumanizer(duration_)}.")
 
     @commands.command(
         name="untimeout",

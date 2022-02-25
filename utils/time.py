@@ -50,7 +50,7 @@ class TimeHumanizer:
     Raises:
         commands.BadArgument: If time is negative.
     """
-    def __init__(self, value: int):
+    def __new__(self, value: int):
         if value <= 0:
             raise commands.BadArgument(f"Time cannot be negative.")
         
@@ -78,4 +78,4 @@ class TimeHumanizer:
         if seconds == 1:
             duration = duration.replace("seconds", "second")
         
-        self = duration
+        return duration
