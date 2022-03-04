@@ -3,10 +3,11 @@ from discord.ext import commands
 from copy import copy
 from utils.pagination import Pagination
 
+
 class Owners(commands.Cog):
     def __init__(self, client):
         self.client = client
-    
+
     @commands.command(hidden=True)
     @commands.is_owner()
     async def blacklist(self, ctx, user: discord.Member):
@@ -45,22 +46,23 @@ class Owners(commands.Cog):
         index = 0
         embeds = []
         guilds = self.client.guilds
-        
+
         for guild in guilds:
             guild_name = guild.name
             guild_id = guild.id
             guild_owner_name = guild.owner
             index += 1
-            desc = desc + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nMembers:{len(guild.members)}\nOwner: {guild_owner_name}\n\n"
+            desc = (
+                desc
+                + f"**Guild #{index}**\nGuild Name: {guild_name}\nGuild Id: {guild_id}\nMembers:{len(guild.members)}\nOwner: {guild_owner_name}\n\n"
+            )
             if index >= 5:
                 embed = discord.Embed(
-                    title="Pypke Guilds",
-                    description=desc,
-                    color=0x2f3136
+                    title="Pypke Guilds", description=desc, color=0x2F3136
                 )
                 embeds.append(embed)
-                index = 0          
-        
+                index = 0
+
         await Pagination.paginate(self, ctx, embeds)
 
     @commands.command(hidden=True)
@@ -85,6 +87,7 @@ class Owners(commands.Cog):
         guild = self.client.get_guild(guildid)
         await guild.leave()
         await ctx.send(f":ok_hand: **Left guild**: {guild.name} ({guild.id})")
+
 
 def setup(client):
     client.add_cog(Owners(client))

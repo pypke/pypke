@@ -3,6 +3,8 @@ discord/
 examples/
 slashcogs/
 dislash/
+lavalink/
+bot.py
 *.webm
 *.lock
 *.toml
@@ -12,6 +14,7 @@ keep_alive.py
 *.replit
 *.zip
 *.old
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
