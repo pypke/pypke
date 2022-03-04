@@ -1,17 +1,21 @@
-from utils.pagination import Pagination
-
+import asyncio
 import math
 import re
-import asyncio
-import aiohttp
 from typing import Optional
 from urllib.parse import quote_plus
 
-import lavalink
+import aiohttp
 import discord
+import lavalink
 from discord.ext import commands
+from utils.pagination import Pagination
 
-url_rx = re.compile("https?:\\/\\/(?:www\\.)?.+")
+yt_url = re.compile(
+    r"(https?://)?(www\.)?(youtube|youtu|youtube-nocookie)\.(com|be)/(watch\?v=|embed/|v/|.+\?v=)?(?P<id>[A-Za-z0-9\-=_]{11})"
+)
+# spotify link support soon
+spotify_url = re.compile(r"(https?://)?(www\.)?(open\.)?spotify\.com/.+")
+url_rx = re.compile(r"(https?://.*)")
 
 
 class LavalinkVoiceClient(discord.VoiceClient):
@@ -129,7 +133,9 @@ class Music(commands.Cog):
                 if isinstance(channel, int):
                     channel = guild.get_channel(channel)
 
-                await channel.send("Disconnected cause you didn't wanted to play anything.")
+                await channel.send(
+                    "Disconnected cause you didn't wanted to play anything."
+                )
                 await guild.voice_client.disconnect(force=True)
 
         elif isinstance(event, lavalink.TrackStartEvent):
@@ -159,7 +165,8 @@ class Music(commands.Cog):
         if not member.bot and after.channel is None:
             await asyncio.sleep(30)
             if not [m for m in before.channel.members if not m.bot]:
-                player = self.client.lavalink.player_manager.get(member.guild.id)
+                player = self.client.lavalink.player_manager.get(
+                    member.guild.id)
                 try:
                     await player.stop()
                     await member.guild.voice_client.disconnect(force=True)
@@ -176,8 +183,11 @@ class Music(commands.Cog):
 
         query = query.strip("<>")
 
-        if not url_rx.match(query):
-            query = f"ytsearch:{query}"
+        if not yt_url.match(query):
+            if url_rx.match(query):
+                return await ctx.send("That doesn't look like a valid Youtube URL. PS: Spotify support comming soon.")
+            else:
+                query = f"ytsearch:{query}"
 
         results = await player.node.get_tracks(query)
 
@@ -193,13 +203,16 @@ class Music(commands.Cog):
                 player.add(requester=ctx.author.id, track=track)
 
             embed.title = "Playlist Queued!"
-            embed.description = f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks'
+            embed.description = (
+                f'{results["playlistInfo"]["name"]} - {len(tracks)} tracks'
+            )
         else:
             track = results["tracks"][0]
             embed.title = "Track Queued!"
             embed.description = f'[{track["info"]["title"]}]({track["info"]["uri"]})'
 
-            track = lavalink.models.AudioTrack(track, ctx.author.id, recommended=True)
+            track = lavalink.models.AudioTrack(
+                track, ctx.author.id, recommended=True)
             player.add(requester=ctx.author.id, track=track)
 
         await ctx.send(embed=embed)
@@ -387,7 +400,9 @@ class Music(commands.Cog):
             return await ctx.send("Nothing queued.")
 
         if index > len(player.queue) or index < 1:
-            return await ctx.send(f"Index has to be **between** 1 and {len(player.queue)}")
+            return await ctx.send(
+                f"Index has to be **between** 1 and {len(player.queue)}"
+            )
 
         removed = player.queue.pop(index - 1)  # Account for 0-index.
 
@@ -438,7 +453,9 @@ class Music(commands.Cog):
         player = self.client.lavalink.player_manager.get(ctx.guild.id)
 
         if len(args) == 0:
-            return await ctx.send(f"Type `{ctx.prefix}equalizer --list` for all presets.")
+            return await ctx.send(
+                f"Type `{ctx.prefix}equalizer --list` for all presets."
+            )
         elif len(args) == 1:
             presets = {
                 "reset": "Default",
@@ -523,7 +540,9 @@ class Music(commands.Cog):
         #     except ValueError:
         #         return await ctx.send('Specify valid `band gain` values.')
         else:
-            return await ctx.send(f"Type `{ctx.prefix}equalizer --list` for all presets.")
+            return await ctx.send(
+                f"Type `{ctx.prefix}equalizer --list` for all presets."
+            )
 
     @commands.command(
         name="find",
@@ -549,7 +568,8 @@ class Music(commands.Cog):
             track_uri = track["info"]["uri"]
             o += f"`{index}.` [{track_title}]({track_uri})\n"
 
-        embed = discord.Embed(color=self.client.colors["og_blurple"], description=o)
+        embed = discord.Embed(
+            color=self.client.colors["og_blurple"], description=o)
         await ctx.send(embed=embed)
 
     @commands.command(
@@ -564,7 +584,8 @@ class Music(commands.Cog):
             return await ctx.send("Not connected.")
 
         if not ctx.author.voice or (
-            player.is_connected and ctx.author.voice.channel.id != int(player.channel_id)
+            player.is_connected and ctx.author.voice.channel.id != int(
+                player.channel_id)
         ):
             return await ctx.send("You're not in my voice channel!")
 
