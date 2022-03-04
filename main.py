@@ -1,25 +1,20 @@
-# Local Imports
-from utils.mongo import Document
-from utils.keep_alive import keep_alive
-
-# Other Imports
-import re
-import os
-import topgg
-import random
 import asyncio
 import logging
-import motor.motor_asyncio
+import os
+import random
+import re
 from copy import deepcopy
-from pathlib import Path
 from datetime import datetime
-from better_profanity import profanity
+from pathlib import Path
 
-# Discord Imports
 import discord
 import dislash
+import motor.motor_asyncio
+import topgg
 from discord.ext import commands, tasks
 
+from utils.keep_alive import keep_alive
+from utils.mongo import Document
 
 # Path
 cwd = Path(__file__).parents[0]
@@ -168,9 +163,6 @@ bot.afk_allowed_channel = {}
 # Mongo DB Stuff
 MONGO_URL = os.getenv("mongo")
 
-# Filter Words
-profanity.load_censor_words_from_file(cwd + "/data/filtered_words.txt")
-
 if __name__ == "__main__":
     # Loading cogs
     os.system("clear")
@@ -200,7 +192,7 @@ if __name__ == "__main__":
         filename="data/errors.log",
         format="%(asctime)s %(name)s %(levelname)s: %(message)s",
     )
-    bot.logger = logging.getLogger("pypke-bot")
+    bot.logger = logging.getLogger("pypke")
 
 
 @tasks.loop(seconds=30)
