@@ -1,16 +1,16 @@
-import asyncpraw
-import requests
-import random
 import asyncio
-import aiohttp
-import akinator
-from bs4 import BeautifulSoup as bs4
+import random
 from html import unescape
-from asyncprawcore import exceptions as prawexc
-from akinator.async_aki import Akinator
 from typing import Optional
 
+import aiohttp
+import akinator
+import asyncpraw
 import discord
+import requests
+from akinator.async_aki import Akinator
+from asyncprawcore import exceptions as prawexc
+from bs4 import BeautifulSoup as bs4
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 
@@ -65,13 +65,24 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     description="You took so long.",
                     color=self.client.colors["og_blurple"],
                 )
-                await msg.edit(f"{player.mention}, Game Over!", embed=embed, components=[])
+                await msg.edit(
+                    f"{player.mention}, Game Over!", embed=embed, components=[]
+                )
                 break
 
     @commands.command(name="coinflip", description="Flips a coin.", aliases=["coin"])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def coinflip_command(self, ctx):
         sides = ["Heads", "Tails"]
+        await ctx.send(f"It landed on {random.choice(sides)}!!")
+
+    @commands.command(
+        name="dice",
+        description="Rolls a dice.",
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def dice_command(self, ctx):
+        sides = [1, 2, 3, 4, 5, 6]
         await ctx.send(f"It landed on {random.choice(sides)}!!")
 
     @commands.command(
@@ -265,7 +276,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         "Something went wrong that shouldn't have happened huh."
                     )
                 elif inter.clicked_button.label == "Animal":
-                    question = await aki.start_game(language="en_animals", child_mode=True)
+                    question = await aki.start_game(
+                        language="en_animals", child_mode=True
+                    )
                     try:
                         await inter.respond(type=6)
                     except Exception:
@@ -273,7 +286,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
                     break
                 elif inter.clicked_button.label == "Object":
-                    question = await aki.start_game(language="en_objects", child_mode=True)
+                    question = await aki.start_game(
+                        language="en_objects", child_mode=True
+                    )
                     try:
                         await inter.respond(type=6)
                     except Exception:
@@ -318,7 +333,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             while True:
 
                 def check(inter):
-                    return inter.message.id == msg.id and inter.author.id == ctx.author.id
+                    return (
+                        inter.message.id == msg.id and inter.author.id == ctx.author.id
+                    )
 
                 try:
                     inter = await ctx.wait_for_button_click(check=check, timeout=30.0)
@@ -337,7 +354,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         try:
                             question = await aki.back()
                         except akinator.CantGoBackAnyFurther:
-                            await inter.respond("You are on the first page.", ephemeral=True)
+                            await inter.respond(
+                                "You are on the first page.", ephemeral=True
+                            )
 
                     if aki.progression >= 85:
                         await aki.win()
@@ -441,7 +460,8 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         # Try and except blocks to catch timeout and break
                         def check(inter):
                             return (
-                                inter.message.id == msg.id and inter.author.id == ctx.author.id
+                                inter.message.id == msg.id
+                                and inter.author.id == ctx.author.id
                             )
 
                         try:
@@ -637,7 +657,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                 if 300 > r.status >= 200:
                     data = await r.json()
                 else:
-                    return await ctx.send("Can't seem to fetch who's that pokemon right now!")
+                    return await ctx.send(
+                        "Can't seem to fetch who's that pokemon right now!"
+                    )
 
                 answer = data["Data"]["name"]
 
@@ -810,7 +832,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         random_sub = random.choice(all_subs)
         url = random_sub.url
 
-        em = discord.Embed(title=":dog: Woof", color=random.choice(self.client.color_list))
+        em = discord.Embed(
+            title=":dog: Woof", color=random.choice(self.client.color_list)
+        )
         em.set_image(url=url)
 
         await ctx.send(embed=em)
@@ -848,11 +872,17 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             title=":8ball:| **8Ball**", color=self.client.colors["og_blurple"]
         )
         embed.add_field(name="**Question**:", value=f"{question}", inline=False)
-        embed.add_field(name="**Answer**:", value=f"{random.choice(responses)}", inline=False)
-        embed.set_footer(text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url)
+        embed.add_field(
+            name="**Answer**:", value=f"{random.choice(responses)}", inline=False
+        )
+        embed.set_footer(
+            text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url
+        )
         await ctx.send(embed=embed)
 
-    @commands.command(name="choose", description="Chooses between things.", aliases=["pick"])
+    @commands.command(
+        name="choose", description="Chooses between things.", aliases=["pick"]
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def choose_command(self, ctx, *choices):
         if len(choices) > 10:
