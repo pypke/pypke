@@ -12,24 +12,24 @@ from dislash import ActionRow, Button, ButtonStyle
 
 
 class Bot(commands.Cog, description="Commands for bot setup & support."):
-    def __init__(self, client):
-        self.client: commands.Bot = client
+    def __init__(self, bot):
+        self.bot: commands.Bot = bot
 
     @commands.command(name="ping", description="Check the bot's ping.", aliases=["pong"])
     async def ping(self, ctx):
         await ctx.send(
-            f":ping_pong: Pong! \nBot latency is `{round(self.client.latency * 1000)}ms`."
+            f":ping_pong: Pong! \nBot latency is `{round(self.bot.latency * 1000)}ms`."
         )
 
     @commands.command(name="uptime", description="Check the bot's uptime.")
     async def uptime(self, ctx):
-        seconds = self.client.uptime
+        seconds = self.bot.uptime
         duration = TimeHumanizer(seconds)
         embed = discord.Embed(
-            color=self.client.colors["green"],
+            color=self.bot.colors["green"],
             title="Uptime",
             description=f"{duration}",
-            timestamp=self.client.launch_time,
+            timestamp=self.bot.launch_time,
         )
         embed.set_footer(text="Last restarted at")
         await ctx.send(embed=embed)
@@ -38,29 +38,29 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     async def stats(self, ctx):
         pythonVersion = platform.python_version()
         dpyVersion = discord.__version__
-        serverCount = len(self.client.guilds)
-        memberCount = len(set(self.client.get_all_members()))
+        serverCount = len(self.bot.guilds)
+        memberCount = len(set(self.bot.get_all_members()))
         memoryUsed = f"{round(Process(getpid()).memory_info().rss/1204/1204/1204, 3)} GB Used ({round(Process(getpid()).memory_percent())}%)"
         cpuPercent = cpu_percent()
-        uptime = TimeHumanizer(self.client.uptime)
-        text_channels = self.client.text_channels
-        voice_channels = self.client.voice_channels
-        stage_channels = self.client.stage_channels
+        uptime = TimeHumanizer(self.bot.uptime)
+        text_channels = self.bot.text_channels
+        voice_channels = self.bot.voice_channels
+        stage_channels = self.bot.stage_channels
 
         embed = discord.Embed(
-            description=f"**Ping** `{round(self.client.latency * 1000)}ms`\n**Uptime** `{uptime}`",
+            description=f"**Ping** `{round(self.bot.latency * 1000)}ms`\n**Uptime** `{uptime}`",
             colour=0x2F3136,
             timestamp=ctx.message.created_at,
         )
-        embed.set_thumbnail(url=self.client.user.avatar.url)
+        embed.set_thumbnail(url=self.bot.user.avatar.url)
         embed.set_footer(text=f"Made by Mr.Natural#3549")
         embed.set_author(
-            name=f"{self.client.user.name} Stats", icon_url=self.client.user.avatar.url
+            name=f"{self.bot.user.name} Stats", icon_url=self.bot.user.avatar.url
         )
 
         embed.add_field(
             name="Version Info:",
-            value=f"Bot Version `{self.client.version}`\nPython version `{pythonVersion}`\nDpy Version `{dpyVersion}`",
+            value=f"Bot Version `{self.bot.version}`\nPython version `{pythonVersion}`\nDpy Version `{dpyVersion}`",
             inline=False,
         )
         embed.add_field(
@@ -98,18 +98,20 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
             Button(
                 style=ButtonStyle.link,
                 label="Invite Me!",
-                url="https://discord.com/oauth2/authorize?client_id=823051772045819905&permissions=8&scope=bot%20applications.commands",
+                url="https://discord.com/oauth2/authorize?bot_id=823051772045819905&permissions=8&scope=bot%20applications.commands",
             ),
             Button(
                 style=ButtonStyle.link,
                 label="Support Server!",
                 url="https://discord.gg/mYXgu2NVzH",
             ),
-            Button(style=ButtonStyle.link, label="Website", url="https://www.pypke.tk"),
-            Button(style=ButtonStyle.link, label="Docs", url="https://docs.pypke.tk"),
+            Button(style=ButtonStyle.link, label="Website",
+                   url="https://www.pypke.tk"),
+            Button(style=ButtonStyle.link, label="Docs",
+                   url="https://docs.pypke.tk"),
         )
         em = discord.Embed(
-            description="Links related to Pypke.", color=self.client.colors["og_blurple"]
+            description="Links related to Pypke.", color=self.bot.colors["og_blurple"]
         )
         await ctx.send(embed=em, components=[invite_btn])
 
@@ -134,7 +136,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         )
         em = discord.Embed(
             description="Bot development is hard & I need money for bot hosting as you know.\nSo you can support this bot by donating. Thanks!\nIf you don't have money by still wanna help consider voting for us everyday on topgg. Please",
-            color=self.client.colors["og_blurple"],
+            color=self.bot.colors["og_blurple"],
         )
         await ctx.send(embed=em, components=[donate_btn])
 
@@ -153,7 +155,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         )
         em = discord.Embed(
             description="Vote for Pypke, So that we can continue to exist.",
-            color=self.client.colors["og_blurple"],
+            color=self.bot.colors["og_blurple"],
         )
         await ctx.send(embed=em, components=[vote_btn])
 
@@ -171,7 +173,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
                 f"My current prefix for this server is `{ctx.prefix}`. Use `{ctx.prefix}prefix <prefix>` to change it"
             )
 
-        await self.client.config.upsert(
+        await self.bot.config.upsert(
             {
                 "_id": ctx.guild.id,
                 "prefix": prefix,
@@ -180,7 +182,7 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
                 # "modlog_message": data["modlog_message"] if data["modlog_member"] else None
             }
         )
-        self.client.prefixes[ctx.guild.id] = prefix
+        self.bot.prefixes[ctx.guild.id] = prefix
         await ctx.send(
             f"The guild prefix is changed to `{prefix}`. Use `{prefix}prefix [prefix]` to change it again!"
         )
@@ -194,8 +196,8 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     @commands.has_guild_permissions(manage_guild=True)
     @commands.cooldown(1, 5, commands.BucketType.guild)
     async def resetprefix(self, ctx):
-        await self.client.config.delete(ctx.guild.id)
-        await ctx.send(f"The prefix is reset to `{self.client.prefix}`")
+        await self.bot.config.delete(ctx.guild.id)
+        await ctx.send(f"The prefix is reset to `{self.bot.prefix}`")
 
     @commands.command(
         name="feedback",
@@ -205,11 +207,11 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     @commands.guild_only()
     @commands.cooldown(1, 30, commands.BucketType.user)
     async def feedback_command(self, ctx, *, message):
-        channel = await self.client.fetch_channel(911854839074537513)
+        channel = await self.bot.fetch_channel(911854839074537513)
         embed = discord.Embed(
             title=f"Feedback from {ctx.author}",
             description=message,
-            color=self.client.colors["og_blurple"],
+            color=self.bot.colors["og_blurple"],
             timestamp=datetime.now(),
         )
         embed.set_author(name=ctx.author, icon_url=ctx.author.avatar.url)
@@ -221,5 +223,5 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
         await ctx.send("Message sent! Thanks for your feedback!")
 
 
-def setup(client):
-    client.add_cog(Bot(client))
+def setup(bot):
+    bot.add_cog(Bot(bot))

@@ -17,8 +17,8 @@ def get_log(guild):
 
 
 class LoggingCog(commands.Cog, description="This cog handles the logging of various events!"):
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, bot):
+        self.bot = bot
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, member):
@@ -47,5 +47,5 @@ class LoggingCog(commands.Cog, description="This cog handles the logging of vari
             await logs.send(embed=embed)
 
 
-def setup(client):
-    client.add_cog(LoggingCog(client))
+def setup(bot):
+    bot.add_cog(LoggingCog(bot))
