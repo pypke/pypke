@@ -55,8 +55,7 @@ class Pagination:
                 #     return False
 
                 return (
-                    inter.message.id == help_msg.id
-                    and inter.author.id == ctx.author.id
+                    inter.message.id == help_msg.id and inter.author.id == ctx.author.id
                 )
 
             try:
