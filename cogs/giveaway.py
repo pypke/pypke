@@ -52,7 +52,9 @@ class GiveawayHelper:
         end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
         try:
             await msg.edit(embed=end_embed)
-            await msg.reply(f"Congratulations! {winner.mention} has won `{data['prize']}`!")
+            await msg.reply(
+                f"Congratulations! {winner.mention} has won `{data['prize']}`!"
+            )
         except discord.HTTPException:
             pass
 
@@ -230,6 +232,28 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         if time < 300:
             await asyncio.sleep(time)
             await GiveawayHelper.roll_giveaway(self, my_msg.id)
+
+    @commands.command(name="glist", description="List all the current giveaways!")
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    async def glist_command(self, ctx):
+        data = await self.client.giveaways.find_one({"guildId": ctx.guild.id})
+        if data:
+            embed = discord.Embed(
+                title="Current Giveaways!",
+                description="Here are the current giveaways!",
+                color=self.client.colors["og_blurple"],
+            )
+            embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
+            for giveaway in data:
+                embed.add_field(
+                    name=f"Msg Id: {giveaway['_id']}",
+                    value=f"Prize: {giveaway['prize']}\nEnds: <t:{giveaway['gaDuration']}:R> (<t:{giveaway['gaDuration']}:f>)\nHosted By {ctx.guild.get_member(giveaway['hostId'])}\nChannel: {ctx.guild.get_channel(giveaway['channelId'])}",
+                )
+            await ctx.send(embed=embed)
+        else:
+            await ctx.send("No current giveaways!")
 
     @commands.command(name="greroll", description="Reroll a previous ended giveaway.")
     @commands.guild_only()
