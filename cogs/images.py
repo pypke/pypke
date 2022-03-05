@@ -209,33 +209,6 @@ class Images(commands.Cog, description="Manipulates image in various ways."):
         )
         await ctx.send(file=file)
 
-    @commands.command(
-        name="wordcloud",
-        description="Creates a wordcloud from your recent words.",
-        hidden=True,
-    )
-    async def wordcloud_command(self, ctx):
-        print(self.client.cached_messages)
-        json = {
-            "format": "png",
-            "fontFamily": "Karla",
-            "scale": "linear",
-            "case": "upper",
-            "backgroundColor": "000000",
-            "useWordList": "True",
-            "minWordLength": 4,
-            "removeStopwords": "True",
-            "text": "something you know",
-        }
-        async with aiohttp.ClientSession() as session:
-            async with session.post("https://quickchart.io/wordcloud", params=json) as r:
-                if 300 > r.status > 200:
-                    data = await r.json()
-                else:
-                    return await ctx.send("Can't fetch wordcloud for you right now!")
-
-                await ctx.send(file=data)
-
     # @commands.command(name="color", description="Visualize a color.", aliases=['colour'])
     # async def color(self, ctx, color):
     #     if not color:
