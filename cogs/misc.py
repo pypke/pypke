@@ -1,14 +1,13 @@
-from utils.time import TimeConverter
-
-import aiohttp
 import random
+from datetime import datetime
 from typing import Optional
 from urllib.parse import quote_plus
-from datetime import datetime
 
+import aiohttp
 import discord
 from discord.ext import commands
-from dislash import message_command, ActionRow, Button, ButtonStyle
+from dislash import ActionRow, Button, ButtonStyle, message_command
+from utils.time import TimeConverter
 
 WEATHER_KEY = "073a1838197e477bb83141102213110"
 
