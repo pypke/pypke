@@ -905,7 +905,6 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             "https://media.giphy.com/media/5tmRHwTlHAA9WkVxTU/giphy.gif",
             "https://images-ext-1.discordapp.net/external/5gTEJjgFQmEsfinxmX8eyo8-fiCOW7e-DA_J9KNxh5Q/https/cdn.nekos.life/pat/pat_015.gif",
             "https://media.giphy.com/media/N0CIxcyPLputW/giphy.gif",
-            "https://media.giphy.com/media/Lb3vIJjaSIQWA/giphy.gif",
         ]
 
         random_pat = random.choice(pat_gif)
@@ -921,9 +920,6 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def kill(self, ctx, member: discord.Member):
-        if member == None:
-            await ctx.send("Who do you wanna kill man?")
-            return
         if member == ctx.author:
             await ctx.send("You can't kill yourself.")
             return
@@ -931,32 +927,69 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             await ctx.send("Why are you trying to kill my fellow friend??")
             return
 
-        kill_text = [
-            "died of hunger",
-            "died with getting squashed by anvil",
-            "died after seeing cringy fortnite",
-            "died after seeing the mirror",
-            "died while writing the sucide note",
-            "died after seeing the power of Pypke The Cat...",
+        weapon_list = [
+            "gun",
+            "knife",
+            "machete",
+            "chainsaw",
+            "shovel",
+            "pistol",
+            "hoe",
+            "axe",
+            "shotgun",
+            "rifle",
+            "spear",
+            "sword",
+            "frying pan",
+            "pepper spray",
+            "donut",
         ]
 
-        random_kill = random.choice(kill_text)
-        await ctx.send(f"{member} {random_kill}")
+        kill_text = [
+            f"{member} was ALT + F4'd by {ctx.author}",
+            f"{member} was killed by {ctx.author}",
+            f"{member} was send to the void by {ctx.author}",
+            f"{member} was ko'd by {ctx.author}",
+            f"{ctx.author} restarted {member}'s career",
+            f"{ctx.author} killed {member}",
+            f"{member} died cause stickbugged by {ctx.author}",
+            f"{member} wanted to live but {ctx.author} disagreed",
+            f"{member} was killed by {ctx.author}'s {random.choice(weapon_list)}",
+            f"{member} was run over by {ctx.author}'s car",
+            f"{member} was slapped to death by {ctx.author}",
+            f"fatality: {member} was killed by {ctx.author}",
+            f"{ctx.author} was the imposter who killed {member}",
+            f"{ctx.author} was killed instead of {member}",
+            f"{ctx.author} was killed by {member}'s {random.choice(weapon_list)}",
+        ]
+
+        random_kill_text = random.choice(kill_text)
+        await ctx.send(f"{random_kill_text}")
+
+    @commands.command(name="hack", description="Hacks a user.", aliases=["hax"])
+    @commands.guild_only()
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def hack(self, ctx, member: discord.Member):
+        # work in-progress
+        if member == ctx.author:
+            await ctx.send("You can't hack yourself lol!")
+            return
+        if member.bot:
+            await ctx.send("Why are you trying to hack my fellow friend??")
+            return
+
+        hack_msgs = [
+            f"Hacking... {member} ",
+        ]
 
     @commands.command(hidden=True)
     @commands.cooldown(1, 18000, commands.BucketType.user)
     async def egg(self, ctx):
-        await ctx.send("This Is An Easter Egg!!", delete_after=2)
-
-    @commands.command(
-        name="hack",
-        description="This command can hack a user! THIS IS NOT A JOKE.",
-        hidden=True,
-    )
-    @commands.guild_only()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def hack(self, ctx, member: discord.Member):
-        pass
+        chance = 0.0001
+        if random.random() < chance:
+            await ctx.send(
+                "This is an easter egg! It has 0.01% chance of happening so less that you can brag about being the chosen one."
+            )
 
 
 def setup(client):
