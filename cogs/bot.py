@@ -172,32 +172,47 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
             return await ctx.send(
                 f"My current prefix for this server is `{ctx.prefix}`. Use `{ctx.prefix}prefix <prefix>` to change it"
             )
-
-        await self.bot.config.upsert(
-            {
-                "_id": ctx.guild.id,
-                "prefix": prefix,
-                # "modlog_mod": data["modlog_mod"] if data["modlog_mod"] else None,
-                # "modlog_member": data["modlog_member"] if data["modlog_member"] else None,
-                # "modlog_message": data["modlog_message"] if data["modlog_member"] else None
-            }
-        )
+        data = await self.bot.config.get(ctx.guild.id)
+        if not data:
+            await self.bot.config.upsert(
+                {
+                    "_id": ctx.guild.id,
+                    "prefix": prefix,
+                }
+            )
+        else:
+            await self.bot.config.change(ctx.guild.id, "prefix", prefix)
+            
         self.bot.prefixes[ctx.guild.id] = prefix
         await ctx.send(
             f"The guild prefix is changed to `{prefix}`. Use `{prefix}prefix [prefix]` to change it again!"
         )
-
-    @commands.command(
-        name="resetprefix",
-        description="Reset the server prefix.",
-        aliases=["deleteprefix"],
+        
+    @commands.group(
+        name="logging",
+        description="Set logging channel for the bot.",
+        aliases=["setlogging", "setlog"],
     )
+    @commands.has_permissions(manage_guild=True)
     @commands.guild_only()
-    @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 5, commands.BucketType.guild)
-    async def resetprefix(self, ctx):
-        await self.bot.config.delete(ctx.guild.id)
-        await ctx.send(f"The prefix is reset to `{self.bot.prefix}`")
+    @commands.cooldown(1, 10, commands.BucketType.guild)
+    async def logging_command(self, ctx: commands.Context, channel: Optional[discord.TextChannel]):
+        if not channel:
+            if ctx.invoked_subcommand:
+                return await ctx.invoke(self.bot.get_command("help"), command_or_module="logging")
+            
+        data = await self.bot.config.get(ctx.guild.id)
+        if data:
+            await self.bot.config.change(ctx.guild.id, "logging", channel.id)
+        else:
+            await self.bot.config.upsert(
+                {
+                    "_id": ctx.guild.id,
+                    "logging": channel.id
+                }
+            )
+        
+        await ctx.send(f"Logging channel for all the available activities is now set as {channel.mention}")
 
     @commands.command(
         name="feedback",

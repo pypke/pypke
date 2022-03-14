@@ -13,7 +13,7 @@ class LoggingCog(commands.Cog):
     def get_guild_log(self, guild):
         data = self.bot.config.get(guild.id)
         if data:
-            log_channel = data["log"]
+            log_channel = data["logging"]
             return log_channel
 
         possible_names = ["modlogs", "logs", "logging", "mod-logs", "log"]
