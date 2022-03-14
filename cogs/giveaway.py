@@ -14,10 +14,10 @@ from discord.ext import commands, tasks
 
 class GiveawayHelper:
     async def roll_giveaway(self, _id):
-        data = await self.client.giveaways.find(_id)
+        data = await self.bot.giveaways.find(_id)
 
         try:
-            guild = self.client.get_guild(data["guildId"])
+            guild = self.bot.get_guild(data["guildId"])
             channel = guild.get_channel(data["channelId"])
             msg = await channel.fetch_message(data["_id"])
 
@@ -27,7 +27,7 @@ class GiveawayHelper:
             return
 
         users = await msg.reactions[0].users().flatten()
-        users.pop(users.index(self.client.user))
+        users.pop(users.index(self.bot.user))
 
         try:
             winner = random.choice(users)
@@ -37,7 +37,7 @@ class GiveawayHelper:
             end_embed = discord.Embed(
                 title=data["prize"],
                 description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: No one",
-                color=self.client.colors["og_blurple"],
+                color=self.bot.colors["og_blurple"],
             )
             end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
             await msg.edit(embed=end_embed)
@@ -47,7 +47,7 @@ class GiveawayHelper:
         end_embed = discord.Embed(
             title=data["prize"],
             description=f"Ended: <t:{ended_time}:R> (<t:{ended_time}:f>)\nWinner: {winner.mention}",
-            color=self.client.colors["og_blurple"],
+            color=self.bot.colors["og_blurple"],
         )
         end_embed.set_footer(icon_url=guild.icon.url, text=guild.name)
         try:
@@ -61,10 +61,10 @@ class GiveawayHelper:
         await GiveawayHelper.remove_giveaway(self, data["_id"])
 
     async def remove_giveaway(self, _id):
-        await self.client.giveaways.delete(_id)
+        await self.bot.giveaways.delete(_id)
 
         try:
-            self.client.current_giveaways.pop(_id)
+            self.bot.current_giveaways.pop(_id)
         except KeyError:
             pass
 
@@ -72,8 +72,8 @@ class GiveawayHelper:
 
 
 class Giveaway(commands.Cog, description="Commands for giveaway creation."):
-    def __init__(self, client):
-        self.bot = client
+    def __init__(self, bot):
+        self.bot = bot
         self.giveaways_task = self.check_current_giveaways.start()
 
     def cog_unload(self):
@@ -246,6 +246,7 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
                 color=self.bot.colors["og_blurple"],
             )
             embed.set_footer(icon_url=ctx.guild.icon.url, text=ctx.guild.name)
+            print(data)
             for giveaway in data:
                 embed.add_field(
                     name=f"Msg Id: {giveaway['_id']}",
@@ -326,5 +327,5 @@ class Giveaway(commands.Cog, description="Commands for giveaway creation."):
         await ctx.send("Deleted the giveaway!")
 
 
-def setup(client):
-    client.add_cog(Giveaway(client))
+def setup(bot):
+    bot.add_cog(Giveaway(bot))
