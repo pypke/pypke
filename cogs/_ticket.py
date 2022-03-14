@@ -241,9 +241,7 @@ class Ticket(commands.Cog):
     @commands.has_permissions(manage_guild=True)
     async def ticket(self, ctx):
         if ctx.invoked_subcommand:
-            return
-
-        await ctx.invoke(self.bot.get_command("help"), command_or_module="ticket")
+            return await ctx.invoke(self.bot.get_command("help"), command_or_module="ticket")
 
     @ticket.command(name="setup", description="Setups ticketing in this server.")
     @commands.guild_only()
