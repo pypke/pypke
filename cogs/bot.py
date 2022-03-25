@@ -75,18 +75,6 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
 
         await ctx.send(embed=embed)
 
-    @commands.command(name="news", description="See the latest news about this bot!")
-    async def news(self, ctx):
-        news = discord.Embed(
-            description="**📢 __New Fun Commands Added__**\n• `trivia` to answer difficult questions.\n• `pokedex` to search info about a pokémon.\n• `wyr` to answer would you rather questions.\n• `joke` to read wholesome jokes.\n\n**🤖 __ChatBot AI Implementation__**\n• Use `#chatbot <channel-id>` to start ChatBot.\n• Use `#chatbot stop` to stop chatbot.\n\n**🔗 __Some New Links__**\n• [**Website**](https://www.pypke.tk)\n• [**Docs**](https://docs.pypke.tk)\n• [**Support Server**](https://discord.gg/mYXgu2NVzH)",
-            color=0xF7770F,
-        )
-        news.set_footer(
-            text="If you encounter any bugs or breaks report them on our Support Server."
-        )
-        news.set_author(name="Bot Changes", url="https://docs.pypke.tk/")
-        await ctx.send(embed=news)
-
     @commands.command(
         name="links",
         description="Get the links related to pypke.",
@@ -198,8 +186,10 @@ class Bot(commands.Cog, description="Commands for bot setup & support."):
     @commands.cooldown(1, 10, commands.BucketType.guild)
     async def logging_command(self, ctx: commands.Context, channel: Optional[discord.TextChannel]):
         if not channel:
-            if ctx.invoked_subcommand:
+            if not ctx.invoked_subcommand:
                 return await ctx.invoke(self.bot.get_command("help"), command_or_module="logging")
+            else:
+                return
             
         data = await self.bot.config.get(ctx.guild.id)
         if data:
