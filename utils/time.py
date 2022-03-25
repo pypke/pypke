@@ -1,4 +1,8 @@
 import re
+from typing import Optional, Union
+
+import arrow
+from dateutil import parser
 from discord.ext import commands
 
 # Time Variables
@@ -80,3 +84,32 @@ class TimeHumanizer:
             duration = duration.replace("seconds", "second")
 
         return duration
+
+
+
+class DateString(commands.Converter):
+    """Convert a relative or absolute date/time string to an arrow.Arrow object."""
+
+    async def convert(
+        self, ctx: commands.Context, argument: str
+    ) -> Union[arrow.Arrow, Optional[tuple]]:
+        """
+        Convert a relative or absolute date/time string to an arrow.Arrow object.
+        Try to interpret the date string as a relative time. If conversion fails, try to interpret it as an absolute
+        time. Tokens that are not recognised are returned along with the part of the string that was successfully
+        converted to an arrow object. If the date string cannot be parsed, BadArgument is raised.
+        """
+        try:
+            return arrow.utcnow().dehumanize(argument)
+        except (ValueError, OverflowError):
+            try:
+                dt, ignored_tokens = parser.parse(argument, fuzzy_with_tokens=True)
+            except parser.ParserError:
+                raise commands.BadArgument(
+                    f"`{argument}` Could not be parsed to a relative or absolute date."
+                )
+            except OverflowError:
+                raise commands.BadArgument(
+                    f"`{argument}` Results in a date outside of the supported range."
+                )
+            return arrow.get(dt), ignored_tokens
