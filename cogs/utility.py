@@ -714,7 +714,7 @@ class Utility(commands.Cog):
                 data["log_channel"] = channel.id
             else:
                 data = {
-                    "log_channel" = channel.id
+                    "log_channel": channel.id
                 }
 
             await self.client.config.upsert(data)
