@@ -699,22 +699,10 @@ class Utility(commands.Cog):
         )
         await ctx.respond(embed=embed)
 
-    @commands.group(
-        name="modlog",
-        description="Modlog group command. Does nothing without subcommands.",
-        invoke_without_subcommand=False,
-        hidden=True,
-    )
-    @commands.guild_only()
-    @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 10, commands.BucketType.guild)
-    async def modlog_command(self, ctx):
-        pass
-
-    @modlog_command.command(
-        name="moderation",
-        description="Set modlog channel for moderation actions.",
-        aliases=["mod"],
+    @commands.command(
+        name="logging",
+        description="Set a channel for bot logs.",
+        aliases=["log"],
     )
     @commands.guild_only()
     @commands.has_guild_permissions(manage_guild=True)
@@ -722,36 +710,15 @@ class Utility(commands.Cog):
     async def modlog_mod(self, ctx, channel: Optional[discord.TextChannel]):
         if channel:
             data = await self.client.config.find(ctx.guild.id)
-            new_data = {
-                "_id": ctx.guild.id,
-                "prefix": data["prefix"] or self.client.prefix,
-                "modlog_mod": channel.id,
-                "modlog_member": data["modlog_member"]
-                if data["modlog_member"]
-                else None,
-                "modlog_message": data["modlog_message"]
-                if data["modlog_member"]
-                else None,
-            }
-            await self.client.config.upsert(new_data)
-            await ctx.send(
-                f"{channel.mention} is now set as Modlog channel for moderation actions."
-            )
-        else:
-            data = await self.client.config.find(ctx.guild.id)
-            new_data = {
-                "_id": ctx.guild.id,
-                "prefix": data["prefix"] or self.client.prefix,
-                "modlog_mod": None,
-                "modlog_member": data["modlog_member"]
-                if data["modlog_member"]
-                else None,
-                "modlog_message": data["modlog_message"]
-                if data["modlog_member"]
-                else None,
-            }
-            await self.client.config.upsert(new_data)
-            await ctx.send(f"{channel.mention} is now removed as a Modlog channel.")
+            if data:
+                data["log_channel"] = channel.id
+            else:
+                data = {
+                    "log_channel" = channel.id
+                }
+
+            await self.client.config.upsert(data)
+            await ctx.send("Done, {channel.mention} set as bot log.")
 
     @commands.group(name="afk", description="Shows this message.")
     @commands.guild_only()
