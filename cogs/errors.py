@@ -38,7 +38,9 @@ class ErrorsCog(commands.Cog):
 
         elif isinstance(error, commands.NoPrivateMessage):
             try:
-                await ctx.author.send(f"{ctx.command} can not be used in Private Messages.")
+                await ctx.author.send(
+                    f"{ctx.command} can not be used in Private Messages."
+                )
             except discord.HTTPException:
                 pass
 
@@ -63,7 +65,9 @@ class ErrorsCog(commands.Cog):
                 pass
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send(f"`{error.param.name}` is a required argument that is missing.")
+            await ctx.send(
+                f"`{error.param.name}` is a required argument that is missing."
+            )
             # await ctx.invoke(self.bot.get_command("help"), command_or_module=ctx.command.qualified_name)
 
         elif isinstance(error, commands.NotOwner):
@@ -96,7 +100,7 @@ class ErrorsCog(commands.Cog):
             )
 
         elif isinstance(error, commands.CommandInvokeError):
-            error_key = "".join(random.choices(string.ascii_lowercase + string.digits, k=10))
+            error_key = "".join(random.choices(string.hexdigits, k=10))
             embed = discord.Embed(
                 title="Error occured",
                 description=f"Looks like an error occured, pls consider reporting the error ID to the developers on the [support server](https://dsc.gg/pypke-support).",

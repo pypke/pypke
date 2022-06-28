@@ -3,6 +3,7 @@ discord/
 examples/
 slashcogs/
 dislash/
+lavalink/
 bot.py
 *.webm
 *.lock

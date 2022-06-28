@@ -1,16 +1,16 @@
-import asyncpraw
-import requests
-import random
 import asyncio
-import aiohttp
-import akinator
-from bs4 import BeautifulSoup as bs4
+import random
 from html import unescape
-from asyncprawcore import exceptions as prawexc
-from akinator.async_aki import Akinator
 from typing import Optional
 
+import aiohttp
+import akinator
+import asyncpraw
 import discord
+import requests
+from akinator.async_aki import Akinator
+from asyncprawcore import exceptions as prawexc
+from bs4 import BeautifulSoup as bs4
 from discord.ext import commands
 from dislash import ActionRow, Button, ButtonStyle
 
@@ -65,13 +65,24 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                     description="You took so long.",
                     color=self.client.colors["og_blurple"],
                 )
-                await msg.edit(f"{player.mention}, Game Over!", embed=embed, components=[])
+                await msg.edit(
+                    f"{player.mention}, Game Over!", embed=embed, components=[]
+                )
                 break
 
     @commands.command(name="coinflip", description="Flips a coin.", aliases=["coin"])
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def coinflip_command(self, ctx):
         sides = ["Heads", "Tails"]
+        await ctx.send(f"It landed on {random.choice(sides)}!!")
+
+    @commands.command(
+        name="dice",
+        description="Rolls a dice.",
+    )
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def dice_command(self, ctx):
+        sides = [1, 2, 3, 4, 5, 6]
         await ctx.send(f"It landed on {random.choice(sides)}!!")
 
     @commands.command(
@@ -265,7 +276,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         "Something went wrong that shouldn't have happened huh."
                     )
                 elif inter.clicked_button.label == "Animal":
-                    question = await aki.start_game(language="en_animals", child_mode=True)
+                    question = await aki.start_game(
+                        language="en_animals", child_mode=True
+                    )
                     try:
                         await inter.respond(type=6)
                     except Exception:
@@ -273,7 +286,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
 
                     break
                 elif inter.clicked_button.label == "Object":
-                    question = await aki.start_game(language="en_objects", child_mode=True)
+                    question = await aki.start_game(
+                        language="en_objects", child_mode=True
+                    )
                     try:
                         await inter.respond(type=6)
                     except Exception:
@@ -318,7 +333,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             while True:
 
                 def check(inter):
-                    return inter.message.id == msg.id and inter.author.id == ctx.author.id
+                    return (
+                        inter.message.id == msg.id and inter.author.id == ctx.author.id
+                    )
 
                 try:
                     inter = await ctx.wait_for_button_click(check=check, timeout=30.0)
@@ -337,7 +354,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         try:
                             question = await aki.back()
                         except akinator.CantGoBackAnyFurther:
-                            await inter.respond("You are on the first page.", ephemeral=True)
+                            await inter.respond(
+                                "You are on the first page.", ephemeral=True
+                            )
 
                     if aki.progression >= 85:
                         await aki.win()
@@ -441,7 +460,8 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                         # Try and except blocks to catch timeout and break
                         def check(inter):
                             return (
-                                inter.message.id == msg.id and inter.author.id == ctx.author.id
+                                inter.message.id == msg.id
+                                and inter.author.id == ctx.author.id
                             )
 
                         try:
@@ -637,7 +657,9 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                 if 300 > r.status >= 200:
                     data = await r.json()
                 else:
-                    return await ctx.send("Can't seem to fetch who's that pokemon right now!")
+                    return await ctx.send(
+                        "Can't seem to fetch who's that pokemon right now!"
+                    )
 
                 answer = data["Data"]["name"]
 
@@ -722,7 +744,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
                 "The subreddit you are requesting is NSFW. So, This channel needs to be marked NSFW."
             )
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 if submission.over_18 and not ctx.channel.is_nsfw():
                     pass
@@ -756,7 +778,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         )
         all_subs = []
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -784,7 +806,7 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         subreddit = await reddit.subreddit("catpictures")
         all_subs = []
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
@@ -803,14 +825,16 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
         subreddit = await reddit.subreddit("dogpictures")
         all_subs = []
 
-        async for submission in subreddit.hot(limit=75):
+        async for submission in subreddit.hot(limit=50):
             if not submission.locked and not submission.stickied:
                 all_subs.append(submission)
 
         random_sub = random.choice(all_subs)
         url = random_sub.url
 
-        em = discord.Embed(title=":dog: Woof", color=random.choice(self.client.color_list))
+        em = discord.Embed(
+            title=":dog: Woof", color=random.choice(self.client.color_list)
+        )
         em.set_image(url=url)
 
         await ctx.send(embed=em)
@@ -848,11 +872,17 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             title=":8ball:| **8Ball**", color=self.client.colors["og_blurple"]
         )
         embed.add_field(name="**Question**:", value=f"{question}", inline=False)
-        embed.add_field(name="**Answer**:", value=f"{random.choice(responses)}", inline=False)
-        embed.set_footer(text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url)
+        embed.add_field(
+            name="**Answer**:", value=f"{random.choice(responses)}", inline=False
+        )
+        embed.set_footer(
+            text=f"Asked by {ctx.author.name}", icon_url=ctx.author.avatar.url
+        )
         await ctx.send(embed=embed)
 
-    @commands.command(name="choose", description="Chooses between things.", aliases=["pick"])
+    @commands.command(
+        name="choose", description="Chooses between things.", aliases=["pick"]
+    )
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def choose_command(self, ctx, *choices):
         if len(choices) > 10:
@@ -875,7 +905,6 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             "https://media.giphy.com/media/5tmRHwTlHAA9WkVxTU/giphy.gif",
             "https://images-ext-1.discordapp.net/external/5gTEJjgFQmEsfinxmX8eyo8-fiCOW7e-DA_J9KNxh5Q/https/cdn.nekos.life/pat/pat_015.gif",
             "https://media.giphy.com/media/N0CIxcyPLputW/giphy.gif",
-            "https://media.giphy.com/media/Lb3vIJjaSIQWA/giphy.gif",
         ]
 
         random_pat = random.choice(pat_gif)
@@ -891,9 +920,6 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
     @commands.guild_only()
     @commands.cooldown(1, 3, commands.BucketType.user)
     async def kill(self, ctx, member: discord.Member):
-        if member == None:
-            await ctx.send("Who do you wanna kill man?")
-            return
         if member == ctx.author:
             await ctx.send("You can't kill yourself.")
             return
@@ -901,32 +927,69 @@ class Fun(commands.Cog, description="All the commands that you can have fun with
             await ctx.send("Why are you trying to kill my fellow friend??")
             return
 
-        kill_text = [
-            "died of hunger",
-            "died with getting squashed by anvil",
-            "died after seeing cringy fortnite",
-            "died after seeing the mirror",
-            "died while writing the sucide note",
-            "died after seeing the power of Pypke The Cat...",
+        weapon_list = [
+            "gun",
+            "knife",
+            "machete",
+            "chainsaw",
+            "shovel",
+            "pistol",
+            "hoe",
+            "axe",
+            "shotgun",
+            "rifle",
+            "spear",
+            "sword",
+            "frying pan",
+            "pepper spray",
+            "donut",
         ]
 
-        random_kill = random.choice(kill_text)
-        await ctx.send(f"{member} {random_kill}")
+        kill_text = [
+            f"{member} was ALT + F4'd by {ctx.author}",
+            f"{member} was killed by {ctx.author}",
+            f"{member} was send to the void by {ctx.author}",
+            f"{member} was ko'd by {ctx.author}",
+            f"{ctx.author} restarted {member}'s career",
+            f"{ctx.author} killed {member}",
+            f"{member} died cause stickbugged by {ctx.author}",
+            f"{member} wanted to live but {ctx.author} disagreed",
+            f"{member} was killed by {ctx.author}'s {random.choice(weapon_list)}",
+            f"{member} was run over by {ctx.author}'s car",
+            f"{member} was slapped to death by {ctx.author}",
+            f"fatality: {member} was killed by {ctx.author}",
+            f"{ctx.author} was the imposter who killed {member}",
+            f"{ctx.author} was killed instead of {member}",
+            f"{ctx.author} was killed by {member}'s {random.choice(weapon_list)}",
+        ]
+
+        random_kill_text = random.choice(kill_text)
+        await ctx.send(f"{random_kill_text}")
+
+    @commands.command(name="hack", description="Hacks a user.", aliases=["hax"])
+    @commands.guild_only()
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def hack(self, ctx, member: discord.Member):
+        # work in-progress
+        if member == ctx.author:
+            await ctx.send("You can't hack yourself lol!")
+            return
+        if member.bot:
+            await ctx.send("Why are you trying to hack my fellow friend??")
+            return
+
+        hack_msgs = [
+            f"Hacking... {member} ",
+        ]
 
     @commands.command(hidden=True)
     @commands.cooldown(1, 18000, commands.BucketType.user)
     async def egg(self, ctx):
-        await ctx.send("This Is An Easter Egg!!", delete_after=2)
-
-    @commands.command(
-        name="hack",
-        description="This command can hack a user! THIS IS NOT A JOKE.",
-        hidden=True,
-    )
-    @commands.guild_only()
-    @commands.cooldown(1, 5, commands.BucketType.user)
-    async def hack(self, ctx, member: discord.Member):
-        pass
+        chance = 0.0001
+        if random.random() < chance:
+            await ctx.send(
+                "This is an easter egg! It has 0.01% chance of happening so less that you can brag about being the chosen one."
+            )
 
 
 def setup(client):

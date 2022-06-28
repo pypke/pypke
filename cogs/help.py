@@ -1,9 +1,9 @@
 import math
 from typing import Optional
-from utils.pagination import Pagination
 
 import discord
 from discord.ext import commands
+from utils.pagination import Pagination
 
 
 class HelpCog(commands.Cog):
@@ -124,7 +124,8 @@ class HelpCog(commands.Cog):
                     embed.set_author(
                         name=f"Page {page}/{pages} ({len(commands) + 1} Commands)"
                     )
-                    embed.set_footer(text=f'Use "?help command" for more info on a command.')
+                    embed.set_footer(
+                        text=f'Use "?help command" for more info on a command.')
                     for sub_cmd in subcommands[start:end]:
                         embed.add_field(
                             name=sub_cmd.qualified_name + " " + sub_cmd.signature,
@@ -169,7 +170,8 @@ class HelpCog(commands.Cog):
                 description=f"Use `{ctx.prefix}help <command|module>` for more info.",
                 color=self.client.colors["og_blurple"],
             )
-            first.set_author(name=self.client.user.name + " Help", url="https://docs.pypke.tk")
+            first.set_author(name=self.client.user.name +
+                             " Help", url="https://docs.pypke.tk")
             first.set_thumbnail(url=self.client.user.avatar.url)
             first.add_field(
                 name="Info",
@@ -191,7 +193,8 @@ class HelpCog(commands.Cog):
 
             return await Pagination.paginate(self, ctx, pages)
 
-        modules_aliases = {"mod": "moderation", "utils": "utility", "image": "images"}
+        modules_aliases = {"mod": "moderation",
+                           "utils": "utility", "image": "images"}
         if command_or_module.lower() in modules_aliases:
             command_or_module = modules_aliases[command_or_module]
 
@@ -226,161 +229,6 @@ class HelpCog(commands.Cog):
         else:
             return await ctx.send(f'No command called "{command_or_module.lower()}" found.')
         await ctx.send(embed=embed)
-
-    # @commands.command(name="help", description="wdym you need a help for help command? idiot", aliases=['commands'])
-    # @commands.guild_only()
-    # async def help(self, ctx, *, command: str = None):
-    #     # New Help Command Work In-Progress
-    #     current = 0
-    #     first_page = discord.Embed(
-    #         title="Commands",
-    #         description="Documentation is work in-progress. Take a look here\nhttps://docs.pypke.tk\n\nDo The Commands Below To View Specific Page.",
-    #         color=self.client.colors["og_blurple"],
-    #         timestamp=datetime.now()
-    #     )
-    #     first_page.add_field(name="Moderation Commands", value="`#help moderation`")
-    #     first_page.add_field(name="Utility Commands", value="`#help utility`")
-    #     first_page.add_field(name="Fun Commands", value="`#help fun`")
-    #     first_page.add_field(name="Bot Commands", value="`#help bot`")
-    #     first_page.add_field(name="Giveaway Commands", value="`#help giveaway`")
-    #     first_page.add_field(name="Music Commands", value="`#help music`")
-
-    #     mod = discord.Embed(
-    #                              title="Moderation Commands",
-    #                              description="Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:gear: Moderation Commands\n• `kick` - Kicks the user from the server.\n• `ban` - Bans the user from the server.\n• `unban` - Unbans the user from the server.\n• `mute` - Mute the member.\n• `ban` - Unmute the member.",
-    #                              color=self.client.colors["og_blurple"],
-    #                              timestamp=datetime.now()
-    #                             )
-
-    #     utility = discord.Embed(
-    #                              title="Utilty Commands",
-    #                              description="Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tools: Utility Commands\n• `purge` - Deletes amount of messages from the used channel.\n• `avatar` - Get your's or anyone else's avatar.\n• `whois` - Shows info about the member.\n• `prefix` - Set a custom prefix for your server.\n• `resetprefix` - Reset the prefix back to '#' for your server.\n• `mail` - Mails a member for you.",
-    #                              color=self.client.colors["og_blurple"],
-    #                              timestamp=datetime.now()
-    #                             )
-
-    #     fun = discord.Embed(
-    #                              title="Fun Commands",
-    #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:smile: Fun Commands\n• `8ball` - Question the 8ball and it shall answer.\n• `joke` - Sends you a joke.\n• `pokedex` - Search a pokemon's dex entry.\n• `pat` - Pat a user.\n• `meme` - See memes from r/memes.\n• `dankmeme` - See memes from r/dankmemes.\n• `kill` - Kill a user with words.\n• `cat` - Shows a cat image.\n• `dog` - Shows a dog image.",
-    #                              color=self.client.colors["og_blurple"],
-    #                              timestamp=datetime.now()
-    #                             )
-
-    #     bot = discord.Embed(
-    #                              title="Bot Commands",
-    #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:robot: Bot Commands\n• `ping` - Ping to check the bot's latency.\n• `stats` - Check the bot's stats.\n• `uptime` - Check the bot's uptime.\n• `invite` - Invite me to your server.",
-    #                              color=self.client.colors["og_blurple"],
-    #                              timestamp=datetime.now()
-    #                             )
-
-    #     giveaway = discord.Embed(
-    #                              title="Giveaway Commands",
-    #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:tada: Giveaway Commands\n• `gstart` - Start a giveaway quickly.\n• `gcreate` - Start a giveaway but interactively.\n• `greroll` - Reroll a giveaway winner.\n• `gend` - End a giveaway.",
-    #                              color=self.client.colors["og_blurple"],
-    #                              timestamp=datetime.now()
-    #                             )
-
-    #     music = discord.Embed(
-    #                              title="Music Commands",
-    #                              description=f"Use The Buttons Below To Change Pages.\nUse `#help <command>` for extended information on a command.\n\n:musical_note: Music Commands\n• `join` - Make the bot join your vc.\n• `play` - Play a song.\n• `skip` - Skips current playing song.\n• `queue` - Shows you the songs currenly in queue.\n• `volume` - Change the bot's volume.\n• `stop` - Make the bot leave the vc.",
-    #                              color=self.client.colors["og_blurple"],
-    #                              timestamp=datetime.now()
-    #                             )
-
-    #     pages = [first_page, mod, utility, bot, fun, giveaway, music]
-
-    #     # if command != None and command.lower() in pages:
-    #     #     await ctx.send(embed=command.lower())
-    #     try:
-    #         cmd = self.client.get_command(command)
-    #         if not cmd:
-    #             raise commands.CommandNotFound
-    #             return
-
-    #         cmd_embed = discord.Embed(
-    #             title=f"{cmd.qualified_name} {cmd.signature}",
-    #             description=cmd.description if cmd.description else "No help provided",
-    #             color=self.client.color
-    #         )
-    #         return await ctx.send(embed=cmd_embed)
-    #     except Exception:
-    #         pass
-
-    #     page_btn = ActionRow(
-    #         Button(
-    #                 label = "Back",
-    #                 custom_id = "back",
-    #                 style = ButtonStyle.blurple
-    #             ),
-    #             Button(
-    #                 label = f"Page {int(pages.index(pages[current])) + 1}/{len(pages)}",
-    #                 custom_id = "cur",
-    #                 style = ButtonStyle.gray,
-    #                 disabled = True
-    #             ),
-    #                 Button(
-    #                 label = "Stop",
-    #                 custom_id = "stop",
-    #                 style = ButtonStyle.red
-    #             ),
-    #             Button(
-    #                 label = "Next",
-    #                 custom_id = "ahead",
-    #                 style = ButtonStyle.blurple
-    #             ))
-    #     help_msg = await ctx.send(embed=pages[current], components=[page_btn])
-    #     while True:
-    #         # Try and except blocks to catch timeout and break
-    #         def check(inter):
-    #             return inter.message.id == help_msg.id and inter.author.id == ctx.author.id
-
-    #         try:
-    #             inter = await ctx.wait_for_button_click(check=check, timeout=20.0)
-
-    #             if (inter.clicked_button.label.lower() == "back"):
-    #                 current -= 1
-    #             elif (inter.clicked_button.label.lower() == "next"):
-    #                 current += 1
-    #             elif (inter.clicked_button.label.lower() == "stop"):
-    #                 await help_msg.edit(components=[])
-    #                 break
-
-    #             # If its out of index, go back to start / end
-    #             if current == len(pages):
-    #                 current = 0
-    #             elif current < 0:
-    #                 current = len(pages) - 1
-
-    #             # Redefination For Page Number
-    #             page_btn = ActionRow(
-    #                 Button(
-    #                 label = "Back",
-    #                 custom_id = "back",
-    #                 style = ButtonStyle.blurple
-    #             ),
-    #                 Button(
-    #                 label = f"Page {int(pages.index(pages[current])) + 1}/{len(pages)}",
-    #                 custom_id = "cur",
-    #                 style = ButtonStyle.gray,
-    #                 disabled = True
-    #             ),
-    #                 Button(
-    #                 label = "Stop",
-    #                 custom_id = "stop",
-    #                 style = ButtonStyle.red
-    #             ),
-    #                 Button(
-    #                 label = "Next",
-    #                 custom_id = "ahead",
-    #                 style = ButtonStyle.blurple
-    #             ))
-    #             await inter.reply(type=7, embed=pages[current], components=[page_btn])
-
-    #         except asyncio.TimeoutError:
-    #             await help_msg.edit(components=[])
-    #             break
-    #         except Exception:
-    #             break
 
 
 def setup(client):

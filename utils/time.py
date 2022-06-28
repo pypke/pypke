@@ -1,4 +1,8 @@
 import re
+from typing import Optional, Union
+
+import arrow
+from dateutil import parser
 from discord.ext import commands
 
 # Time Variables
@@ -50,17 +54,18 @@ class TimeHumanizer:
     Raises:
         commands.BadArgument: If time is negative.
     """
-    def __init__(self, value: int):
+
+    def __new__(self, value: int):
         if value <= 0:
             raise commands.BadArgument(f"Time cannot be negative.")
-        
+
         duration = ""
-        
+
         minutes, seconds = divmod(value, 60)
         hours, minutes = divmod(minutes, 60)
         days, hours = divmod(hours, 24)
         months, days = divmod(days, 30)
-        
+
         duration += f"{months} months, " if months > 0 else ""
         duration += f"{days} days, " if days > 0 else ""
         duration += f"{hours} hours, " if hours > 0 else ""
@@ -77,5 +82,34 @@ class TimeHumanizer:
             duration = duration.replace("minutes", "minute")
         if seconds == 1:
             duration = duration.replace("seconds", "second")
-        
-        self = duration
+
+        return duration
+
+
+
+class DateString(commands.Converter):
+    """Convert a relative or absolute date/time string to an arrow.Arrow object."""
+
+    async def convert(
+        self, ctx: commands.Context, argument: str
+    ) -> Union[arrow.Arrow, Optional[tuple]]:
+        """
+        Convert a relative or absolute date/time string to an arrow.Arrow object.
+        Try to interpret the date string as a relative time. If conversion fails, try to interpret it as an absolute
+        time. Tokens that are not recognised are returned along with the part of the string that was successfully
+        converted to an arrow object. If the date string cannot be parsed, BadArgument is raised.
+        """
+        try:
+            return arrow.utcnow().dehumanize(argument)
+        except (ValueError, OverflowError):
+            try:
+                dt, ignored_tokens = parser.parse(argument, fuzzy_with_tokens=True)
+            except parser.ParserError:
+                raise commands.BadArgument(
+                    f"`{argument}` Could not be parsed to a relative or absolute date."
+                )
+            except OverflowError:
+                raise commands.BadArgument(
+                    f"`{argument}` Results in a date outside of the supported range."
+                )
+            return arrow.get(dt), ignored_tokens

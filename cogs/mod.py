@@ -15,40 +15,6 @@ class Moderation(commands.Cog):
 
     def __init__(self, client):
         self.client = client
-        self.mute_task = self.check_current_mutes.start()
-
-    def cog_unload(self):
-        self.mute_task.cancel()
-
-    @tasks.loop(minutes=5)
-    async def check_current_mutes(self):
-        currentTime = datetime.now()
-        mutes = deepcopy(self.client.muted_users)
-        for key, value in mutes.items():
-            if value["muteDuration"] is None:
-                continue
-
-            unmuteTime = value["mutedAt"] + relativedelta(seconds=value["muteDuration"])
-
-            if currentTime >= unmuteTime:
-                guild = self.client.get_guild(value["guildId"])
-                offender = guild.get_member(value["_id"])
-                moderator = guild.get_member(value["mutedBy"])
-
-                role = discord.utils.get(guild.roles, name="Muted")
-                if role in offender.roles:
-                    await offender.remove_roles(role)
-                    print(f"Unmuted: {offender}")
-
-                await self.client.mutes.delete(offender.id)
-                try:
-                    self.client.muted_users.pop(offender.id)
-                except KeyError:
-                    pass
-
-    @check_current_mutes.before_loop
-    async def before_check_current_mutes(self):
-        await self.client.wait_until_ready()
 
     @commands.command(
         name="kick",
@@ -318,142 +284,9 @@ class Moderation(commands.Cog):
         await ctx.send(f"Soft-Banned {member}.")
 
     @commands.command(
-        name="mute",
-        description="Mute a member. \nIf time is below 28 days use `timeout` command instead. See `?help timeout`. ",
-        cooldown_after_parsing=True,
-    )
-    @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
-    async def mute(self, ctx, member: discord.Member, *, time: Optional[TimeConverter]):
-        role = discord.utils.get(ctx.guild.roles, name="Muted")
-        if not role:
-            await ctx.send("No muted role was found! Please create one called `Muted`")
-            return
-
-        try:
-            if self.client.muted_users[member.id]:
-                await ctx.send("This user is already muted")
-                return
-        except KeyError:
-            pass
-
-        data = {
-            "_id": member.id,
-            "mutedAt": datetime.now(),
-            "muteDuration": time or None,
-            "mutedBy": ctx.author.id,
-            "guildId": ctx.guild.id,
-        }
-        await self.client.mutes.upsert(data)
-        self.client.muted_users[member.id] = data
-
-        await member.add_roles(role)
-
-        if time and time > 2592000:
-            ctx.send("Time cannot be greater than 1 Month/30 Days")
-        else:
-            pass
-
-        if not time:
-            await ctx.send(f"{member} Was Muted")
-            modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
-            embed = discord.Embed(
-                title="Muted",
-                description=f"Offender: {member} | {member.mention}\nModerator: {ctx.author}",
-                color=discord.Color.red(),
-                timestamp=datetime.now(),
-            )
-            await modlogs.send(embed=embed)
-        else:
-            # Converting Time Back To Readble Letters
-            minutes, seconds = divmod(time, 60)
-            hours, minutes = divmod(minutes, 60)
-            days, hours = divmod(hours, 24)
-            duration = ""
-            if days != 0:
-                duration = duration + f"{days} days "
-            if hours != 0:
-                duration = duration + f"{hours} hours "
-            if minutes != 0:
-                duration = duration + f"{minutes} minutes "
-            if seconds != 0:
-                duration = duration + f"{seconds} seconds "
-
-            try:
-                modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
-                embed = discord.Embed(
-                    title="Muted",
-                    description=f"Offender: {member} | {member.mention}\nModerator: {ctx.author}\nDuration: {duration}",
-                    color=discord.Color.red(),
-                    timestamp=datetime.now(),
-                )
-                await modlogs.send(embed=embed)
-                await ctx.send(f"{member} was muted for {duration}")
-            except:
-                await ctx.send(f"{member} was muted for {duration}")
-
-        if time and time < 300:
-            await asyncio.sleep(time)
-            try:
-                modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
-                embed = discord.Embed(
-                    title="Unmuted",
-                    description=f"Offender: {member} | {member.mention}\nModerator: {ctx.author}\nDuration: {duration}",
-                    color=discord.Color.green(),
-                    timestamp=datetime.now(),
-                )
-                await modlogs.send(embed=embed)
-            except:
-                pass
-
-            if role in member.roles:
-                await member.remove_roles(role)
-                await ctx.send(f"{member} Was Unmuted ")
-
-            await self.client.mutes.delete(member.id)
-            try:
-                self.client.muted_users.pop(member.id)
-            except KeyError:
-                pass
-
-    @commands.command(
-        name="unmute", description="Unmute a muted member.", cooldown_after_parsing=True
-    )
-    @commands.guild_only()
-    @commands.has_permissions(manage_roles=True)
-    async def unmute(self, ctx, member: discord.Member):
-        role = discord.utils.get(ctx.guild.roles, name="Muted")
-        if not role:
-            await ctx.send("No muted role was found! Please create one called `Muted`")
-            return
-
-        if role not in member.roles:
-            await ctx.send("This member is not muted.")
-            return
-
-        await self.client.mutes.delete(member.id)
-        try:
-            self.client.muted_users.pop(member.id)
-        except KeyError:
-            pass
-
-        await member.remove_roles(role)
-        await ctx.send(f"{member} Was Unmuted")
-        try:
-            modlogs = discord.utils.get(ctx.guild.channels, name="modlogs")
-            embed = discord.Embed(
-                title="Unmuted",
-                description=f"Offender: {member} | {member.mention}\nModerator: {ctx.author}",
-                color=discord.Color.green(),
-                timestamp=datetime.now(),
-            )
-            await modlogs.send(embed=embed)
-        except:
-            pass
-
-    @commands.command(
         name="timeout",
         description="Timeouts the user. Better than mute.",
+        aliases=["mute"],
         cooldown_after_parsing=True,
     )
     @commands.guild_only()
@@ -461,7 +294,7 @@ class Moderation(commands.Cog):
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def timeout(self, ctx, member: discord.Member, *, duration: TimeConverter):
         if duration > 2419200:
-            return await ctx.send("Time cannot be greater than 28 days.")
+            return await ctx.send("Time cannot be greater than 28 days now, This command uses discord's timeout feature.")
 
         duration_ = duration
         duration = timedelta(seconds=duration)
@@ -492,11 +325,12 @@ class Moderation(commands.Cog):
         await member.timeout_for(
             duration=duration, reason=f"Timeout by {ctx.author} (ID: {ctx.author.id})"
         )
-        await ctx.send(f"Timed out {member}` for {TimeHumanizer(duration_)}.")
+        await ctx.send(f"Timed out `{member}` for {TimeHumanizer(duration_)}.")
 
     @commands.command(
         name="untimeout",
         description="Remove timeout from the user.",
+        aliases=["unmute"],
         cooldown_after_parsing=True,
     )
     @commands.guild_only()

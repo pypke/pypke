@@ -1,5 +1,6 @@
 import logging
 import collections
+
 """
 A helper file for using mongo db
 Class document aims to make using mongo calls easy, saves
@@ -56,7 +57,7 @@ class Document:
         Params:
          - dict () : The dictionary with key, value to match and return data
 
-        Returns: 
+        Returns:
          - None if nothing is found
          - If something found, return that
         """
@@ -190,7 +191,7 @@ class Document:
 
         await self.db.update_one({"_id": id}, {"$inc": {field: amount}})
 
-    async def change(self, id, key, value): # Idk if it works
+    async def change(self, id, key, value):  # Idk if it works
         """
         Change a given `key` by `value`
 
