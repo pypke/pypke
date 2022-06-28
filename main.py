@@ -193,7 +193,7 @@ if __name__ == "__main__":
     bot.ticket_config = Document(bot.db, "ticket_config")
     bot.active_tickets = Document(bot.db, "active_tickets")
 
-    print("\u001b[34mInitialized Database\u001b[0m\n--------")
+    print("\u001b[34mInitialized Database\u001b[0m\n---")
 
     logging.basicConfig(
         level=logging.ERROR,
