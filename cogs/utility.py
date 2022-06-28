@@ -819,42 +819,6 @@ class Utility(commands.Cog):
         except KeyError:
             pass
         
-    @commands.command(name="epoch")
-    async def epoch(self, ctx: commands.Context, *, date_time: DateString) -> None:
-        """
-        Convert an entered date/time string to the equivalent epoch.
-        **Relative time**
-            Must begin with `in...` or end with `...ago`.
-            Accepted units: "seconds", "minutes", "hours", "days", "weeks", "months", "years".
-            eg `.epoch in a month 4 days and 2 hours`
-        **Absolute time**
-            eg `.epoch 2022/6/15 16:43 -04:00`
-            Absolute times must be entered in descending orders of magnitude.
-            If AM or PM is left unspecified, the 24-hour clock is assumed.
-            Timezones are optional, and will default to UTC. The following timezone formats are accepted:
-                Z (UTC)
-                ±HH:MM
-                ±HHMM
-                ±HH
-        Times in the dropdown are shown in UTC
-        """
-        if isinstance(date_time, tuple):
-            # Remove empty strings. Strip extra whitespace from the remaining items
-            ignored_tokens = list(map(str.strip, filter(str.strip, date_time[1])))
-            date_time = date_time[0]
-            if ignored_tokens:
-                await ctx.send(f"Could not parse the following token(s): `{', '.join(ignored_tokens)}`")
-        await ctx.send(f"Date and time parsed as: `{date_time.format(arrow.FORMAT_RSS)}`")
-
-        epoch = int(date_time.timestamp())
-        view = TimestampMenuView(ctx, self._format_dates(date_time), epoch)
-        original = await ctx.send(f"`{epoch}`", view=view)
-        await view.wait()  # wait until expiration before removing the dropdown
-        try:
-            await original.edit(view=None)
-        except discord.NotFound:  # disregard the error message if the message is deleled
-            pass
-
 
 def setup(client):
     client.add_cog(Utility(client))
