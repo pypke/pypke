@@ -3,12 +3,11 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
-import arrow
 import discord
 from dateutil.relativedelta import relativedelta
 from discord.ext import commands, tasks
 from dislash import ActionRow, Button, ButtonStyle, user_command
-from utils import DateString, TimeConverter, TimeHumanizer, TimestampMenuView
+from utils import TimeConverter, TimeHumanizer
 
 
 class Utility(commands.Cog):
@@ -698,27 +697,6 @@ class Utility(commands.Cog):
             inline=False,
         )
         await ctx.respond(embed=embed)
-
-    @commands.command(
-        name="logging",
-        description="Set a channel for bot logs.",
-        aliases=["log"],
-    )
-    @commands.guild_only()
-    @commands.has_guild_permissions(manage_guild=True)
-    @commands.cooldown(1, 10, commands.BucketType.guild)
-    async def modlog_mod(self, ctx, channel: Optional[discord.TextChannel]):
-        if channel:
-            data = await self.client.config.find(ctx.guild.id)
-            if data:
-                data["log_channel"] = channel.id
-            else:
-                data = {
-                    "log_channel": channel.id
-                }
-
-            await self.client.config.upsert(data)
-            await ctx.send("Done, {channel.mention} set as bot log.")
 
     @commands.group(name="afk", description="Shows this message.")
     @commands.guild_only()

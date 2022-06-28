@@ -185,7 +185,7 @@ class Music(commands.Cog):
 
         if not yt_url.match(query):
             if url_rx.match(query):
-                return await ctx.send("That doesn't look like a valid Youtube URL. PS: Spotify support comming soon.")
+                return await ctx.send("That doesn't look like a valid Youtube URL. PS: Spotify support coming soon.")
             else:
                 query = f"ytsearch:{query}"
 
@@ -351,15 +351,15 @@ class Music(commands.Cog):
     async def volume(self, ctx, volume: Optional[int]):
         player = self.client.lavalink.player_manager.get(ctx.guild.id)
 
-        try:
-            volume = int(volume)
-        except:
-            volume = int(volume[:-1])
-
         if not volume:
             return await ctx.send(f"🔈 | {player.volume}%")
         if 0 > volume > 201:
             return await ctx.send(f"Volume should be 0-200.")
+            
+        try:
+            volume = int(volume)
+        except:
+            volume = int(volume[:-1])
 
         await player.set_volume(
             volume
