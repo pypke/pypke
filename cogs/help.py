@@ -159,7 +159,6 @@ class HelpCog(commands.Cog):
                 "Moderation",
                 "Utility",
                 "Giveaway",
-                "Music",
                 "Images",
                 "Fun",
                 "Bot",
