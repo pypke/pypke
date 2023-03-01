@@ -1,8 +1,5 @@
 import re
-from typing import Optional, Union
 
-import arrow
-from dateutil import parser
 from discord.ext import commands
 
 # Time Variables
@@ -55,7 +52,7 @@ class TimeHumanizer:
 
     def __new__(self, value: int):
         if value <= 0:
-            raise commands.BadArgument(f"Time cannot be negative.")
+            raise commands.BadArgument("Time cannot be negative.")
 
         duration = ""
 
