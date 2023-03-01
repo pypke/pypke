@@ -7,8 +7,6 @@ lavalink/
 bot.py
 *.webm
 *.lock
-*.toml
-keep_alive.py
 .breakpoints
 *.m4a
 *.replit
