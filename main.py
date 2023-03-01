@@ -295,62 +295,11 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-# <--- Commands --->
-# @bot.slash_command(description="Check the ping of the bot")
-# async def ping(ctx):
-#     await ctx.respond(content=f":ping_pong: Pong! \nCurrent End-to-End latency is `{round(bot.latency * 1000)}ms`", ephemeral=True)
-
-# @bot.slash_command(description="Get a link to invite this bot")
-# async def invite(ctx):
-#     invite_btn = ActionRow(
-#             Button(
-#                 style=ButtonStyle.link,
-#                 label="Invite",
-#                 url= "https://discord.com/oauth2/authorize?bot_id=823051772045819905&permissions=8&scope=bot%20applications.commands"
-#             ))
-#     embed = discord.Embed(title="Pypke Bot", description="You Can Invite The Bot By Clicking The Button Below!", color=bot.colors["og_blurple"], timestamp=datetime.now())
-#     embed.set_footer(text="Bot by Mr.Natural#3549")
-
-#     await ctx.respond(content="This Bot Is Still In Development You May Experience Downtime!!\n", embed=embed, components=[invite_btn])
-
-# @bot.slash_command(description="Checks for how long the bot is up")
-# async def uptime(ctx):
-#     delta_uptime = datetime.now() - bot.launch_time
-#     hours, remainder = divmod(int(delta_uptime.total_seconds()), 3600)
-#     minutes, seconds = divmod(remainder, 60)
-#     days, hours = divmod(hours, 24)
-#     await ctx.respond(content=f"I'm Up For `{days}d, {hours}h, {minutes}m, {seconds}s`", ephemeral=True)
+async def start():
+    print("Starting bot....")
+    await bot.start(os.getenv("TOKEN"))
 
 
-@bot.command()
-@commands.is_owner()
-async def boosters(ctx):
-    role = ctx.guild.premium_subscriber_role
-    members = role.members
-    if not members:
-        return await ctx.send("Sad, No one is boosting this server.")
-    embed = discord.Embed(
-        title=f"No. Of Booster: {len(members)}",
-        description=(
-            "\n".join(
-                f"**{i+1}.** {member.display_name}" for i, member in enumerate(members)
-            )
-        ),
-        colour=random.choice(bot.color_list),
-        timestamp=datetime.now(),
-    )
-    embed.add_field(
-        name="\uFEFF",
-        value=f"Thanks To {role.mention} Above For Boosting This Server. :hugging:",
-    )
-    embed.set_author(name="Server Boosters")
-    embed.set_footer(
-        text=f"Requested by {ctx.author.display_name}",
-        icon_url=ctx.author.avatar.url,
-    )
-    embed.set_thumbnail(url=ctx.guild.icon_url)
-    await ctx.send(embed=embed)
-
-
-keep_alive()
-bot.run(os.getenv("token"), reconnect=True)
+if __name__ == "__main__":
+    keep_alive()  # Start the keep alive server
+    asyncio.run(start())
