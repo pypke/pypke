@@ -27,7 +27,7 @@ clikit==0.6.2
 colorama==0.4.6
 commitizen==2.42.1
 crashtest==0.4.1
-cryptography==39.0.1
+cryptography==42.0.4
 debugpy==1.6.5
 decli==0.5.2
 discord==2.1.0
