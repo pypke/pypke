@@ -34,7 +34,7 @@ discord==2.1.0
 discord-py==2.2.0
 dislash-py==1.4.9
 distlib==0.3.6
-dnspython==2.3.0
+dnspython==2.6.1
 dulwich==0.21.3
 emoji==2.2.0
 filelock==3.9.0
