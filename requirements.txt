@@ -113,7 +113,7 @@ typing-extensions==4.5.0
 ujson==5.7.0
 update-checker==0.18.0
 urllib3==1.26.14
-virtualenv==20.20.0
+virtualenv==20.26.6
 wcwidth==0.2.6
 webencodings==0.5.1
 werkzeug==2.2.3
