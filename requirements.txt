@@ -98,7 +98,7 @@ requests==2.32.0
 requests-toolbelt==0.10.1
 rope==1.7.0
 secretstorage==3.3.3
-setuptools==67.4.0
+setuptools==70.0.0
 shellingham==1.5.1
 six==1.16.0
 soupsieve==2.4
